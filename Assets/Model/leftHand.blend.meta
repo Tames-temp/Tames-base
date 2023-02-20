@@ -6,7 +6,17 @@ ModelImporter:
   - first:
       74: -623603649343465320
     second: Scene
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: nail
+    second: {fileID: 2100000, guid: 122a52b6508c1834399c9c207efb7564, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: skin
+    second: {fileID: 2100000, guid: 959af210ffc85c74e9129f64b8b6127f, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

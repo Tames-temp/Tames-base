@@ -9,7 +9,7 @@ using UnityEngine.InputSystem;
 using Tames;
 using Assets.Script;
 /// <summary>
-/// types of mainfest items. This roughly corresponds to the first word of a manifest line. This enum has several functions. It is used to define the subtypes in a <see cref="TameManifest"/>. 
+/// types of mainfest items. This roughly corresponds to the first word of a manifest line. This enum has several functions. It is used to define the subtypes in a <see cref="TameManager"/>. 
 /// Three of them (Update, Slide and Rotate) also indicate the effects of a <see cref="TameEffect"/>.
 /// </summary>
 
@@ -95,8 +95,7 @@ public enum RotatingLogic
 /// </summary>
 public enum PassTypes
 {
-    Progress = 0,
-    Total = 1,
+    Progress = 0, Total = 1,
 }
 /// <summary>
 /// types of possible tame elements when defining a <see cref="TameElement"/>.
@@ -121,7 +120,6 @@ public enum TameKeys
     Alter = 15,
     Match = 16,
 }
-
 /// <summary>
 /// types of material properties used in <see cref="TameMaterial"/>.
 /// </summary>
@@ -182,6 +180,7 @@ public enum InteractionGeometry
     Box = 1,
     Cylinder = 2,
     Sphere = 3,
+    Remote = 5,
     Error = 10,
 }
 /// <summary>
@@ -334,26 +333,86 @@ public class TrackBasis
     {
         return (tb & Object) != 0;
     }
+}
+public class Alias
+{
+    private static string[] _keys = new string[]
+    {
+            "Import",
+            "Walk",
+            "Camera",
+            "Mode",
+            "Eye",
+            "object",
+            "material",
+            "light",
+            "custom",
+            "Update",
+            "Follow",
+            "Input",
+            "Trigger",
+            "Speed",
+            "Duration/length",
+            "Cycle",
+            "Reverse/bounce",
+            "Stop",
+            "eu",
+            "ev",
+            "u",
+            "v",
+            "Color/colour",
+            "Glow/spectrum",
+            "Bright/brightness/intensity",
+            "Unique",
+            "Focus",
+            "Link",
+            "Clone",
+            "Queue",
+            "Scale",
+            "Set",
+            "Initial",
+            "Area",
+            "Local",
+            "Ratio",
+            "Stack",
+            "Count",
+            "By",
+            "Move",
+            "Turn",
+            "Both/all",
+            "Alter",
+            "Track",
+            "Factor",
+            "Match",
+            "Force",
+            "Affect"
+    };
+    public static int KeyCount = _keys.Length;
+    public string[] alias;
 
+    public Alias(string s)
+    {
+        alias = s.Split('/');
+        //      Debug.Log("queue: " + alias[0]);
+    }
+    public static Alias[] AllAliases()
+    {
+        Alias[] result = new Alias[_keys.Length];
+        for (int i = 0; i < result.Length; i++)
+            result[i] = new Alias(_keys[i]);
+        return result;
+    }
+    public bool Has(string s)
+    {
+        for (int i = 0; i < alias.Length; i++)
+            if (alias[i].ToLower() == s.ToLower())
+                return true;
+        return false;
+    }
 }
 public class ManifestKeys
 {
-    public class Alias
-    {
-        public string[] alias;
-        public Alias(string s)
-        {
-            alias = s.Split('/');
-      //      Debug.Log("queue: " + alias[0]);
-        }
-        public bool Has(string s)
-        {
-            for (int i = 0; i < alias.Length; i++)
-                if (alias[i].ToLower() == s.ToLower())
-                    return true;
-            return false;
-        }
-    }
+
     public static Alias[] keys;
     public static string[] langs;
     public static int current = 0;
@@ -406,36 +465,34 @@ public class ManifestKeys
     public const int Both = 42;
 
     public const int Alter = 43;
-  //  public const int Channel = 44;
+    //  public const int Channel = 44;
 
     public const int Track = 44;
     public const int Factor = 45;
     public const int Match = 46;
-    public const int AllKeys = 47;
+    public const int Enforce = 47;
+    public const int Affect = 48;
 
     public static void LoadCSV(string s)
     {
-        string[] lines = Identifier.LoadLines(s);
-   //     string first = lines[0];
-        keys = new Alias[AllKeys];
-        for (int i = 1; i < lines.Length; i++)
-        {
-            string[] als = lines[i].Split(',');
-            if (i > AllKeys) break;
-            for (int j = 0; j < als.Length; j++)
-                    keys[i - 1] = new Alias(als[j]);
-      //      Debug.Log(i+"-"+keys[i - 1].alias[0] + "-");
-        }
+        //      string[] lines = Identifier.LoadLines(s);
+        //     string first = lines[0];
+        keys = Alias.AllAliases();
+        //        Debug.Log(i + " enfo " + lines[i] + " " + keys[i - 1].alias[0]);
+
     }
     public static int GetKey(string s)
     {
-//        if (s.ToLower() == "track") Debug.Log("has track"+keys[Track-1].Has(s)+" "+keys[Track-1].alias[0]);
-        for (int i = 0; i < AllKeys-1; i++)
+        if (s.ToLower() == "force") Debug.Log("has enforce" + keys[Enforce - 1].Has(s) + " " + keys[Enforce - 1].alias[0]);
+        for (int i = 0; i < Alias.KeyCount; i++)
             if (keys[i].Has(s))
+            {
+                if (i + 1 == Enforce) Debug.Log("enforce is");
                 return i + 1;
+            }
         return 0;
     }
-   
+
 
 }
 /// <summary>
@@ -780,21 +837,18 @@ public class Utils
         {
             Vector3 min = Vector3.positiveInfinity, max = Vector3.negativeInfinity;
             Vector3[] v = mesh.vertices;
+            Vector3 g;
             for (int i = 0; i < v.Length; i++)
             {
-                if (v[i].x < min.x) min.x = v[i].x;
-                if (v[i].y < min.y) min.y = v[i].y;
-                if (v[i].z < min.z) min.z = v[i].z;
-                if (v[i].x > max.x) max.x = v[i].x;
-                if (v[i].y > max.y) max.y = v[i].y;
-                if (v[i].z > max.z) max.z = v[i].z;
+                g = t.TransformPoint(v[i]);
+                if (g.x < min.x) min.x = g.x;
+                if (g.y < min.y) min.y = g.y;
+                if (g.z < min.z) min.z = g.z;
+                if (g.x > max.x) max.x = g.x;
+                if (g.y > max.y) max.y = g.y;
+                if (g.z > max.z) max.z = g.z;
             }
-            max -= min;
-            Vector3 x = t.TransformVector(max.x * Vector3.right);
-            Vector3 y = t.TransformVector(max.y * Vector3.up);
-            Vector3 z = t.TransformVector(max.z * Vector3.forward);
-            //      Debug.Log(x + " " + y + " " + z);
-            return new Vector3(x.magnitude, y.magnitude, z.magnitude);
+            return max - min;
         }
     }
     /// <summary>
@@ -1064,7 +1118,8 @@ public class Utils
             p = b.position;
             q = p + v;
             return b.InverseTransformPoint(q) - b.InverseTransformPoint(p);
-        }else if (b == null)
+        }
+        else if (b == null)
         {
             p = a.position;
             q = a.TransformPoint(v);

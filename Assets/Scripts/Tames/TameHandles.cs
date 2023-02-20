@@ -183,6 +183,7 @@ namespace Tames
         public const string KeyAreaBox = "_box";
         public const string KeyAreaCube = "_cub";
         public const string KeyAreaSphere = "_sph";
+        public const string KeyAreaSwitch = "_swi";
         public const string KeyAreaCylinder = "_cyl";
         public const string KeyWalk = "_walk";
         public const string KeyMarker = "_mark";
@@ -203,6 +204,7 @@ namespace Tames
         private const string KeyProgCycle = "_cyc";
         private const string KeyProgBounce = "_rev";
         private const string KeyProgStop = "_stop";
+        private const string KeyHeadTracker = "_head";
         private const string All = KeyFrom + "/" + KeyTo + "/" + KeyPivot + "/" + KeyAxis + "/" + KeyStart + "/" + KeyEnd + "/" + KeyMiddle + "/" + KeyPath + "/" + KeyUp + "/";
         /// <summary>
         /// checks whether the name matches criteria for being a handle object. Handle objects are objects with certain naming patern in the 3D model (as the immediate children of a potential interactive element. For mechanical keys, objects with names starting with keys will be considered as handles. Please note that while all objects with the keys are considered as handles, only the last one of each is included. The keys and their corresponding handle point are listed below: 
@@ -238,14 +240,20 @@ namespace Tames
             if (HandleKey(g.name))
                 return null;
             //      Debug.Log(g.name + " is not handle");
-            bool followMode = false;
-            MarkerObject om = g.GetComponent<MarkerObject>();
-            Transform m =GetTransform(g.transform,om, KeyMover,7);
+            int followMode = 0;
+            Markers.MarkerObject om = g.GetComponent<Markers.MarkerObject>();
+            Transform m = GetTransform(g.transform, om, KeyMover, 7);
             if (m == null)
             {
                 m = GetTransform(g.transform, om, KeyTracker, 6);
-                if (m != null) followMode = true;
+                if (m != null) followMode = 1;
+                else
+                {
+                    m = GetTransform(g.transform, om, KeyHeadTracker, 9);
+                    if (m != null) followMode = 2;
+                }
             }
+
             Transform[] ts = new Transform[7];
             if (m != null)
             {
@@ -316,21 +324,21 @@ namespace Tames
                                 r.duration = f;
                         }
                     }
-                    if (followMode)
-                    {
+                    if (followMode == 1)
                         r.trackBasis = TrackBasis.Mover;
-                    }
+                    if (followMode == 2)
+                        r.trackBasis = TrackBasis.Head;
                 }
             }
 
             return r;
         }
-        private static Transform GetTransform(Transform t, MarkerObject om, string key, int index)
+        private static Transform GetTransform(Transform t, Markers.MarkerObject om, string key, int index)
         {
-            if (om == null)
-                return Utils.FindStartsWith(t, key);
-            else
-                return om.all[index].transform;
+            Transform tm = null;
+            if (om != null) tm = om.GetTransform(index);
+            if (tm == null) tm = Utils.FindStartsWith(t, key);
+            return tm;
 
         }
         public void CalculateHandles(float initial)
@@ -504,7 +512,7 @@ namespace Tames
             }
             else
                 facing = FacingLogic.Free;
-     //       Debug.Log("up " + mover.transform.parent.name + " " + facing);
+            //       Debug.Log("up " + mover.transform.parent.name + " " + facing);
         }
         private float FindM(Vector3 p)
         {
@@ -515,7 +523,7 @@ namespace Tames
                 return path.PR(p, out Vector3 q);
         }
 
-        public void AlignQueued(TameManifestBase tmb)
+        public void AlignQueued(ManifestBase tmb)
         {
             float m = tmb.queueStart;
             int n = tmb.queueCount > 0 ? tmb.queueCount : (int)((1 - m) / tmb.queueInterval) + 1;
@@ -721,8 +729,8 @@ namespace Tames
                     case LinkedKeys.Local: SlideLinked(pGlobal, current, speed, dT, false); break;
                 }
             }
-     //       Debug.Log("mover: "+ mover.transform.parent.gameObject.name+" " + m);
-      //      if (mover.transform.parent.gameObject.name == "longbase")                Debug.Log("mover: " + m);
+            //       Debug.Log("mover: "+ mover.transform.parent.gameObject.name+" " + m);
+            //      if (mover.transform.parent.gameObject.name == "longbase")                Debug.Log("mover: " + m);
             return m;
         }
 

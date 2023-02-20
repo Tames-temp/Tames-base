@@ -52,7 +52,7 @@ namespace Walking
         public bool On(Vector3 p, out float dy)
         {
             Vector2 p2 = new Vector2(p.x, p.z);
-            Vector3 n = parent.transform.TransformVector(normal).normalized;
+            Vector3 n = (parent.transform.TransformPoint(normal)- parent.transform.TransformPoint(Vector3.zero)).normalized;
             for (int i = 0; i < 3; i++)
             {
                 global[i] = parent.transform.TransformPoint(point[i]);
@@ -124,7 +124,7 @@ namespace Walking
                 for (int i = 0; i < t.Length; i += 3)
                 {
                     wf = new WalkFace(new Vector3[] { v[t[i]], v[t[i + 1]], v[t[i + 2]] }) { parent = g };
-                    gn = g.transform.TransformVector(wf.normal);
+                    gn = g.transform.TransformPoint(wf.normal)- g.transform.TransformPoint(Vector3.zero);
                     if ((Vector3.Angle(gn, Vector3.up) < 90) || (!onlyUpward))
                     {
                         r.Add(wf);
@@ -158,14 +158,15 @@ namespace Walking
             vector = Vector3.zero;
             if ((pivot != null) && (axis != null))
             {
-                m = Utils.M(pivot.TransformPoint(pivot.position), axis.TransformPoint(axis.position), Vector3.up);
+                m = Utils.M(pivot.position, axis.position-pivot.position, Vector3.up);
                 vector = pivot.localPosition;
                 return ForceType.Rotate;
             }
             else if ((to != null) && (from != null))
             {
-                m = (to.localPosition - from.localPosition).magnitude;
-                vector = (to.localPosition - from.localPosition).normalized;
+                m = (to.position - from.position).magnitude;
+                vector = (to.position - from.position).normalized;
+         //       Debug.Log("walk " + vector.ToString("0.00"));
                 return ForceType.Slide;
             }
             return ForceType.None;

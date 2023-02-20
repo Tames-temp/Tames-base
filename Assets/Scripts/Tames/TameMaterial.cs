@@ -12,6 +12,7 @@ namespace Tames
         /// the original material in the scene. The reason for having the original and the <see cref="clones"/> is for anticipating stencil buffer usage. 
         /// </summary>
         public Material original;
+        public Markers.MarkerChanger[] changers = null;
         public Color initialSpectrum;
         public float initialIntensity;
         /// <summary>
@@ -33,6 +34,7 @@ namespace Tames
         public const int EmissionColor = 1;
         public const int MainTex = 2;
         public const int EmissionMap = 3;
+      
         public TameMaterial()
         {
             tameType = TameKeys.Material;
@@ -101,7 +103,7 @@ namespace Tames
         private void ApplyUpdate()
         {
             float[] f;
-            TameMaterialManifest m = (TameMaterialManifest)manifest;
+            ManifestMaterial m = (ManifestMaterial)manifest;
             float[] emis = new float[] { 0, 0, 0 };
             float ins = 0;
             bool emC = false;
@@ -206,12 +208,12 @@ namespace Tames
         }
 
         /// <summary>
-        /// identifies the materials that are deemed as interactive in the <see cref="TameManifest"/> argument"/>. Only the first material matching a name in the manifest is selected.
+        /// identifies the materials that are deemed as interactive in the <see cref="TameManager"/> argument"/>. Only the first material matching a name in the manifest is selected.
         /// </summary>
-        /// <param name="man">the <see cref="TameManifest"/> manifest</param>
-        /// <param name="tgos">list of all children and descendants of the interactive root, created by <see cref="TameManifest.SurveyInteractives(GameObject[])"/></param>
+        /// <param name="man">the <see cref="TameManager"/> manifest</param>
+        /// <param name="tgos">list of all children and descendants of the interactive root, created by <see cref="TameManager.SurveyInteractives(GameObject[])"/></param>
         /// <returns>a list of <see cref="TameElement"/> that includes <see cref="TameMaterial"/> objects made by each material found</returns>
-        public static List<TameElement> FindMaterials(TameManifest man, List<TameGameObject> tgos)
+        public static List<TameElement> FindMaterials(TameManager man, List<TameGameObject> tgos)
         {
             /*
              * first we find all unique materials in tgos and store them in materials list. Then for each material in the list, we check if the name matches one on the manifest material headers and create TameMaterials by them 
@@ -288,7 +290,7 @@ namespace Tames
         /// </summary>
         public void CheckEmission()
         {
-            TameMaterialManifest tmm = (TameMaterialManifest)manifest;
+            ManifestMaterial tmm = (ManifestMaterial)manifest;
             foreach (TameChanger tc in tmm.properties)
                 if ((tc.property == MaterialProperty.Glow) || (tc.property == MaterialProperty.LightX) || (tc.property == MaterialProperty.LightY))
                     if (!original.IsKeywordEnabled("_EmissiveColor"))

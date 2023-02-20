@@ -24,7 +24,7 @@ namespace Walking
         /// </summary>
         public float maxStepHeight = 0.3f;
         /// <summary>
-        /// this constructor is called from <see cref="Tames.TameManifest.LoadManifest"/>. The mannifest line for this type is simple the keyword "walk" (<see cref="TameKeys.Walk"/>) and the comma delimited names of gameobjects whose faces are considered walking surface. The naming follows the logic of <see cref="Tames.TameFinder.Relations"/>. If there are multiple walk manifests in the manifest file, their objects are added to the list.
+        /// this constructor is called from <see cref="Tames.TameManager.LoadManifest"/>. The mannifest line for this type is simple the keyword "walk" (<see cref="TameKeys.Walk"/>) and the comma delimited names of gameobjects whose faces are considered walking surface. The naming follows the logic of <see cref="Tames.TameFinder.Relations"/>. If there are multiple walk manifests in the manifest file, their objects are added to the list.
         /// </summary>
         /// <param name="tgos">the list of all game objects that are defined with keyword walk (see <see cref="TameKeys"/>)</param>
         /// <param name="onlyUpward">if only it should select faces in the objects' meshes whose normal's angle with the Y axis is less than 90 degrees. </param>

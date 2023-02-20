@@ -38,7 +38,7 @@ namespace HandAsset
             gameObject = control;
             if (control != null)
                 controller = control.GetComponent<UnityEngine.XR.Interaction.Toolkit.XRController>();
-                  Debug.Log("CD: controller " + (controller.name));
+            //Debug.Log("CD: controller " + (controller.name));
             trigger = new ControllerFeature(ControllerFeature.FLOAT, 0.9f);
             grip = new ControllerFeature(ControllerFeature.FLOAT, 0.9f);
             A = new ControllerFeature(ControllerFeature.BOOL);
@@ -60,7 +60,7 @@ namespace HandAsset
             float f;
             Vector2 v;
             input.TryGetFeatureValue(CommonUsages.grip, out f); grip.Update(f);
-         //   Debug.Log("data update: "+f);
+            //   Debug.Log("data update: "+f);
             input.TryGetFeatureValue(CommonUsages.trigger, out f); trigger.Update(f);
             input.TryGetFeatureValue(CommonUsages.primaryButton, out b); A.Update(b);
             input.TryGetFeatureValue(CommonUsages.secondaryButton, out b); B.Update(b);

@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{9C2C4AE4-AC39-F3EF-80AC-7D25BA45C0E5}</ProjectGuid>
+    <ProjectGuid>{E26FC91F-95E0-6DC0-A542-71102755B730}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.Subsystem.Registration</AssemblyName>

@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{A8FD74CF-A381-6E97-7464-CC187D09DE61}</ProjectGuid>
+    <ProjectGuid>{C3F32DBA-D369-20B6-E5AB-E444FA7A5A5C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.XR.CoreUtils</AssemblyName>
@@ -714,11 +714,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Unity.InputSystem.csproj">
-      <Project>{D04ED1CB-7FE3-54EE-1562-BBA4C5113D0B}</Project>
+      <Project>{1C7ED88C-0D57-2DDD-DF57-0B1FC08CAE03}</Project>
       <Name>Unity.InputSystem</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEngine.SpatialTracking.csproj">
-      <Project>{BE80DAB5-E5FF-DFFC-FF7A-05BF6D2B1AF3}</Project>
+      <Project>{9EDFBF2B-C01E-771E-34FC-E6B57714F949}</Project>
       <Name>UnityEngine.SpatialTracking</Name>
     </ProjectReference>
   </ItemGroup>

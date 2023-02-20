@@ -26,7 +26,7 @@ namespace Assets.Script
             TextAsset ta = (TextAsset)Resources.Load(path);
             string s = ta.text.Replace('\r', '\n');
             s = Utils.RemoveDuplicate(s, "\n");
-            return s.Split('\n');
+            return s.Split(new char[] { '\n', ';' , ':'});
 
         }
         public static HandModel[] Inputs(GameObject[] root, string fingerHeader)
@@ -50,7 +50,7 @@ namespace Assets.Script
                 if (g.name.Equals("HeadObject"))
                     MainScript.HeadObject = g;
             }
-            Debug.Log("ID: " + r[0] + " / " + r[1]);
+        //    Debug.Log("ID: " + r[0] + " / " + r[1]);
             return r;
         }
         public static Material FindMaterial(GameObject g, string name)

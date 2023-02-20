@@ -17,6 +17,8 @@ namespace Assets.Script
 {
     public class MainScript : MonoBehaviour
     {
+        //      public GameObject canvas;
+        //      public GameObject panel;
         public bool VRMode;
         public static Light Sun;
         public static bool multiPlayer = false;
@@ -31,7 +33,7 @@ namespace Assets.Script
         public static int MouseButton;
         // objects
         public static Camera mainCamera;
-        public Text text;
+ //       public Text text;
         public static Vector2 screenSize;
         // mirror
         // door
@@ -42,17 +44,21 @@ namespace Assets.Script
         Vector3 positionDefault;
         HandModel[] hand;
         Vector3 handAng = Vector3.zero;
-        TameManifest manifest;
+        TameManager manifest;
         string audioFolder;
         private bool savingTexture = false;
         private TameArea closestGrip;
         private TameObject grippedObject = null;
         private float gripSpeed = 1;
         public static string fingerHeader = "upfinger";
+
+        //    private Camera rendCam;
         void Start()
         {
             Utils.SetPipelineLogics();
+            //       panel.SetActive(false);
             PrepareLoadScene();
+            //     text.text=messages[0];
             people = Person.people;
             for (int i = 0; i < people.Length; i++)
                 people[i] = null;
@@ -61,21 +67,25 @@ namespace Assets.Script
             screenSize = new Vector2(Screen.width, Screen.height);
             mainCamera = Camera.main;
             TameCamera.cameraTransform = mainCamera.transform.parent.parent;
+            //     Camera[] allCam=   Camera.allCameras;
+            //        foreach(Camera c in allCam)
+            //           if(c!=mainCamera)
+            //               rendCam = c;
             counter = -1;
             averageFPS = 0;
             GameObject[] root = SceneManager.GetActiveScene().GetRootGameObjects();
             Material handmat = Identifier.HandMats(root);
             hand = Identifier.Inputs(root, fingerHeader);
-            Debug.Log("c: " + hand[1].data.controller.name);
+            //     Debug.Log("c: " + hand[1].data.controller.name);
 
-            manifest = new TameManifest();
+            manifest = new TameManager();
             ManifestKeys.LoadCSV("aliases");
-            manifest.LoadManifest(Identifier.LoadLines(Tames.TameManifest.ManifestPath));
+            manifest.LoadManifest(Identifier.LoadLines(Tames.TameManager.ManifestPath));
             tes = manifest.tes;
             TameEffect.AllEffects = new TameEffect[manifest.tes.Count];
             ies = ITameEffect.AllEffects = new ITameEffect[manifest.tes.Count];
             ITameEffect.Initialize();
-           // text.text = "";
+            //  text.text = "";
 
             Person.localPerson = localPerson = new Person(0)
             {
@@ -94,6 +104,7 @@ namespace Assets.Script
                     break;
                 }
         }
+
         void PrepareLoadScene()
         {
 
@@ -107,7 +118,7 @@ namespace Assets.Script
                 if (counter == 30)
                 {
                     counter = 0;
-                    text.text = (averageFPS / 30).ToString("0");
+            //        text.text = (averageFPS / 30).ToString("0");
                     averageFPS = 0;
                 }
             }
@@ -133,6 +144,8 @@ namespace Assets.Script
                 UpdateMulti();
             else
                 UpdateSolo();
+            //       if (rendCam != null)
+            //           rendCam.transform.rotation=mainCamera.transform.rotation;
         }
         void UpdateSolo()
         {
@@ -199,9 +212,16 @@ namespace Assets.Script
             }
         }
 
-
+        private int msgIndex = 0;
         private void CheckInput()
         {
+            if (Keyboard.current.digit3Key.wasPressedThisFrame)
+            {
+                //         msgIndex++;
+                //         text.text = messages[msgIndex];
+            }
+            //      if (Keyboard.current.digit4Key.wasPressedThisFrame)
+            //         panel.SetActive(true);
             TameInputControl.CheckKeys();
 
             if (Keyboard.current.escapeKey.isPressed)
@@ -254,9 +274,10 @@ namespace Assets.Script
             {
                 if (GripInputActive())
                 {
+
                     if ((gmd = GripMoveDirection()) != 0)
                     {
-                          grippedObject.Grip(TameElement.deltaTime * gmd * gripSpeed);
+                        grippedObject.Grip(TameElement.deltaTime * gmd * gripSpeed);
                         localPerson.UpdateGrip(closestGrip);
                     }
                 }
@@ -273,6 +294,7 @@ namespace Assets.Script
                     sa = TameArea.ClosestSwitch(tes, TameCamera.cameraTransform, 2.1f, out TameObject to);
                     if (sa != null)
                         sa.Switch(true);
+                    Debug.Log("switch: " + (sa == null ? "null" : sa.element.name));
                 }
                 else
                 {
@@ -281,6 +303,7 @@ namespace Assets.Script
                         closestGrip = TameArea.ClosestGrip(tes, TameCamera.cameraTransform, 2.1f, out TameObject to);
                         if (closestGrip != null)
                         {
+                            Debug.Log("grip: " + closestGrip.element.name);
                             grippedObject = to;
                             localPerson.Grip(closestGrip, TameCamera.cameraTransform);
                         }

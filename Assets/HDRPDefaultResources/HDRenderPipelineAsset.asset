@@ -150,10 +150,10 @@ MonoBehaviour:
       isFptlEnabled: 0
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7, type: 2}
   m_RenderPipelineRayTracingResources: {fileID: 0}
-  m_DefaultVolumeProfile: {fileID: 11400000, guid: 2db198bdd47aa9a40a00290cc1950637, type: 2}
+  m_DefaultVolumeProfile: {fileID: 11400000, guid: 5a4ead68eec499f498d51dc7a8559829, type: 2}
   m_LensAttenuation: 0
   m_UseRenderGraph: 1
-  m_DefaultLookDevProfile: {fileID: 11400000, guid: 87a6dc2a8b31a5c4292c626208f30ee8, type: 2}
+  m_DefaultLookDevProfile: {fileID: 11400000, guid: c3a3010d22e6bd84491f72133168d874, type: 2}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 72198262773251917
@@ -201,7 +201,7 @@ MonoBehaviour:
     supportSSR: 1
     supportSSRTransparent: 0
     supportSSAO: 1
-    supportSSGI: 0
+    supportSSGI: 1
     supportSubsurfaceScattering: 1
     sssSampleBudget:
       m_Values: 140000002800000050000000
@@ -440,8 +440,8 @@ MonoBehaviour:
   m_DefaultMaterialQualityLevel: 4
   diffusionProfileSettings: {fileID: 0}
   diffusionProfileSettingsList:
-  - {fileID: 11400000, guid: 7b9597af46d04724898104f551ae7c9b, type: 2}
-  - {fileID: 11400000, guid: 5f7f91c5cdb84d74bb32aa61e38b8612, type: 2}
+  - {fileID: 11400000, guid: a8a7278be478cbe468be28373b98419a, type: 2}
+  - {fileID: 11400000, guid: 90d837efa8974fc4bb82e534e5aa754b, type: 2}
   beforeTransparentCustomPostProcesses: []
   beforeTAACustomPostProcesses: []
   beforePostProcessCustomPostProcesses: []

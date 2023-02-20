@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{D04ED1CB-7FE3-54EE-1562-BBA4C5113D0B}</ProjectGuid>
+    <ProjectGuid>{1C7ED88C-0D57-2DDD-DF57-0B1FC08CAE03}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.InputSystem</AssemblyName>

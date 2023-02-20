@@ -62,7 +62,7 @@ namespace Multi
                 B[i] = hand[i].data.B.Status;
                 grip[i] = hand[i].data.grip.Value;
                 trigger[i] = hand[i].data.trigger.Value;
-                stick[i] = hand[i].data.stick.Vector;            
+                stick[i] = hand[i].data.stick.Vector;
             }
         }
         public void AddToMessage(Message m)
@@ -169,12 +169,33 @@ namespace Multi
         /// <param name="t"></param>
         private void GripVectors(Transform t)
         {
-           gripVector = new Vector3[]
-            {
+
+            gripVector = new Vector3[]
+             {
                 gripIndex[0] == 0 ? t.right : (gripIndex[0] == 1 ? t.up : t.forward),
                 gripIndex[1] == 0 ? t.right : (gripIndex[1] == 1 ? t.up : t.forward),
                 gripIndex[2] == 0 ? t.right : (gripIndex[2] == 1 ? t.up : t.forward)
-            };
+             };
+        }
+        private Vector3[] LU(Tames.TameArea area, Transform cam)
+        {
+            Transform t = area.relative.transform;
+            Vector3 ls = t.localScale;
+            int longest = ls.x > ls.y ? (ls.x > ls.z ? 0 : 2) : (ls.y > ls.z ? 1 : 2);
+            Vector3 u,v,w;
+            switch (longest)
+            {
+                case 0: v = t.TransformPoint(Vector3.right) - t.TransformPoint(Vector3.zero); break;
+                case 1: v = t.TransformPoint(Vector3.up) - t.TransformPoint(Vector3.zero); break;
+                default: v = t.TransformPoint(Vector3.forward) - t.TransformPoint(Vector3.zero); break;
+            }
+            v.Normalize();
+            u = cam.position-t.position;
+            u.Normalize();
+                w=Vector3.Cross(v, u);
+                if (w.y < 0) w = -w;
+
+            return new Vector3[] { u, w };
         }
         /// <summary>
         /// finds the forward and up vector indexes for the hand that fits the grip geometry
@@ -188,7 +209,7 @@ namespace Multi
                 gripIndex = t.localScale.x > t.localScale.z ? new int[] { 0, 1, 2 } : new int[] { 2, 0, 1 };
             else
                 gripIndex = t.localScale.y > t.localScale.z ? new int[] { 1, 0, 2 } : new int[] { 2, 0, 1 };
-             GripVectors(t);
+            GripVectors(t);
             int f = 1;
             float d, min = Vector3.Angle(cam.forward, gripVector[1]);
             if (min > (d = Vector3.Angle(cam.forward, -gripVector[1]))) { min = d; f = -1; }
@@ -216,7 +237,7 @@ namespace Multi
             Vector3 v = hand[0].wrist.transform.forward * 0.07f + hand[0].wrist.transform.up * 0.02f;
             hand[0].wrist.transform.position = area.relative.transform.position + v;
             hand[0].AfterGrip(true);
-    //       Debug.Log("grip: " + area.relative.transform.position.ToString("0.00") + " , " + hand[0].wrist.transform.position.ToString("0.00"));
+            //       Debug.Log("grip: " + area.relative.transform.position.ToString("0.00") + " , " + hand[0].wrist.transform.position.ToString("0.00"));
         }
         /// <summary>
         ///  updates the hand position and rotation based on the changed transform of the grip area
@@ -230,7 +251,7 @@ namespace Multi
             Vector3 v = hand[0].wrist.transform.forward * 0.07f + hand[0].wrist.transform.up * 0.02f;
             hand[0].wrist.transform.position = area.relative.transform.position + v;
             hand[0].AfterGrip(true);
-   //         Debug.Log("grip: " + area.relative.transform.position.ToString("0.00") + " , " + hand[0].wrist.transform.position.ToString("0.00"));
+            //         Debug.Log("grip: " + area.relative.transform.position.ToString("0.00") + " , " + hand[0].wrist.transform.position.ToString("0.00"));
         }
         /// <summary>
         /// detaches the hand from the grip area
@@ -245,6 +266,6 @@ namespace Multi
             hand[0].AfterGrip(true);
             hand[0].wrist.transform.position = head.transform.position - head.transform.up * 0.7f - head.transform.right * 0.3f;
         }
-       
+
     }
 }

@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{DAB66597-4CA9-AD66-5143-4832A4FD3535}</ProjectGuid>
+    <ProjectGuid>{38E401A2-11BD-4821-3FE7-5D3909453F7B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.RenderPipelines.HighDefinition.Config.Runtime</AssemblyName>
@@ -666,7 +666,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Unity.RenderPipelines.Core.Runtime.csproj">
-      <Project>{3FC30BA1-D3A8-A801-F688-8EBBF28DEF7A}</Project>
+      <Project>{5F8F7B2D-D83E-3E06-6B83-676AC259647E}</Project>
       <Name>Unity.RenderPipelines.Core.Runtime</Name>
     </ProjectReference>
   </ItemGroup>

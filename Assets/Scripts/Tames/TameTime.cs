@@ -230,6 +230,7 @@ namespace Tames
                             }
                             else
                             {
+                   //             Debug.Log(keyStatus.Length);
                                 if (keyStatus[keyValue[0]]) return -1;
                                 if (keyStatus[keyValue[1]]) return 1;
                             }
@@ -241,7 +242,7 @@ namespace Tames
     }
     public class TameMatch
     {
-        public TameMatchManifest manifest = null;
+        public ManifestMatch manifest = null;
         List<GameObject> gameObjects = new List<GameObject>();
         List<GameObject> matched = new List<GameObject>();
         //public List<GameObject> mover = new List<GameObject>();
