@@ -9,7 +9,7 @@ namespace Tames
     public class TameLight : TameElement
     {
         /// <summary>
-        /// the Light component, automatically set in <see cref="TameManifest"/> class. The component should be assigned to a game object that is a child or descendant of the root object "interactives" in the scene.
+        /// the Light component, automatically set in <see cref="TameManager"/> class. The component should be assigned to a game object that is a child or descendant of the root object "interactives" in the scene.
         /// </summary>
         public Light light;
         public TameLight()
@@ -31,7 +31,7 @@ namespace Tames
             else if (parents.Count > 0)
                 r = parents[0];
             if (r != null) r.child = this;
-          //  Debug.Log("inlight: " + basis);
+            //  Debug.Log("inlight: " + basis);
             return r;
         }
         /// <summary>
@@ -53,7 +53,7 @@ namespace Tames
         private void ApplyUpdate()
         {
             float[] f;
-            TameLightManifest m = (TameLightManifest)manifest;
+            ManifestLight m = (ManifestLight)manifest;
             //   Debug.Log("coll "+(m == null ? "null" : "not"));
             if (progress != null)
                 if (m != null)
@@ -67,10 +67,11 @@ namespace Tames
                             case MaterialProperty.Glow:
                             case MaterialProperty.Color:
                                 light.color = TameColor.ToColor(f);
-                             //   Debug.Log("colj: " +name+ " "+progress.progress + light.color.ToString());
+                         //       if (name == "cooler") Debug.Log("colj: " + name + " " + progress.progress + light.color.ToString());
                                 break;
                             case MaterialProperty.Bright: light.intensity = f[0]; break;
-                            case MaterialProperty.Focus: light.spotAngle = f[0]; break;
+                            case MaterialProperty.Focus: light.spotAngle = f[0];
+                                if (name == "corlight") Debug.Log(tc.steps[0].value[0] + " " + light.spotAngle); break;
                         }
                     }
                 }

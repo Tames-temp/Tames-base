@@ -66,7 +66,7 @@ namespace Tames
             int colorIndex = -1;
             int colon = lower.IndexOf(':'), dash = lower.IndexOf('-');
             float r, g, b, a = 1;
-     //       Debug.Log("glw dash " + S + " " + dash);
+            //       Debug.Log("glw dash " + S + " " + dash);
             c = Color.white;
             if (colon > 0)
             {
@@ -80,7 +80,7 @@ namespace Tames
                 string pre = name.Substring(0, dash);
                 if (pre.Equals("light")) { prefix = 1; prefixed = true; }
                 if (pre.Equals("dark")) { prefix = -1; prefixed = true; }
-        //        Debug.Log("glw prefed " + prefixed + " " + prefix);
+                //        Debug.Log("glw prefed " + prefixed + " " + prefix);
                 if (prefixed)
                     name = name.Substring(dash + 1);
                 else
@@ -88,7 +88,7 @@ namespace Tames
             }
 
             if (name.Length > 0) colorIndex = Find(name); else return -1;
-       //     Debug.Log("glw name " + colorIndex);
+            //     Debug.Log("glw name " + colorIndex);
             if (colorIndex >= 0)
             {
                 c = colors[colorIndex];
@@ -221,7 +221,7 @@ namespace Tames
             List<TameNumericStep> stops = new List<TameNumericStep>();
             Color c;
             float a;
-        //    Debug.Log("chorr:: " + mh.items.Count);
+            //    Debug.Log("chorr:: " + mh.items.Count);
             for (int i = 1; i < mh.items.Count; i++)
             {
                 if (spectrum)
@@ -233,7 +233,7 @@ namespace Tames
                     }
                     else
                     {
-          //              Debug.Log("glw:: " + mh.items[i] + " " + a);
+                        //              Debug.Log("glw:: " + mh.items[i] + " " + a);
                         //      Debug.Log("chor: bad " + mh.items[i]);
                         return null;
                     }
@@ -259,6 +259,53 @@ namespace Tames
             };
 
         }
-    }
-}
+        public static TameColor ReadStepsOnly(string line, ToggleType st, float sv, bool spectrum)
+        {
+            //      Debug.Log("color " + mh.items.Count);
+            string clean = Utils.Clean(line);
 
+            List<string> si, s = Utils.Split(clean, " ");
+            float f;
+            List<TameNumericStep> stops = new List<TameNumericStep>();
+            Color c;
+            float a;
+            //    Debug.Log("chorr:: " + mh.items.Count);
+            for (int i = 0; i < s.Count; i++)
+            {
+                if (spectrum)
+                {
+                    // Debug.Log("chor: " + mh.items[i]);
+                    if ((a = GetGlow(s[i], out c)) >= 0)
+                    {
+                        stops.Add(new TameNumericStep() { value = new float[] { c.r, c.g, c.b, a } });
+                    }
+                    else
+                    {
+                        //              Debug.Log("glw:: " + mh.items[i] + " " + a);
+                        //      Debug.Log("chor: bad " + mh.items[i]);
+                        return null;
+                    }
+                }
+                else
+                {
+                    if (GetColor32(s[i], out c))
+                        stops.Add(new TameNumericStep() { value = new float[] { c.r, c.g, c.b, c.a } });
+                    else
+                        return null;
+                }
+            }
+            //        Debug.Log("color return " + stops.Count);
+            //        for (int i = 0; i < stops.Count; i++)
+            //         Debug.Log("mix: " + stops[i].value[0] + ", " + stops[i].value[1] + ", " + stops[i].value[2]);
+            return new TameColor()
+            {
+                steps = stops,
+                toggleType = st,
+                toggle = sv,
+                count = 4,
+                property = MaterialProperty.Color
+            };
+        }
+    }
+
+}

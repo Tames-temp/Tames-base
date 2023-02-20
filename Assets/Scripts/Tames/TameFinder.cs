@@ -122,7 +122,7 @@ namespace Tames
                             elementList.RemoveAt(j);
         }
         /// <summary>
-        /// populates the <see cref="elementList"/> from the provided list of <see cref="TameElement"/> by the relationships defined in the <see cref="header"/>. This method is called from <see cref="TameManifest"/> class to identify elements when defined in the manifest or are affected by an interactor (see <see cref="TameArea"/>)
+        /// populates the <see cref="elementList"/> from the provided list of <see cref="TameElement"/> by the relationships defined in the <see cref="header"/>. This method is called from <see cref="TameManager"/> class to identify elements when defined in the manifest or are affected by an interactor (see <see cref="TameArea"/>)
         /// </summary>
         /// <param name="tes">list of all <see cref="TameElement"/>s in the project</param>
         /// <param name="tgos">list of game objects descending from the root interactive object</param>
@@ -178,7 +178,7 @@ namespace Tames
                         objectList.Add(tgo);
         }
         /// <summary>
-        /// populates the <see cref="objectList"/> from the provided list of <see cref="TameGameObject"/> by the relationships defined in the <see cref="header"/>. This method is called from <see cref="TameManifest"/> class to identify game objects attached to interactors.
+        /// populates the <see cref="objectList"/> from the provided list of <see cref="TameGameObject"/> by the relationships defined in the <see cref="header"/>. This method is called from <see cref="TameManager"/> class to identify game objects attached to interactors.
         /// </summary>
         /// <param name="tgos">list of game objects descending from the root interactive object</param>
         public void PopulateObjects(List<TameGameObject> tgos)
@@ -205,7 +205,7 @@ namespace Tames
             }
         }
         /// <summary>
-        /// populates either the <see cref="elementList"/> from the provided list of <see cref="TameElement"/> or the <see cref="objectList"/> from the provided list of <see cref="TameGameObject"/>, by the relationships defined in the <see cref="header"/>. This method is called from <see cref="TameManifest"/> class to identify elements or objects that affect the update of elements. For each header or update manifest, only one list is accepted, that is determined if the items in the header begin with '@'. If so, they are considered names of gameobjects, otherwise they are treated as elements. 
+        /// populates either the <see cref="elementList"/> from the provided list of <see cref="TameElement"/> or the <see cref="objectList"/> from the provided list of <see cref="TameGameObject"/>, by the relationships defined in the <see cref="header"/>. This method is called from <see cref="TameManager"/> class to identify elements or objects that affect the update of elements. For each header or update manifest, only one list is accepted, that is determined if the items in the header begin with '@'. If so, they are considered names of gameobjects, otherwise they are treated as elements. 
         /// </summary>
         /// <param name="tes">list of all <see cref="TameElement"/>s in the project</param>
         /// <param name="tgos">list of game objects descending from the root interactive object</param>

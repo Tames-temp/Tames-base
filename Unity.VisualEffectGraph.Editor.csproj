@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{182FD343-FBA6-008F-7D36-04F086CAA59F}</ProjectGuid>
+    <ProjectGuid>{97306FB5-987F-F08E-6750-8CA537BAC7DD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.VisualEffectGraph.Editor</AssemblyName>
@@ -252,8 +252,8 @@
     <Compile Include="Library\PackageCache\com.unity.visualeffectgraph@10.8.1\Editor\Models\Operators\Implementations\TriangleWave.cs" />
     <Compile Include="Library\PackageCache\com.unity.visualeffectgraph@10.8.1\Editor\Models\Contexts\VFXContext.cs" />
     <Compile Include="Library\PackageCache\com.unity.visualeffectgraph@10.8.1\Editor\Debug\VFXUIDebug.cs" />
-    <Compile Include="Library\PackageCache\com.unity.visualeffectgraph@10.8.1\Editor\GraphView\Elements\VFXFlowAnchor.cs" />
     <Compile Include="Library\PackageCache\com.unity.visualeffectgraph@10.8.1\Editor\Controls\VFXLabeledField.cs" />
+    <Compile Include="Library\PackageCache\com.unity.visualeffectgraph@10.8.1\Editor\GraphView\Elements\VFXFlowAnchor.cs" />
     <Compile Include="Library\PackageCache\com.unity.visualeffectgraph@10.8.1\Editor\Models\Operators\Implementations\Distance.cs" />
     <Compile Include="Library\PackageCache\com.unity.visualeffectgraph@10.8.1\Editor\GraphView\Elements\Controllers\VFXOperatorAnchorController.cs" />
     <Compile Include="Library\PackageCache\com.unity.visualeffectgraph@10.8.1\Editor\Utilities\VectorFieldImporter\Editor\VectorFieldImporterEditor.cs" />
@@ -431,8 +431,8 @@
     <Compile Include="Library\PackageCache\com.unity.visualeffectgraph@10.8.1\Editor\Models\Operators\Implementations\Step.cs" />
     <Compile Include="Library\PackageCache\com.unity.visualeffectgraph@10.8.1\Editor\Compiler\VFXCodeGenerator.cs" />
     <Compile Include="Library\PackageCache\com.unity.visualeffectgraph@10.8.1\Editor\Models\Contexts\Implementations\VFXLineStripOutput.cs" />
-    <Compile Include="Library\PackageCache\com.unity.visualeffectgraph@10.8.1\Editor\Models\Parameters\VFXCurrentAttributeParameter.cs" />
     <Compile Include="Library\PackageCache\com.unity.visualeffectgraph@10.8.1\Editor\Models\Operators\Implementations\Deprecated\ValueNoise.cs" />
+    <Compile Include="Library\PackageCache\com.unity.visualeffectgraph@10.8.1\Editor\Models\Parameters\VFXCurrentAttributeParameter.cs" />
     <Compile Include="Library\PackageCache\com.unity.visualeffectgraph@10.8.1\Editor\Expressions\VFXAttributeExpression.cs" />
     <Compile Include="Library\PackageCache\com.unity.visualeffectgraph@10.8.1\Editor\GraphView\VFXComponentBoard.cs" />
     <Compile Include="Library\PackageCache\com.unity.visualeffectgraph@10.8.1\Editor\Expressions\VFXExpressionSampleGradient.cs" />
@@ -1145,27 +1145,27 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Unity.VisualEffectGraph.Runtime.csproj">
-      <Project>{20F105B8-9A3F-832C-2AC6-C8674D235BB8}</Project>
+      <Project>{E5DD5E28-691B-BF52-8B90-E523EB62F1BB}</Project>
       <Name>Unity.VisualEffectGraph.Runtime</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.Timeline.csproj">
-      <Project>{7B076E34-9DA7-DEEB-F7C9-9F052324C0C2}</Project>
+      <Project>{E40EB13A-710E-CF6A-DEA3-F4C508325FA3}</Project>
       <Name>Unity.Timeline</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.RenderPipelines.HighDefinition.Runtime.csproj">
-      <Project>{3847B154-9186-54CB-83F2-A32DC0C17EB1}</Project>
+      <Project>{1C84E0EB-BF79-BB87-0ED9-0A23A2771178}</Project>
       <Name>Unity.RenderPipelines.HighDefinition.Runtime</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.ShaderGraph.Editor.csproj">
-      <Project>{18E667DA-E363-EB95-D251-B97942DFD8A1}</Project>
+      <Project>{3F3FAE20-CC38-8DC9-BBFA-D4141BE23628}</Project>
       <Name>Unity.ShaderGraph.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEngine.TestRunner.csproj">
-      <Project>{6116B248-C341-1E58-591E-BBD793973BAD}</Project>
+      <Project>{76DA7739-C88B-1FEF-6516-1D2680F2CF01}</Project>
       <Name>UnityEngine.TestRunner</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEditor.TestRunner.csproj">
-      <Project>{923D09BF-BC0C-9D41-A9BC-D36E73870EC4}</Project>
+      <Project>{51EFEDAB-DE44-C6B4-318B-4FA1BE8AADAB}</Project>
       <Name>UnityEditor.TestRunner</Name>
     </ProjectReference>
   </ItemGroup>

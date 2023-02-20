@@ -72,7 +72,6 @@ namespace Tames
             List<string> s;
             float sv = 0, f;
             s = Utils.Split(mh.items[0], ",");
-          //  Debug.Log("read-y: " + s.Count);
             if (mh.items[0].StartsWith("grad")) st = ToggleType.Gradient;
             else if (mh.items[0].StartsWith("step")) st = ToggleType.Stepped;
             else if (Utils.SafeParse(mh.items[0], out sv)) st = ToggleType.Switch;
@@ -81,7 +80,9 @@ namespace Tames
             float[] value;
             for (int i = 1; i < mh.items.Count; i++)
             {
+                Debug.Log("read-y: " + mh.items[i]);
                 s = Utils.Split(mh.items[i], ",");
+                if (s.Count < n) return null;
                 value = new float[n];
                 for (int j = 0; j < n; j++)
                     if (Utils.SafeParse(s[j], out f))
@@ -97,8 +98,43 @@ namespace Tames
                 toggle = sv,
                 count = n
             };
-
         }
-
+        public static TameChanger ReadStepsOnly(string line, ToggleType st, float sv, int n)
+        {
+           string clean= Utils.Clean(line);
+            List<string> si, s = Utils.Split(clean, " ");
+            float  f;
+            //  Debug.Log("read-y: " + s.Count);
+            List<TameNumericStep> steps = new List<TameNumericStep>();
+            float[] value;
+         //   int n;
+            for (int i = 0; i < s.Count; i++)
+            {
+                si = Utils.Split(s[i], ",");
+                value = new float[n];
+                if (s.Count < n) return null;
+                for (int j = 0; j < n; j++)
+                    if (Utils.SafeParse(si[j], out f))
+                        value[j] = f;
+                    else
+                        return null;
+                steps.Add(new TameNumericStep() { value = value });
+            }
+            return new TameChanger()
+            {
+                steps = steps,
+                toggleType = st,
+                toggle = sv,
+                count = n
+            };
+        }
+        public void From(TameChanger tch)
+        {
+            count= tch.count;
+            property = tch.property;
+            steps = tch.steps;
+            toggle = tch.toggle;
+            toggleType = tch.toggleType;
+        }
     }
 }

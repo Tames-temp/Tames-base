@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{75E85A66-4B19-4C6E-4E55-FFCA0B4C467F}</ProjectGuid>
+    <ProjectGuid>{4B8116F0-B7D5-809E-BB7A-6510F3BCA955}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.RenderPipelines.HighDefinition.Editor</AssemblyName>
@@ -343,9 +343,9 @@
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.high-definition@10.8.1\Editor\Material\ShaderGraph\PassDescriptorExtension.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.high-definition@10.8.1\Editor\Material\Eye\ShaderGraph\Node\IrisOffset.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.high-definition@10.8.1\Editor\RenderPipeline\Settings\SerializedGlobalDecalSettings.cs" />
+    <Compile Include="Library\PackageCache\com.unity.render-pipelines.high-definition@10.8.1\Editor\Material\DiffusionProfile\DiffusionProfileSettingsEditor.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.high-definition@10.8.1\Editor\Material\Decal\ShaderGraph\CreateDecalShaderGraph.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.high-definition@10.8.1\Editor\Lighting\Reflection\HDBakedReflectionSystem.cs" />
-    <Compile Include="Library\PackageCache\com.unity.render-pipelines.high-definition@10.8.1\Editor\Material\DiffusionProfile\DiffusionProfileSettingsEditor.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.high-definition@10.8.1\Editor\RenderPipeline\Camera\HDCameraEditor.Handlers.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.high-definition@10.8.1\Editor\PostProcessing\ShadowsMidtonesHighlightsEditor.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.high-definition@10.8.1\Editor\Material\ShaderGraph\HDShaderPasses.cs" />
@@ -1076,35 +1076,35 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Unity.RenderPipelines.HighDefinition.Runtime.csproj">
-      <Project>{3847B154-9186-54CB-83F2-A32DC0C17EB1}</Project>
+      <Project>{1C84E0EB-BF79-BB87-0ED9-0A23A2771178}</Project>
       <Name>Unity.RenderPipelines.HighDefinition.Runtime</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.ShaderGraph.Editor.csproj">
-      <Project>{18E667DA-E363-EB95-D251-B97942DFD8A1}</Project>
+      <Project>{3F3FAE20-CC38-8DC9-BBFA-D4141BE23628}</Project>
       <Name>Unity.ShaderGraph.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.RenderPipelines.Core.Runtime.csproj">
-      <Project>{3FC30BA1-D3A8-A801-F688-8EBBF28DEF7A}</Project>
+      <Project>{5F8F7B2D-D83E-3E06-6B83-676AC259647E}</Project>
       <Name>Unity.RenderPipelines.Core.Runtime</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.RenderPipelines.Core.Editor.csproj">
-      <Project>{F0BDB600-DA3D-6260-245C-92AD67CC54C6}</Project>
+      <Project>{E35CAB7D-12B7-954E-4A2B-092FF1703855}</Project>
       <Name>Unity.RenderPipelines.Core.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.VisualEffectGraph.Editor.csproj">
-      <Project>{182FD343-FBA6-008F-7D36-04F086CAA59F}</Project>
+      <Project>{97306FB5-987F-F08E-6750-8CA537BAC7DD}</Project>
       <Name>Unity.VisualEffectGraph.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.RenderPipelines.HighDefinition.Config.Runtime.csproj">
-      <Project>{DAB66597-4CA9-AD66-5143-4832A4FD3535}</Project>
+      <Project>{38E401A2-11BD-4821-3FE7-5D3909453F7B}</Project>
       <Name>Unity.RenderPipelines.HighDefinition.Config.Runtime</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEngine.TestRunner.csproj">
-      <Project>{6116B248-C341-1E58-591E-BBD793973BAD}</Project>
+      <Project>{76DA7739-C88B-1FEF-6516-1D2680F2CF01}</Project>
       <Name>UnityEngine.TestRunner</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEditor.TestRunner.csproj">
-      <Project>{923D09BF-BC0C-9D41-A9BC-D36E73870EC4}</Project>
+      <Project>{51EFEDAB-DE44-C6B4-318B-4FA1BE8AADAB}</Project>
       <Name>UnityEditor.TestRunner</Name>
     </ProjectReference>
   </ItemGroup>

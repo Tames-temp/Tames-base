@@ -230,33 +230,35 @@ namespace Tames
                     //     dp = (speed < 0 ? 1 : speed / Mathf.Abs(parentSpeed)) * (parentTotal[1] - parentTotal[0]);
                     dp = manager.Speed < 0 ? parentTotal[1] - parentTotal[0] : (manager.Speed / parentSpeed) * (parentTotal[1] - parentTotal[0]);
                 }
-                SetProgress(totalProgress + dp, false);
-      //          if (element.name == "inlight")
-      //              Debug.Log("inl: " + parentProg[1] + " " + parentProg[0] + " > " + progress);
+                SetProgress(totalProgress + dp * interactDirection, false);
+            //   if(element.name=="pipes")       Debug.Log("switch: " + (parentProg[1] - parentProg[0]) + " > " + progress+" "+interactDirection);
             }
             else
             {
-                changingDirection = 0;
                 time += deltaTime;
                 pt = parentProg[1];
                 if (trigger.mono)
                 {
-                    changingDirection = trigger.Direction(passed[1]) * interactDirection;
+                    changingDirection = trigger.Direction(pt) * interactDirection;
                 }
                 else
                 {
                     changingDirection = trigger.Direction(pt) * interactDirection;
                 }
-                pt = totalProgress + changingDirection * deltaTime * manager.Speed;
+                pt = totalProgress + changingDirection * deltaTime * (manager.Speed < 0 ? 1 : manager.Speed);
+             //   if (element.name == "cooler") Debug.Log("enfo prog " + progress + " " + trigger.mono + " " + changingDirection);
                 SetProgress(pt, false);
             }
         }
         public void SetByTime(float deltaTime)
         {
-            if (element.name == "door3")
-                Debug.Log("prog " + changingDirection);
-            float[] pp = new float[] { time, time + deltaTime * interactDirection };
-            time += deltaTime * interactDirection;
+            //          if (element.name == "door3")                Debug.Log("prog " + changingDirection);
+
+            // float[] pp = new float[] { time, time + deltaTime * interactDirection };
+            // time += deltaTime * interactDirection;
+
+             float[] pp = new float[] { time, time + deltaTime };
+            time += deltaTime ;
             SetByParent(pp, pp, PassTypes.Total, deltaTime);
         }
         /// <summary>

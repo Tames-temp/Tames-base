@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{18E667DA-E363-EB95-D251-B97942DFD8A1}</ProjectGuid>
+    <ProjectGuid>{3F3FAE20-CC38-8DC9-BBFA-D4141BE23628}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.ShaderGraph.Editor</AssemblyName>
@@ -178,8 +178,8 @@
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Extensions\StencilExtensions.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Data\Nodes\Artistic\Adjustment\HueNode.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Drawing\Views\IdentifierField.cs" />
-    <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Generation\Enumerations\IncludeLocation.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Data\Util\FunctionRegistry.cs" />
+    <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Generation\Enumerations\IncludeLocation.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Data\Nodes\Math\Trigonometry\SineNode.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Data\Nodes\Math\Vector\ProjectionNode.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Data\Nodes\Input\Gradient\BlackbodyNode.cs" />
@@ -284,8 +284,8 @@
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Data\Nodes\Math\Vector\TransformNode.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Drawing\Colors\IColorProvider.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Data\Graphs\PreviewMode.cs" />
-    <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Drawing\Inspector\PropertyDrawers\ColorPropertyDrawer.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\AssetCallbacks\CreateShaderSubGraph.cs" />
+    <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Drawing\Inspector\PropertyDrawers\ColorPropertyDrawer.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Data\Graphs\IMaterialGraphAsset.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Data\Interfaces\IMayRequireDepthTexture.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Data\Graphs\GroupData.cs" />
@@ -1325,23 +1325,23 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Unity.ShaderGraph.Utilities.csproj">
-      <Project>{FBECAD79-79D0-44F6-4329-FBC5365A9B0A}</Project>
+      <Project>{CB4BCCDF-DB3C-7CA5-08BF-FF4777315457}</Project>
       <Name>Unity.ShaderGraph.Utilities</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.Searcher.Editor.csproj">
-      <Project>{805EC22A-4B08-1AE8-E8B6-7768471B1D0E}</Project>
+      <Project>{0FB860E8-1D87-FA73-B4E9-AFE8D64E1C09}</Project>
       <Name>Unity.Searcher.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.RenderPipelines.Core.Runtime.csproj">
-      <Project>{3FC30BA1-D3A8-A801-F688-8EBBF28DEF7A}</Project>
+      <Project>{5F8F7B2D-D83E-3E06-6B83-676AC259647E}</Project>
       <Name>Unity.RenderPipelines.Core.Runtime</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEngine.TestRunner.csproj">
-      <Project>{6116B248-C341-1E58-591E-BBD793973BAD}</Project>
+      <Project>{76DA7739-C88B-1FEF-6516-1D2680F2CF01}</Project>
       <Name>UnityEngine.TestRunner</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEditor.TestRunner.csproj">
-      <Project>{923D09BF-BC0C-9D41-A9BC-D36E73870EC4}</Project>
+      <Project>{51EFEDAB-DE44-C6B4-318B-4FA1BE8AADAB}</Project>
       <Name>UnityEditor.TestRunner</Name>
     </ProjectReference>
   </ItemGroup>

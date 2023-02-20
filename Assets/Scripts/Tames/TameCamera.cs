@@ -17,8 +17,8 @@ namespace Tames
         private static float rotationSpeed = 100f; // degree/s
         private static float tiltingSpeed = 70f; // degree/s
         private static string objectName = "...";
-        private static bool moveByObject = true;
-        private static bool turnByObject = true;
+        private static bool moveByObject = false;
+        private static bool turnByObject = false;
         private static float currentTilt = 0;
         public static Vector3 eyeHeight = 1.6f * Vector3.up;
         public static Walking.WalkFace currentFace = null;
@@ -299,16 +299,22 @@ namespace Tames
                     moving = flat.normalized * movingDirection * walkingSpeed * TameElement.deltaTime;
                 }
             }
-            if (TameManifest.walkManager == null)
+            if (TameManager.walkManager == null)
                 cameraTransform.position += moving;
             else
             {
                 fwd = Vector3.zero;
+         //       Debug.Log("walk " + fwd.ToString("0.00") + (currentFace==null?"null":currentFace.parent.name));
                 if ((currentFace != null) && (!moveByObject))
+                {
                     fwd = currentFace.Pushing(cameraTransform.position, TameElement.deltaTime);
+                   }
+        //        flat = p;
                 p += moving + fwd;
-                currentFace = TameManifest.walkManager.Move(p - eyeHeight);
-                cameraTransform.position = TameManifest.walkManager.foot + eyeHeight;
+              //  fwd = TameManifest.walkManager.foot;
+                 currentFace = TameManager.walkManager.Move(p - eyeHeight);
+       //         Debug.Log("walk " + currentFace.parent.name+" "+ fwd.ToString("0.000") + moving.ToString("0.000") );
+                cameraTransform.position = TameManager.walkManager.foot + eyeHeight;
             }
 
         }

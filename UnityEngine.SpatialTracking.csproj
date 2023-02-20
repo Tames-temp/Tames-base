@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{BE80DAB5-E5FF-DFFC-FF7A-05BF6D2B1AF3}</ProjectGuid>
+    <ProjectGuid>{9EDFBF2B-C01E-771E-34FC-E6B57714F949}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>UnityEngine.SpatialTracking</AssemblyName>

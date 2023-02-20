@@ -3,6 +3,7 @@ using Multi;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Markers;
 namespace Tames
 {
     /// <summary>
@@ -22,6 +23,7 @@ namespace Tames
     /// </summary>
     public class TameArea
     {
+        public static List<TameArea> switchers = new List<TameArea>();
         /// <summary>
         /// the initial gameobject of the area, that also contains its geometry. This would be set to invisible
         /// </summary>
@@ -89,6 +91,7 @@ namespace Tames
         ///     update names,name2,...
         /// </summary>
         public List<string> attachedObjects;
+        public int key = -1;
         public TameElement element;
         public bool passedFirstPlane = false;
         private const int X = 0;
@@ -98,6 +101,7 @@ namespace Tames
         public const string AreaSpace = "exiog123";
         public const string AreaGeometry = "bcs";
         public const string AreaUpdate = "flmo";
+        public string keyString = "";
         public static bool HasAreaKeyword(string name)
         {
             string tl = name.ToLower();
@@ -172,7 +176,7 @@ namespace Tames
                     break;
                 default: r = false; break;
             }
-            if (element.name == "door3") Debug.Log("door 3 " + p.ToString("0.00") + size.ToString("0.00") + center.ToString("0.00"));
+            //       if (element.name == "door3") Debug.Log("door 3 " + p.ToString("0.00") + size.ToString("0.00") + center.ToString("0.00"));
             return r;
         }
         /// <summary>
@@ -326,8 +330,6 @@ namespace Tames
             if (forced)
                 forcedSwitchThisFrame = TameElement.Tick;
         }
-
-
         public static TameAreaTrack Track(Vector3 p)
         {
             int from = MainScript.multiPlayer ? 0 : Person.LocalDefault;
@@ -343,7 +345,7 @@ namespace Tames
 
                 if (pers != null)
                 {
-              //      Debug.Log("raw: " + pers.headPosition.ToString("0.00"));
+                    //      Debug.Log("raw: " + pers.headPosition.ToString("0.00"));
                     if ((d = Vector3.Distance(p, pers.headPosition)) < minHead)
                     {
                         minHead = d;
@@ -370,23 +372,43 @@ namespace Tames
             int oIndex = -1;
             int hIndex = -1;
             int headarea = 0, handarea = 0;
-            bool inside = false;
+            bool inside, aPersonInside = false;
+            string s = "";
             int dir = tis[0].OutsideDirection;
-            for (int a = 0; a < tis.Count; a++)
+            for (int i = from; i < to; i++)
             {
-                for (int i = from; i < to; i++)
+                for (int a = 0; a < tis.Count; a++)
                 {
                     person = i == Person.LocalDefault ? MainScript.localPerson : Person.people[i];
                     if (person != null)
                     {
                         inside = tis[a].Inside(person.headPosition);
-                        if(pIndex == -1)
+                        s += " " + inside + (inside ? tis[a].InsideDirection + "" : "-");
+                        if (pIndex == -1)
                             pIndex = i;
-                        if ((d = Vector3.Distance(p, person.headPosition)) < minHead)
+                        d = Vector3.Distance(p, person.headPosition);
                         {
-                            minHead = d;
-                            pIndex = i;
-                            if (inside) { headarea = a; dir = tis[a].InsideDirection; }
+                            if (inside)
+                            {
+                                if ((d < minHead) || (!aPersonInside))
+                                {
+                                    minHead = d;
+                                    pIndex = i;
+                                    headarea = a;
+                                    dir = tis[a].InsideDirection;
+                                }
+                                aPersonInside = true;
+                            }
+                            else
+                            {
+                                if ((d < minHead) && (!aPersonInside))
+                                {
+                                    minHead = d;
+                                    pIndex = i;
+                                    headarea = a;
+                                    dir = tis[a].OutsideDirection;
+                                }
+                            }
                         }
                         for (int j = 0; j < 2; j++)
                             if ((d = Vector3.Distance(p, person.position[j])) < minHand)
@@ -396,11 +418,12 @@ namespace Tames
                                 hIndex = j;
                                 if (inside) handarea = a;
                             }
-                  //      Debug.Log("area: " +dir+" "+ person.headPosition.ToString("0.00"));
+                        //      Debug.Log("area: " +dir+" "+ person.headPosition.ToString("0.00"));
                     }
                 }
             }
-            return new TameAreaTrack() { head = pIndex, hand = hIndex, person = oIndex, direction = dir, headArea = headarea, handArea = handarea};
+            //     if (tis[0].element.name == "door3")                Debug.Log("owner " + dir + s);
+            return new TameAreaTrack() { head = pIndex, hand = hIndex, person = oIndex, direction = dir, headArea = headarea, handArea = handarea };
         }
         /// <summary>
         /// finds the person or hand with the closest position to point, who is interacting with an interactor.
@@ -510,6 +533,7 @@ namespace Tames
                 case InteractionGeometry.Sphere: scale = Utils.DetectSphere(g); break;
                 case InteractionGeometry.Box:
                     scale = Utils.DetectBox(g);
+                    //    Debug.Log("area " + scale.ToString("0.00"));
                     break;
                 case InteractionGeometry.Cylinder:
                     scale = v = Utils.DetectCylinder(g, out upAxis);
@@ -525,6 +549,7 @@ namespace Tames
             //   relative.SetActive(false);
             relative.transform.localScale = scale;
             relative.transform.rotation = gameObject.transform.rotation;
+            if (to.name == "rotat") Debug.Log("switch " + gameObject.name + " " + update);
             switch (update)
             {
                 case InteractionUpdate.Fixed:
@@ -556,22 +581,22 @@ namespace Tames
                 displacement = m / to.handle.Span;
             }
             //      Debug.Log("arix: gp befor " + gameObject.transform.position.ToString("0.00"));
-            gameObject.transform.parent = relative.transform;
-            gameObject.transform.localPosition = Vector3.zero;
+            //  gameObject.transform.parent = relative.transform;
+            //   gameObject.transform.localPosition = Vector3.zero;
             //       Debug.Log("arix: gp after " + gameObject.transform.position.ToString("0.00"));
         }
         static InteractionMode GetMode(int i)
         {
             switch (i)
             {
-                case 0: return InteractionMode.Inside; break;
-                case 1: return InteractionMode.Outside; break;
-                case 2: return InteractionMode.InOut; break;
-                case 3: return InteractionMode.OutIn; break;
-                case 4: return InteractionMode.Grip; break;
-                case 5: return InteractionMode.Switch1; break;
-                case 6: return InteractionMode.Switch2; break;
-                case 7: return InteractionMode.Switch3; break;
+                case 0: return InteractionMode.Inside;
+                case 1: return InteractionMode.Outside;
+                case 2: return InteractionMode.InOut;
+                case 3: return InteractionMode.OutIn;
+                case 4: return InteractionMode.Grip;
+                case 5: return InteractionMode.Switch1;
+                case 6: return InteractionMode.Switch2;
+                case 7: return InteractionMode.Switch3;
             }
             return InteractionMode.Inside;
         }
@@ -580,52 +605,95 @@ namespace Tames
             TameArea r = null;
             int m;
             InteractionGeometry geom;
-            string aname = g.name.ToLower();
-            if (aname.StartsWith(TameHandles.KeyAreaBox) || aname.StartsWith(TameHandles.KeyAreaCube))
-                geom = InteractionGeometry.Box;
-            else if (aname.StartsWith(TameHandles.KeyAreaCylinder))
-                geom = InteractionGeometry.Cylinder;
-            else if (aname.StartsWith(TameHandles.KeyAreaSphere))
-                geom = InteractionGeometry.Sphere;
-            else return null;
-            int p = aname.IndexOf("_", 1);
-            if ((p > 0) && (p < aname.Length - 1))
+            MarkerArea ma = g.transform.GetComponent<MarkerArea>();
+            if (ma != null)
             {
-                m = AreaInteraction.IndexOf(aname[p + 1]);
-                if (m >= 0)
+                r = new TameArea()
                 {
-                    r = new TameArea()
+                    geometry = ma.GetGeometry(),
+                    update = ma.GetUpdate(),
+                    mode = ma.GetMode(),
+                    gameObject = g,
+                    element = to,
+                };
+                if (r.geometry == InteractionGeometry.Remote)
+                {
+                    r.key = ManifestCustom.FindKey(ma.input);
+                    Debug.Log("area key = " + r);
+                }
+                if (r.geometry == InteractionGeometry.Cylinder)
+                    r.upAxis = Utils.DetectCylinderVector(g);
+                r.SetUpdate(to, g);
+                g.SetActive(false);
+            }
+            else
+            {
+                string aname = g.name.ToLower();
+                if (aname.StartsWith(TameHandles.KeyAreaBox) || aname.StartsWith(TameHandles.KeyAreaCube))
+                    geom = InteractionGeometry.Box;
+                else if (aname.StartsWith(TameHandles.KeyAreaCylinder))
+                    geom = InteractionGeometry.Cylinder;
+                else if (aname.StartsWith(TameHandles.KeyAreaSphere))
+                    geom = InteractionGeometry.Sphere;
+                else if (aname.StartsWith(TameHandles.KeyAreaSwitch))
+                    geom = InteractionGeometry.Remote;
+                else return null;
+                int p = aname.IndexOf("_", 1);
+                if ((p > 0) && (p < aname.Length - 1))
+                {
+                    if (geom == InteractionGeometry.Remote)
                     {
-                        geometry = geom,
-                        mode = GetMode(m),
-                        gameObject = g,
-                        element = to,
-                    };
-                    if (r.geometry == InteractionGeometry.Cylinder)
-                        r.upAxis = Utils.DetectCylinderVector(g);
-                    switch (m)
-                    {
-                        case 0: case 1: case 2: case 3: r.update = InteractionUpdate.Fixed; break;
-                        case 4: r.update = InteractionUpdate.Mover; break;
-                        case 5: case 6: case 7: r.update = InteractionUpdate.Parent; break;
-                    }
-                    p = aname.IndexOf("_", p + 1);
-                    if ((p > 0) && (p < aname.Length - 1))
-                    {
-                        p = AreaUpdate.IndexOf(aname[p + 1]);
-                        switch (p)
+                        p = ManifestCustom.FindKey(aname[p + 1] + "");
+                        if (p >= 0)
                         {
-                            case 0: r.update = InteractionUpdate.Fixed; break;
-                            case 1: r.update = InteractionUpdate.Parent; break;
-                            case 2: r.update = InteractionUpdate.Mover; break;
+                            r = new TameArea()
+                            {
+                                geometry = geom,
+                                key = p,
+                                gameObject = g,
+                                element = to,
+                            };
                         }
                     }
-                    r.SetUpdate(to, g);
-                    g.SetActive(false);
-                    Debug.Log(r.element.name + " " + r.mode + " ");
+                    else
+                    {
+                        m = AreaInteraction.IndexOf(aname[p + 1]);
+                        if (m >= 0)
+                        {
+                            r = new TameArea()
+                            {
+                                geometry = geom,
+                                mode = GetMode(m),
+                                gameObject = g,
+                                element = to,
+                            };
+                            if (r.geometry == InteractionGeometry.Cylinder)
+                                r.upAxis = Utils.DetectCylinderVector(g);
+                            switch (m)
+                            {
+                                case 0: case 1: case 2: case 3: r.update = InteractionUpdate.Fixed; break;
+                                case 4: r.update = InteractionUpdate.Mover; break;
+                                case 5: case 6: case 7: r.update = InteractionUpdate.Parent; break;
+                            }
+                            p = aname.IndexOf("_", p + 1);
+                            if ((p > 0) && (p < aname.Length - 1))
+                            {
+                                p = AreaUpdate.IndexOf(aname[p + 1]);
+                                switch (p)
+                                {
+                                    case 0: r.update = InteractionUpdate.Fixed; break;
+                                    case 1: r.update = InteractionUpdate.Parent; break;
+                                    case 2: r.update = InteractionUpdate.Mover; break;
+                                }
+                            }
+                            //      if (to.name == "rotat")                                Debug.Log("switch: name = " + g.name);
+                            r.SetUpdate(to, g);
+                            g.SetActive(false);
+                        }
+                    }
                 }
-
             }
+            // Debug.Log("area return: "+r.element.name + " " + r.mode + " ");
             return r;
         }
         /// <summary>
@@ -686,7 +754,10 @@ namespace Tames
                 if (te.tameType == TameKeys.Object)
                 {
                     to = (TameObject)te;
+                    //  Debug.Log("area looking: " + te.name);
                     if (to.isGrippable)
+                    {
+                        Debug.Log("area grippable: " + te.name);
                         foreach (TameArea area in to.areas)
                             if ((d = Vector3.Distance(area.relative.transform.position, camera.position)) < min)
                                 if (Vector3.Angle(camera.forward, area.relative.transform.position - camera.position) < 90)
@@ -695,6 +766,7 @@ namespace Tames
                                     min = d;
                                     grippableObject = to;
                                 }
+                    }
                 }
             return r;
         }
@@ -717,7 +789,9 @@ namespace Tames
                 {
                     to = (TameObject)te;
                     if (to.isSwitch)
+                    {
                         foreach (TameArea area in to.areas)
+                        {
                             if ((d = Vector3.Distance(area.relative.transform.position, cam.position)) < min)
                                 if (Vector3.Angle(cam.forward, area.relative.transform.position - cam.position) < 90)
                                 {
@@ -725,6 +799,9 @@ namespace Tames
                                     min = d;
                                     switchObject = to;
                                 }
+                            Debug.Log("switch is " + te.name + " " + area.relative.transform.position.ToString());
+                        }
+                    }
                 }
             return r;
         }
