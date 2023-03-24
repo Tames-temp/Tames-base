@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Markers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -85,7 +86,12 @@ namespace Tames
         /// a basis for  <see cref="TameProgress.changingDirection"/> when the progress are updated based on interactors.
         /// </summary>
         public int changingDirection = 1;
-
+        public int switchingKey = -1;
+        public bool initialVisibility = true;
+        /// <summary>
+        /// the interaction areas attached to this elements. 
+        /// </summary>
+        public List<TameArea> areas = new List<TameArea>();
         public TameElement()
         {
 
@@ -214,6 +220,20 @@ namespace Tames
                             catch { }
                     }
         }
+        public void CheckStatus()
+        {
+            if (owner != null)
+            {
+                if (Tick <= 0)
+                    owner.SetActive(initialVisibility);
+                else if (switchingKey >= 0)
+                {
+                    if (TameInputControl.checkedKeys[switchingKey].wasPressedThisFrame)
+                        owner.SetActive(!owner.activeSelf);
+                }
+            }
+        }
+
         /// <summary>
         /// updates the progress of the element (this is used for remote update).
         /// </summary>
@@ -408,6 +428,7 @@ namespace Tames
             //  Debug.Log("findin parents for " + tes.Count);
             for (int i = 0; i < tes.Count; i++)
             {
+                tes[i].CheckStatus();
                 tes[i].AssignParent(allEffects, i);
                 //   if (tes[i].name == "temperature") Debug.Log("temp: " + tes[i].progress.progress);
                 //    if (tes[i].name == "room-fan") Debug.Log("fan: " + tes[i].progress.progress);
@@ -477,9 +498,35 @@ namespace Tames
                 }
             return count;
         }
-        /// <summary>
-        /// sets the speed, duration, cycle and trigger properties of <see cref="progress"/>es in this element based on the <see cref="manifest"/>
-        /// </summary>
+        private void RotateAreaFromBlender(Transform t)
+        {
+            t.RotateAround(t.parent.position, t.parent.right, 180);
+            Debug.Log("rotate " + t.gameObject.name);
+        }
+        public void GetAreas(int software = -1)
+        {
+            int cc = owner.transform.childCount;
+            List<GameObject> io = new List<GameObject>();
+            TameArea ir;
+            io.AddRange(MarkerArea.FindAreas(owner));
+
+            for (int i = 0; i < cc; i++)
+                if (TameArea.HasAreaKeyword(owner.transform.GetChild(i).name))
+                {
+                    io.Add(owner.transform.GetChild(i).gameObject);
+                    if (software == TameManager.Blender) RotateAreaFromBlender(owner.transform.GetChild(i));
+                }
+            if (io.Count > 0) Debug.Log("getting area for " + owner.name + " " + io.Count);
+            foreach (GameObject go in io)
+                if ((ir = TameArea.ImportArea(go, this)) != null)
+                {
+                    // Debug.Log(" area accepted " + owner.name + " " + ir.geometry);
+                    ir.element = this;
+                    areas.Add(ir);
+                }
+        }   /// <summary>
+            /// sets the speed, duration, cycle and trigger properties of <see cref="progress"/>es in this element based on the <see cref="manifest"/>
+            /// </summary>
         public virtual void SetProgressProperties(List<TameElement> tes, List<TameGameObject> tgos)
         {
             TameFinder finder = new TameFinder();
@@ -503,13 +550,16 @@ namespace Tames
                     }
                     if (markerProgress != null)
                     {
+                        initialVisibility = markerProgress.visible;
+                        switchingKey = ManifestCustom.FindKey(markerProgress.switchingKey);
+                        //    Debug.Log("marker progress: not null " + markerProgress.cycleType);
                         if (markerProgress.duration != -1) progress.manager.Duration = markerProgress.duration;
                         if (markerProgress.trigger != "")
                         {
                             TameTrigger tt = ManifestBase.ReadTrigger(markerProgress.trigger);
                             if (tt != null) progress.trigger = tt;
                         }
-                        progress.cycle = markerProgress.cycleType;
+                        progress.cycle = markerProgress.continuity;
                         if ((markerProgress.speedFactor > 0) && (markerProgress.speedOffset > 0))
                         {
                             if (markerProgress.byElement != null)

@@ -523,9 +523,9 @@ namespace Tames
         /// <summary>
         /// sets the transform properties of the <see cref="relative"/> object based on <see cref="update"/> field
         /// </summary>
-        /// <param name="to">the element associated with this interactor. It can be null if <see cref="update"/> is not set to <see cref="InteractionUpdate.Mover"/></param>
+        /// <param name="te">the element associated with this interactor. It can be null if <see cref="update"/> is not set to <see cref="InteractionUpdate.Mover"/></param>
         /// <param name="g">a game object for attaching to this interactor. It can be null it the <see cref="update"/> is not set to <see cref="InteractionUpdate.Object"/></param>
-        public void SetUpdate(TameObject to, GameObject g)
+        public void SetUpdate(TameElement te, GameObject g)
         {
             Vector3 scale = Vector3.one, v;
             switch (geometry)
@@ -549,7 +549,7 @@ namespace Tames
             //   relative.SetActive(false);
             relative.transform.localScale = scale;
             relative.transform.rotation = gameObject.transform.rotation;
-            if (to.name == "rotat") Debug.Log("switch " + gameObject.name + " " + update);
+            if (te.name == "rotat") Debug.Log("switch " + gameObject.name + " " + update);
             switch (update)
             {
                 case InteractionUpdate.Fixed:
@@ -560,8 +560,11 @@ namespace Tames
                     relative.transform.position = gameObject.transform.position;
                     break;
                 case InteractionUpdate.Mover:
-                    relative.transform.parent = to.mover.transform;
-                    relative.transform.localPosition = to.mover.transform.InverseTransformPoint(gameObject.transform.position);
+                    if (te.tameType == TameKeys.Object)
+                    {
+                        relative.transform.parent = te.mover.transform;
+                        relative.transform.localPosition = te.mover.transform.InverseTransformPoint(gameObject.transform.position);
+                    }
                     break;
                 case InteractionUpdate.Object:
                     relative.transform.parent = g.transform;
@@ -570,15 +573,18 @@ namespace Tames
             }
 
             float m;
-
-            if (to.handle.DoesSlide)
+            if (te.tameType == TameKeys.Object)
             {
-                displacement = Utils.M(relative.transform.position, to.handle.from, to.handle.vector);
-            }
-            else
-            {
-                m = Utils.SignedAngle(relative.transform.position, to.handle.pivot, to.handle.start, to.handle.axis);
-                displacement = m / to.handle.Span;
+                TameObject to = (TameObject)te;
+                if (to.handle.DoesSlide)
+                {
+                    displacement = Utils.M(relative.transform.position, to.handle.from, to.handle.vector);
+                }
+                else
+                {
+                    m = Utils.SignedAngle(relative.transform.position, to.handle.pivot, to.handle.start, to.handle.axis);
+                    displacement = m / to.handle.Span;
+                }
             }
             //      Debug.Log("arix: gp befor " + gameObject.transform.position.ToString("0.00"));
             //  gameObject.transform.parent = relative.transform;
@@ -600,7 +606,7 @@ namespace Tames
             }
             return InteractionMode.Inside;
         }
-        public static TameArea ImportArea(GameObject g, TameObject to)
+        public static TameArea ImportArea(GameObject g, TameElement to)
         {
             TameArea r = null;
             int m;
@@ -628,6 +634,7 @@ namespace Tames
             }
             else
             {
+                if (to.name == "Spot.018") Debug.Log("processing area");
                 string aname = g.name.ToLower();
                 if (aname.StartsWith(TameHandles.KeyAreaBox) || aname.StartsWith(TameHandles.KeyAreaCube))
                     geom = InteractionGeometry.Box;
@@ -686,8 +693,8 @@ namespace Tames
                                     case 2: r.update = InteractionUpdate.Mover; break;
                                 }
                             }
-                            //      if (to.name == "rotat")                                Debug.Log("switch: name = " + g.name);
                             r.SetUpdate(to, g);
+                            if (to.name == "Spot.018") Debug.Log("area added: " + g.transform.position.ToString() + " " +r.relative.transform.position.ToString()+r.relative.transform.localScale.ToString());
                             g.SetActive(false);
                         }
                     }

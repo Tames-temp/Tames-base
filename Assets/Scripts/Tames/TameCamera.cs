@@ -163,19 +163,18 @@ namespace Tames
             movingDirection = 0;
             if (InputBasis.move == InputBasis.Button)
             {
-                if (Keyboard.current != null)
-                {
-                    if (Keyboard.current.sKey.isPressed) movingDirection = -1;
-                    if (Keyboard.current.wKey.isPressed) movingDirection = 1;
-                }
+                if (TameInputControl.keyMap.forward) movingDirection = 1;
+                if (TameInputControl.keyMap.back) movingDirection = -1;
+
+            
                 if ((movingDirection == 0) && (Gamepad.current != null))
                 {
-                    float y = Gamepad.current.leftStick.y.ReadValue();
+                    float y = TameInputControl.keyMap.gpMap.stick[0].y;
                     movingDirection = y < -0.5f ? -1 : (y > 0.5f ? 1 : 0);
                 }
 
-                if (MainScript.localPerson.A[0]) movingDirection = 1;
-                if (MainScript.localPerson.B[0]) movingDirection = -1;
+                if (TameInputControl.keyMap.vrMap.A[0]) movingDirection = 1;
+                if (TameInputControl.keyMap.vrMap.B[0]) movingDirection = -1;
             }
         }
         private static void SetTurningDirection()
@@ -183,14 +182,13 @@ namespace Tames
             turningDirection = 0;
             if (InputBasis.turn == InputBasis.Button)
             {
-                if (Keyboard.current != null)
-                {
-                    if (Keyboard.current.aKey.isPressed) turningDirection = -1;
-                    if (Keyboard.current.dKey.isPressed) turningDirection = 1;
-                }
+              
+                    if (TameInputControl.keyMap.left) turningDirection = -1;
+                    if (TameInputControl.keyMap.right) turningDirection = 1;
+                
                 if ((turningDirection == 0) && (Gamepad.current != null))
                 {
-                    float x = Gamepad.current.leftStick.x.ReadValue();
+                    float x = TameInputControl.keyMap.gpMap.stick[0].x;
                     turningDirection = x < -0.5f ? -1 : (x > 0.5f ? 1 : 0);
                 }
             }
@@ -201,15 +199,12 @@ namespace Tames
             tiltingDirection = 0;
             if (InputBasis.tilt == InputBasis.Button)
             {
-                if (Keyboard.current != null)
+                if (TameInputControl.keyMap.up) tiltingDirection = 1;
+                if (TameInputControl.keyMap.down) tiltingDirection = -1;
+                if (tiltingDirection == 0)
                 {
-                    if (Keyboard.current.rKey.isPressed) tiltingDirection = 1;
-                    if (Keyboard.current.fKey.isPressed) tiltingDirection = -1;
-                }
-                if ((tiltingDirection == 0) && (Gamepad.current != null))
-                {
-                    if (Gamepad.current.yButton.isPressed) tiltingDirection = 1;
-                    if (Gamepad.current.aButton.isPressed) tiltingDirection = -1;
+                    if (TameInputControl.keyMap.gpMap.pressed[3]) tiltingDirection = 1;
+                    if (TameInputControl.keyMap.gpMap.pressed[2]) tiltingDirection = -1;
                 }
                 currentTilt += tiltingDirection * tiltingSpeed * TameElement.deltaTime;
                 if (currentTilt > 80) currentTilt = 80;
@@ -217,14 +212,9 @@ namespace Tames
             }
             else if (InputBasis.tilt == InputBasis.Mouse)
             {
-                if (Mouse.current != null)
-                {
-                    Vector2 mousePosition = new Vector2(Mouse.current.position.x.ReadValue(), Mouse.current.position.y.ReadValue());
-                  //  Debug.Log(mousePosition.ToString() + Screen.width + ", " + Screen.height);
-                    y = (mousePosition.y - 0.5f * MainScript.screenSize.y) / (0.5f * MainScript.screenSize.y);
-                    if (Mathf.Abs(y) < 0.2f) y = 0; else y = Mathf.Sign(y) * (Mathf.Abs(y) - 0.2f) / 0.8f;
-                    currentTilt = y * 80;
-                }
+                y = TameInputControl.keyMap.mouseY;
+                if (Mathf.Abs(y) < 0.2f) y = 0; else y = Mathf.Sign(y) * (Mathf.Abs(y) - 0.2f) / 0.8f;
+                currentTilt = y * 80;
             }
         }
         public static void UpdateCamera()
@@ -313,7 +303,7 @@ namespace Tames
                 p += moving + fwd;
               //  fwd = TameManifest.walkManager.foot;
                  currentFace = TameManager.walkManager.Move(p - eyeHeight);
-       //         Debug.Log("walk " + currentFace.parent.name+" "+ fwd.ToString("0.000") + moving.ToString("0.000") );
+            //    if(currentFace!=null)                    Debug.Log("walk " + currentFace.parent.name);
                 cameraTransform.position = TameManager.walkManager.foot + eyeHeight;
             }
 

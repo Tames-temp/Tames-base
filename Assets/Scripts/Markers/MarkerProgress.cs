@@ -8,7 +8,7 @@ namespace Markers
 {
     public class MarkerProgress : MonoBehaviour
     {
-        public CycleTypes cycleType = CycleTypes.Stop;
+        public CycleTypes continuity = CycleTypes.Stop;
         public float initialStatus = 0;
         public float setAt = 0;
         public float duration = 1;
@@ -17,6 +17,8 @@ namespace Markers
         public GameObject byElement = null;
         public string byName = "";
         public string trigger = "";
+        public bool visible = true;
+        public string switchingKey = "";
 
         public static void PopulateAll(List<Tames.TameGameObject> tgos)
         {

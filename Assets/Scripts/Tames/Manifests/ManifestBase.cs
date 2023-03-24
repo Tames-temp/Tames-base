@@ -41,6 +41,8 @@ namespace Tames
         public byte updateType = TrackBasis.Time;
         public TameTrigger forceTrigger = null;
         public List<string> affected = new List<string>();
+        public bool initialStatus = true;
+        public int switchingKey = -1;
         public static int Read(ManifestHeader mh, string[] lines, int i, List<ManifestBase> items)
         {
             ManifestMaterial tmm;
@@ -76,7 +78,7 @@ namespace Tames
                 case ManifestKeys.Speed:
                 case ManifestKeys.Duration:
                     ReadDuration(mh);
-                    Debug.Log("duration " + manager.Duration+ " "+mh.items[0]);
+                    Debug.Log("duration " + manager.Duration + " " + mh.items[0]);
                     break;
                 case ManifestKeys.Trigger:
                     trigger = ReadTrigger(mh);
@@ -103,7 +105,17 @@ namespace Tames
                     //       Debug.Log("enforce");
                     ReadEnforce(mh, false);
                     break;
+                case ManifestKeys.Enable:
+                case ManifestKeys.Disable:
+                    ReadEnable(mh, mh.subKey == ManifestKeys.Enable);
+                    break;
             }
+        }
+        public void ReadEnable(ManifestHeader mh, bool isEnable)
+        {
+            if (mh.items.Count > 0)
+                switchingKey = ManifestCustom.FindKey(mh.items[0]);
+            initialStatus = isEnable;
         }
         public void ReadDuration(ManifestHeader mh)
         {
@@ -301,9 +313,9 @@ namespace Tames
             }
         }
     }
-    
-   
-   
-   
-   
+
+
+
+
+
 }

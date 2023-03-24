@@ -84,10 +84,6 @@ namespace Tames
         /// </summary>
         public bool isSwitch = false;
         /// <summary>
-        /// the interaction areas attached to this elements. 
-        /// </summary>
-        public List<TameArea> areas = new List<TameArea>();
-        /// <summary>
         /// the parent tame object of this object (this is the parent object in the 3D model, not in the update hierarchy 
         /// </summary>
         public TameObject parentObject = null;
@@ -175,24 +171,7 @@ namespace Tames
                 if (handle.RotationType == MovingTypes.Rotator) handle.Rotate(progress.progress, progress.lastProgress);
             }
         }
-        public void GetAreas()
-        {
-            int cc = owner.transform.childCount;
-            List<GameObject> io = new List<GameObject>();
-            TameArea ir;
-             io.AddRange(MarkerArea.FindAreas(owner));
-            for (int i = 0; i < cc; i++)
-                if (TameArea.HasAreaKeyword(owner.transform.GetChild(i).name))
-                    io.Add(owner.transform.GetChild(i).gameObject);
-            Debug.Log("getting area for " + owner.name+" "+io.Count);
-            foreach (GameObject go in io)
-                if ((ir = TameArea.ImportArea(go, this)) != null)
-                {
-                    Debug.Log(" area accepted " + owner.name+ " "+ir.geometry);
-                    ir.element = this;
-                    areas.Add(ir);
-                }
-        }
+
         private TameEffect GetEffect(Person headOwner, Person handOwner, TameAreaTrack tat)
         {
             TameEffect r = null;
@@ -252,7 +231,7 @@ namespace Tames
             bool[] set = new bool[] { false, false, false };
             TameArea ti;
             Person pe;
-         //   Debug.Log("before error 1");
+            //   Debug.Log("before error 1");
             if (isGrippable)
             {
                 r = TameArea.Grip(areas);
@@ -267,13 +246,13 @@ namespace Tames
                 }
                 return r;
             }
-        //    Debug.Log("before error 2");
+            //    Debug.Log("before error 2");
             if (isSwitch)
             {
-          //      Debug.Log("before error 2.1 "+name +" "+areas.Count);
+                //      Debug.Log("before error 2.1 "+name +" "+areas.Count);
                 if (areas[0].geometry == InteractionGeometry.Remote)
                 {
-           //         Debug.Log("before error 2.15 "+ areas[0].key);
+                    //         Debug.Log("before error 2.15 "+ areas[0].key);
                     if (TameInputControl.checkedKeys[areas[0].key].wasPressedThisFrame)
                     {
                         areas[0].Switch(true);
@@ -284,7 +263,7 @@ namespace Tames
                 }
                 else
                 {
-            //        Debug.Log("before error 2.2");
+                    //        Debug.Log("before error 2.2");
                     int sd = TameArea.CheckSwitch(areas);
                     r = TameEffect.Time();
                     if (sd != TameArea.NotSwitched)
@@ -295,10 +274,10 @@ namespace Tames
                         }
                     r.child = this;
                 }
-      //          Debug.Log("before error 2.3");
+                //          Debug.Log("before error 2.3");
                 return r;
             }
-      //      Debug.Log("before error 3");
+            //      Debug.Log("before error 3");
             Person headOwner = null, handOwner = null;
             Vector3 closestPosition = Vector3.positiveInfinity;
             //    Debug.Log("name = " + areas.Count);
@@ -325,7 +304,7 @@ namespace Tames
                     r.child = this;
                 }
             }
-      //      Debug.Log("before error 4");
+            //      Debug.Log("before error 4");
             return r;
         }
         override public void CleanAreas()
@@ -409,22 +388,29 @@ namespace Tames
                 to.mover = handle.mover;
                 to.owner = g;
                 to.name = g.name;
-                to.GetAreas();
+                to.markerProgress = g.GetComponent<MarkerProgress>();
                 return to;
             }
             return null;
         }
-        public static List<TameGameObject> CreateInteractive(TameElement parentElement, GameObject owner, List<TameElement> tes)
+        public static List<TameGameObject> CreateInteractive(TameElement parentElement, GameObject owner, List<TameElement> tes, int software = -1)
         {
+            MarkerOrigin mo;
+            if ((mo = owner.GetComponent<MarkerOrigin>()) != null)
+                software = mo.GetOrigin();
             if (owner.GetComponent<Light>() != null)
             {
                 TameLight tl = new TameLight() { name = owner.name, owner = owner, light = owner.GetComponent<Light>(), index = (ushort)tes.Count };
+                tl.GetAreas(software);
                 tl.parents.Add(new TameEffect()
                 {
                     type = parentElement.tameType == TameKeys.Time ? TrackBasis.Time : TrackBasis.Tame,
                     parent = parentElement,
                     child = tl,
                 });
+                MarkerProgress mp = owner.GetComponent<MarkerProgress>();
+                if (mp != null) tl.markerProgress = mp;
+                //     tl.changers = owner.GetComponents<MarkerChanger>();
                 tes.Add(tl);
             }
             List<TameGameObject> tgo = new List<TameGameObject>();
@@ -448,6 +434,7 @@ namespace Tames
                     obj = Create(gi);
                     if (obj != null)
                     {
+                        obj.GetAreas();
                         obj.parentObject = parentElement.tameType == TameKeys.Object ? (TameObject)parentElement : null;
                         obj.index = (ushort)tes.Count;
                         tes.Add(obj);
@@ -484,7 +471,7 @@ namespace Tames
             {
                 //       Debug.Log("check: " + owner.name + " at " + i + " of "+ cc);
                 gi = owner.transform.GetChild(i).gameObject;
-                tgo.AddRange(CreateInteractive(local[i] ?? parentElement, gi, tes));
+                tgo.AddRange(CreateInteractive(local[i] ?? parentElement, gi, tes, software));
             }
 
             return tgo;

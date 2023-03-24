@@ -8,5 +8,6 @@ namespace Markers
 {
     public class MarkerWalk:MonoBehaviour
     {
+        public bool visible = true;
     }
 }

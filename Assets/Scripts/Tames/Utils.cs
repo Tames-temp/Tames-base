@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -385,7 +386,9 @@ public class Alias
             "Factor",
             "Match",
             "Force",
-            "Affect"
+            "Affect",
+            "Disable",
+            "Enable"
     };
     public static int KeyCount = _keys.Length;
     public string[] alias;
@@ -472,6 +475,8 @@ public class ManifestKeys
     public const int Match = 46;
     public const int Enforce = 47;
     public const int Affect = 48;
+    public const int Disable = 49;
+    public const int Enable = 50;
 
     public static void LoadCSV(string s)
     {
@@ -515,6 +520,48 @@ public class Utils
 
             ProperyKeywords = new string[] { "_BaseColor", "_EmissionColor", "_MainTex", "_EmissionMap" };
         }
+    }
+    public static void Write3(BinaryWriter bw, Vector3 p)
+    {
+        bw.Write(p.x);
+        bw.Write(p.y);
+        bw.Write(p.z);
+    }
+    public static void Write2(BinaryWriter bw, Vector2 p)
+    {
+        bw.Write(p.x);
+        bw.Write(p.y);
+    }
+    public static void Write4(BinaryWriter bw, Quaternion p)
+    {
+        bw.Write(p.x);
+        bw.Write(p.y);
+        bw.Write(p.z);
+        bw.Write(p.w);
+    }
+    public static Vector2 Read2(BinaryReader bin)
+    {
+        Vector2 result = new Vector2();
+        result.x = bin.ReadSingle();
+        result.y = bin.ReadSingle();
+        return result;
+    }
+    public static Vector3 Read3(BinaryReader bin)
+    {
+        Vector3 result = new Vector3();
+        result.x = bin.ReadSingle();
+        result.y = bin.ReadSingle();
+        result.z = bin.ReadSingle();
+        return result;
+    }
+    public static Quaternion Read4(BinaryReader bin)
+    {
+        Quaternion result = new Quaternion();
+        result.x = bin.ReadSingle();
+        result.y = bin.ReadSingle();
+        result.z = bin.ReadSingle();
+        result.w = bin.ReadSingle();
+        return result;
     }
     /// <summary>
     /// returns the distance between a specific point and a plain based on its normal and a point of origin on it. 

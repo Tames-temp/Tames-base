@@ -115,10 +115,7 @@ namespace Markers
             bool b = g.name == "door3";
             for (int i = 0; i < allAreas.Count; i++)
             {
-                if (allAreas[i].appliesTo !=null)
-                    Debug.Log("Applies to "+allAreas[i].appliesTo.name);
-                else
-                    Debug.Log("Applies not " +allAreas[i].gameObject.name);
+          
 
                 if (allAreas[i].appliesTo == g)
                     r.Add(allAreas[i].gameObject);

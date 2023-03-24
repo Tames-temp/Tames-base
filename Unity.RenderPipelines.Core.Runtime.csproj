@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{5F8F7B2D-D83E-3E06-6B83-676AC259647E}</ProjectGuid>
+    <ProjectGuid>{535D0BBC-8FA0-1258-3400-4E1F7B3D660D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.RenderPipelines.Core.Runtime</AssemblyName>
@@ -763,7 +763,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Unity.InputSystem.csproj">
-      <Project>{1C7ED88C-0D57-2DDD-DF57-0B1FC08CAE03}</Project>
+      <Project>{9AA6CF6E-8E16-265D-8488-B9D17C9C978C}</Project>
       <Name>Unity.InputSystem</Name>
     </ProjectReference>
   </ItemGroup>

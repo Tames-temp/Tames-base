@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{1C84E0EB-BF79-BB87-0ED9-0A23A2771178}</ProjectGuid>
+    <ProjectGuid>{F54DC76E-E9B2-AF9C-B45F-925A43AF63D4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.RenderPipelines.HighDefinition.Runtime</AssemblyName>
@@ -1376,15 +1376,15 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Unity.RenderPipelines.Core.Runtime.csproj">
-      <Project>{5F8F7B2D-D83E-3E06-6B83-676AC259647E}</Project>
+      <Project>{535D0BBC-8FA0-1258-3400-4E1F7B3D660D}</Project>
       <Name>Unity.RenderPipelines.Core.Runtime</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.RenderPipelines.HighDefinition.Config.Runtime.csproj">
-      <Project>{38E401A2-11BD-4821-3FE7-5D3909453F7B}</Project>
+      <Project>{C31F104D-98B5-472D-14F0-FC6A9B75CE06}</Project>
       <Name>Unity.RenderPipelines.HighDefinition.Config.Runtime</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.VisualEffectGraph.Runtime.csproj">
-      <Project>{E5DD5E28-691B-BF52-8B90-E523EB62F1BB}</Project>
+      <Project>{F9AFA871-D44F-33B9-1945-421576132E99}</Project>
       <Name>Unity.VisualEffectGraph.Runtime</Name>
     </ProjectReference>
   </ItemGroup>

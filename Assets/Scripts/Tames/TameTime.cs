@@ -127,6 +127,19 @@ namespace Tames
                 progress.SetProgress(progress.totalProgress + d * deltaTime * (progress.manager.Speed == -1 ? 1 : progress.manager.Speed));
             else progress.Retain(deltaTime);
         }
+        public static void FromMarker(Markers.MarkerCustom mc, List<TameElement> tes)
+        {
+            ManifestCustom man = new ManifestCustom();
+            man.Read(mc.manifestLines.Split(";"), -1);
+            TameCustomValue tcv = new TameCustomValue();
+            tcv.manifest = man;
+            tcv.name = mc.name;
+            if (mc.byName != "")
+            {
+                man.updates = new ManifestHeader();
+                man.Read(new string[] { "update " + mc.byName }, -1);
+            }
+        }
     }
     public enum InputTypes
     {
@@ -157,87 +170,82 @@ namespace Tames
     }
     public class TameInputControl
     {
-        public static bool[] keyStatus = null;
+        public const float Threshold = 0.3f;
+        public static Records.TameKeyMap keyMap;
+        //   public static bool[] keyStatus = null;
         public static List<ButtonControl> checkedKeys = new List<ButtonControl>();
         public InputTypes control;
         public InputHoldType hold;
         public InputDirections direction;
         public int[] keyValue;
-        public static void CheckKeys()
+        public static void CheckKeys(int index = -1)
         {
-            if (keyStatus == null)
-                keyStatus = new bool[checkedKeys.Count];
-            for (int i = 0; i < keyStatus.Length; i++)
-            {
-                keyStatus[i] = checkedKeys[i].isPressed;
-                //       Debug.Log("custom key "+i+" "+keyStatus[i]+" "+checkedKeys[i].name);
-            }
+            if (keyMap == null)
+                keyMap = new Records.TameKeyMap(checkedKeys.Count);
+            //           if (keyStatus == null)
+            //               keyStatus = new bool[checkedKeys.Count];
+            if (index >= 0)
+                keyMap = Records.TameFullRecord.allRecords.frame[index].keyMap;
+            else
+                keyMap.Capture();
+            //       for (int i = 0; i < keyStatus.Length; i++)
+            //           {
+            //           keyStatus[i] = checkedKeys[i].isPressed;
+            //       Debug.Log("custom key "+i+" "+keyStatus[i]+" "+checkedKeys[i].name);
+            //        }
         }
         public int Hold()
         {
             float f;
-            switch (control)
-            {
-                case InputTypes.VRController:
-                    if ((!Assets.Script.MainScript.multiPlayer) || (Player.bossId == Assets.Script.MainScript.localPerson.id))
+            int k;
+            if ((!Assets.Script.MainScript.multiPlayer) || (Player.bossId == Assets.Script.MainScript.localPerson.id))
+                switch (control)
+                {
+                    case InputTypes.VRController:
                         switch (hold)
                         {
 
                             case InputHoldType.VRScrollLeft:
-                                f = Assets.Script.MainScript.localPerson.hand[0].data.stick.Vector.y;
-                                if (Mathf.Abs(f) > Assets.Script.MainScript.localPerson.hand[0].data.stick.threshold)
-                                    return f < 0 ? -1 : 1;
+                                f = keyMap.vrMap.thumb[0];
+                                if (Mathf.Abs(f) > Threshold) return f < 0 ? -1 : 1;
                                 break;
                             case InputHoldType.VRScrollRight:
-                                f = Assets.Script.MainScript.localPerson.hand[1].data.stick.Vector.y;
-                                if (Mathf.Abs(f) > Assets.Script.MainScript.localPerson.hand[1].data.stick.threshold)
-                                    return f < 0 ? -1 : 1;
+                                f = keyMap.vrMap.thumb[1];
+                                if (Mathf.Abs(f) > Threshold) return f < 0 ? -1 : 1;
                                 break;
                             case InputHoldType.VRTrigger:
-                                f = Assets.Script.MainScript.localPerson.hand[0].data.trigger.Value;
-                                if (f > Assets.Script.MainScript.localPerson.hand[0].data.trigger.threshold)
-                                    return -1;
-                                f = Assets.Script.MainScript.localPerson.hand[1].data.trigger.Value;
-                                if (f > Assets.Script.MainScript.localPerson.hand[1].data.trigger.threshold)
-                                    return 1;
+                                k = keyMap.vrMap.trigger[0] > keyMap.vrMap.trigger[1] ? 0 : 1;
+                                if (keyMap.vrMap.trigger[k] > Threshold) return k == 0 ? -1 : 1;
                                 break;
                         }
-                    return 0;
-                case InputTypes.GamePad:
-                    if ((!Assets.Script.MainScript.multiPlayer) || (Player.bossId == Assets.Script.MainScript.localPerson.id))
+                        return 0;
+                    case InputTypes.GamePad:
                         return InputBasis.GamePadButton(hold, 0.5f);
-                    return 0;
-                default:
-                    if ((!Assets.Script.MainScript.multiPlayer) || (Player.bossId == Assets.Script.MainScript.localPerson.id))
-                    {
-                        if (keyValue == null)
+                    default:
                         {
-                            if (hold == InputHoldType.Key)
+                            if (keyValue == null)
                             {
-                                if (direction == InputDirections.MouseButton) return Assets.Script.MainScript.MouseButton;
-                                if (direction == InputDirections.MouseWheel) return Assets.Script.MainScript.WheelDirection;
-                            }
-                        }
-                        else
-                        {
-                            if (keyValue.Length == 1)
-                            {
-                                if (keyStatus[keyValue[0]])
-                                {
-                                    if (direction == InputDirections.MouseButton) return Assets.Script.MainScript.MouseButton;
-                                    if (direction == InputDirections.MouseWheel) return Assets.Script.MainScript.WheelDirection;
-                                }
+                                if (hold == InputHoldType.Key)
+                                    if (direction == InputDirections.MouseButton) return keyMap.button[0] ? -1 : (keyMap.button[1] ? 1 : 0);
                             }
                             else
                             {
-                   //             Debug.Log(keyStatus.Length);
-                                if (keyStatus[keyValue[0]]) return -1;
-                                if (keyStatus[keyValue[1]]) return 1;
+                                if (keyValue.Length == 1)
+                                {
+                                    if (keyMap.hold[keyValue[0]])
+                                        if (direction == InputDirections.MouseButton) return keyMap.button[0] ? -1 : (keyMap.button[1] ? 1 : 0);
+                                }
+                                else
+                                {
+                                    //             Debug.Log(keyStatus.Length);
+                                    if (keyMap.hold[keyValue[0]]) return -1;
+                                    if (keyMap.hold[keyValue[1]]) return 1;
+                                }
                             }
+                            return 0;
                         }
-                    }
-                    return 0;
-            }
+                }
+            return 0;
         }
     }
     public class TameMatch

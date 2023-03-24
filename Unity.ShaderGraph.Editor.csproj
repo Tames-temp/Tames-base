@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{3F3FAE20-CC38-8DC9-BBFA-D4141BE23628}</ProjectGuid>
+    <ProjectGuid>{982683CD-63D0-4FAF-B44A-D048F9C61703}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.ShaderGraph.Editor</AssemblyName>
@@ -178,8 +178,8 @@
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Extensions\StencilExtensions.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Data\Nodes\Artistic\Adjustment\HueNode.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Drawing\Views\IdentifierField.cs" />
-    <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Data\Util\FunctionRegistry.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Generation\Enumerations\IncludeLocation.cs" />
+    <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Data\Util\FunctionRegistry.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Data\Nodes\Math\Trigonometry\SineNode.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Data\Nodes\Math\Vector\ProjectionNode.cs" />
     <Compile Include="Library\PackageCache\com.unity.shadergraph@10.8.1\Editor\Data\Nodes\Input\Gradient\BlackbodyNode.cs" />
@@ -1325,23 +1325,23 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Unity.ShaderGraph.Utilities.csproj">
-      <Project>{CB4BCCDF-DB3C-7CA5-08BF-FF4777315457}</Project>
+      <Project>{9264BA27-8FDD-7C9F-966B-F9E1229F273E}</Project>
       <Name>Unity.ShaderGraph.Utilities</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.Searcher.Editor.csproj">
-      <Project>{0FB860E8-1D87-FA73-B4E9-AFE8D64E1C09}</Project>
+      <Project>{BD7C8279-87D6-1797-AF87-D594973F1AAC}</Project>
       <Name>Unity.Searcher.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.RenderPipelines.Core.Runtime.csproj">
-      <Project>{5F8F7B2D-D83E-3E06-6B83-676AC259647E}</Project>
+      <Project>{535D0BBC-8FA0-1258-3400-4E1F7B3D660D}</Project>
       <Name>Unity.RenderPipelines.Core.Runtime</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEngine.TestRunner.csproj">
-      <Project>{76DA7739-C88B-1FEF-6516-1D2680F2CF01}</Project>
+      <Project>{84B50C95-A6C4-D77B-3EEB-73F6E8FDD71D}</Project>
       <Name>UnityEngine.TestRunner</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEditor.TestRunner.csproj">
-      <Project>{51EFEDAB-DE44-C6B4-318B-4FA1BE8AADAB}</Project>
+      <Project>{035BA811-76D9-906F-9591-5E358D6033B6}</Project>
       <Name>UnityEditor.TestRunner</Name>
     </ProjectReference>
   </ItemGroup>

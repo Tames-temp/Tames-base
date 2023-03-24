@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{A20D3CEC-D383-259E-BDBF-B28AA601C556}</ProjectGuid>
+    <ProjectGuid>{88E7748F-E6C0-EDD0-0493-8C0F85C903AE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary</AssemblyName>

@@ -193,10 +193,10 @@ namespace Tames
         /// </summary>
         override public void Update()
         {
-       //     Debug.Log("changer time " + name);
-
+        
             SetByTime();
             ApplyUpdate();
+     //       Debug.Log("material time " + name+ " "+progress.progress+" "+markerProgress.cycleType);
         }
         /// <summary>
         /// sets the inintial offsets of the maps

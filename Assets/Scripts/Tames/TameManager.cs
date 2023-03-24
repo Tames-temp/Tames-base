@@ -13,6 +13,10 @@ namespace Tames
     /// </summary>
     public class TameManager
     {
+        public const int Blender = 1;
+        public const int Max3DS = 2;
+        public const int Rhino = 3;
+        public static Markers.MarkerSettings settings;
         /// <summary>
         /// the path of mainfest file in the Resources folder
         /// </summary>
@@ -50,6 +54,7 @@ namespace Tames
         public List<TameMatch> matches = new List<TameMatch>();
         public List<Markers.MarkerMaterial> materialMarkers = new List<Markers.MarkerMaterial>();
         public List<Markers.MarkerMaterial> lightMarkers = new List<Markers.MarkerMaterial>();
+        public static Walking.MoveGesture moveGesture;
         public TameManager()
         {
             manifests = new List<ManifestBase>();
@@ -175,13 +180,27 @@ namespace Tames
             if (RootObject != null)
             {
                 Markers.MarkerArea.PopulateAll(RootObject);
-                tgos.AddRange(TameObject.CreateInteractive(TameTime.RootTame, RootObject, tes));
+                tgos.AddRange(TameObject.CreateInteractive(TameTime.RootTame, RootObject, tes, Blender));
             }
+            Markers.MarkerCustom mc;
+            for(int i = 0; i < tgos.Count; i++)
+                if ((mc = tgos[i].gameObject.GetComponent<Markers.MarkerCustom>()) != null)
+                {
+                    TameCustomValue.FromMarker(mc, tes);
+                }
             Markers.MarkerProgress.PopulateAll(tgos);
             Markers.MarkerMaterial mt;
             foreach (TameGameObject tgo in tgos)
                 if ((mt = tgo.gameObject.GetComponent<Markers.MarkerMaterial>()) != null)
                     materialMarkers.Add(mt);
+            Debug.Log("material count " + materialMarkers.Count);
+            foreach (GameObject rootObj in root)
+                if (rootObj.name == "BASEmodel")
+                {
+                    Debug.Log("made");
+                    moveGesture = new Walking.MoveGesture(rootObj);
+                    break;
+                }
         }
         void AssignMatches()
         {
@@ -205,8 +224,9 @@ namespace Tames
                 }
                 finder.RemoveDuplicate(TameFinder.Object);
                 bool f = false;
+                Markers.MarkerWalk mw;
                 foreach (TameGameObject go in tgos)
-                    if (go.gameObject.GetComponent<Markers.MarkerWalk>() != null)
+                    if ((mw = go.gameObject.GetComponent<Markers.MarkerWalk>()) != null)
                     {
                         f = false;
                         foreach (TameGameObject g in finder.objectList)
@@ -218,7 +238,9 @@ namespace Tames
                 walkManager = new Walking.WalkManager(finder.objectList, true);
                 //  Debug.Log("walk " + finder.objectList.Count);
                 foreach (TameGameObject tg in finder.objectList)
-                    if (tg.gameObject.name.StartsWith("_"))
+                    if ((mw = tg.gameObject.GetComponent<Markers.MarkerWalk>()) != null)
+                        tg.gameObject.SetActive(mw.visible);
+                    else if (tg.gameObject.name.StartsWith("_"))
                     {
                         tg.gameObject.SetActive(false);
                         //   Debug.Log("walk false " + tg.gameObject.name);
@@ -285,10 +307,10 @@ namespace Tames
                 });
             }
         }
-        void AddTameMaterial(ManifestBase tmb, Material original, int index, TameElement firstOwner, Markers.MarkerChanger[] mcs)
+        TameMaterial AddTameMaterial(ManifestBase tmb, Material original, int index, TameElement firstOwner, Markers.MarkerChanger[] mcs)
         {
             Material clone;
-            TameMaterial tm;
+            TameMaterial tm = null;
             //     Debug.Log(index + " " + (tmb == null ? "null" : "not"));
 
             if (tmb == null)
@@ -299,6 +321,7 @@ namespace Tames
             }
             string updateName = index < 0 ? "" : materialMarkers[index].updateByName;
             TameElement updateElement = null;
+            Markers.MarkerProgress mp = index >= 0 ? materialMarkers[index].gameObject.GetComponent<Markers.MarkerProgress>() : null;
             if (index >= 0)
             {
                 updateElement = materialMarkers[index].updateByElement != null ? TameGameObject.Find(materialMarkers[index].updateByElement, tgos).tameParent : null;
@@ -317,6 +340,7 @@ namespace Tames
                             manifest = tmb,
                             index = (ushort)tes.Count,
                             owner = tgo.gameObject,
+                            markerProgress = mp,
                         };
                         ((ManifestMaterial)tmb).ExternalChanger(mcs);
                         tm.CheckEmission();
@@ -335,7 +359,8 @@ namespace Tames
                     name = original.name,
                     original = original,
                     manifest = tmb,
-                    index = (ushort)tes.Count
+                    index = (ushort)tes.Count,
+                    markerProgress = mp,
                 };
                 ((ManifestMaterial)tmb).ExternalChanger(mcs);
                 SetMaterialUpdate(updateName, updateElement, tmb, tm, firstOwner);
@@ -343,8 +368,10 @@ namespace Tames
                 tm.CheckEmission();
                 tes.Add(tm);
                 tmb.elements.Add(tm);
+                return tm;
                 //         Debug.Log("let's see");
             }
+            return null;
         }
         void ListMaterials(List<Material> existing, List<TameElement> firstOwner)
         {
@@ -390,7 +417,7 @@ namespace Tames
             bool[] mpass = new bool[materialMarkers.Count];
             for (int i = 0; i < materialMarkers.Count; i++)
                 mpass[i] = false;
-
+            Markers.MarkerProgress mp;
             foreach (ManifestBase tmb in manifests)
                 if (tmb.header.key == TameKeys.Material)
                 {
@@ -408,18 +435,21 @@ namespace Tames
                                     //           Debug.Log(index + " " + i + " " + existing.Count);
                                     AddTameMaterial(tmb, m, index, firstOwner[i], mcs);
                                 }
-                        for (int i = 0; i < mpass.Length; i++)
-                            for (int j = 0; j < existing.Count; j++)
-                                if ((!mpass[i]) && (materialMarkers[i].material != null))
-                                    if (existing[j] == materialMarkers[i].material)
-                                    {
-                                        mpass[i] = true;
-                                        mcs = materialMarkers[i].gameObject.GetComponents<Markers.MarkerChanger>();
-                                        AddTameMaterial(null, materialMarkers[i].material, i, firstOwner[j], mcs);
-                                        break;
-                                    }
                     }
                 }
+            for (int i = 0; i < mpass.Length; i++)
+                if ((!mpass[i]) && (materialMarkers[i].material != null))
+                    for (int j = 0; j < existing.Count; j++)
+                        if (existing[j] == materialMarkers[i].material)
+                        {
+                            mpass[i] = true;
+                            mcs = materialMarkers[i].gameObject.GetComponents<Markers.MarkerChanger>();
+                            tm = AddTameMaterial(null, materialMarkers[i].material, i, firstOwner[j], mcs);
+                            Debug.Log("material added " + materialMarkers[i].material.name + " " + tm.basis);
+                            break;
+                        }
+
+
             for (int i = 0; i < materialMarkers.Count; i++)
                 if ((!mpass[i]) && (materialMarkers[i].material == null))
                 {
@@ -455,10 +485,11 @@ namespace Tames
                         break;
                 }
             }
-            Markers.MarkerObject mo;
+            Markers.MarkerObject mo;           
             string[] lines;
             foreach (TameElement te in tes)
                 if (te.tameType == TameKeys.Object)
+                {
                     if ((mo = te.owner.GetComponent<Markers.MarkerObject>()) != null)
                     {
                         if (mo.manifestLines != "")
@@ -466,13 +497,14 @@ namespace Tames
                             lines = Utils.Split(mo.manifestLines, "\n\r:;").ToArray();
                             if (te.manifest == null)
                                 te.manifest = new ManifestObject();
-                 //           Debug.Log("read<: "+lines[0]);
+                            //           Debug.Log("read<: "+lines[0]);
                             ((ManifestObject)te.manifest).Read(lines, -1);
                         }
-               //         Debug.Log("from<: "+te.name +" "+te.manifest.manager.Speed+ " > " + mo.manifestLines);
+                        //         Debug.Log("from<: "+te.name +" "+te.manifest.manager.Speed+ " > " + mo.manifestLines);
                     }
+                }
         }
-        void IdentifyLights()
+        void IdentifyLightsOld()
         {
             for (int i = 0; i < lightMarkers.Count; i++)
             {
@@ -516,6 +548,55 @@ namespace Tames
             }
 
         }
+        void IdentifyLights()
+        {
+            foreach (TameElement te in tes)
+                if (te.tameType == TameKeys.Light)
+                {
+                    Markers.MarkerMaterial mm = te.owner.GetComponent<Markers.MarkerMaterial>();
+                    string updateName = "";
+                    TameElement updateElement = null;
+                    if (mm != null)
+                    {
+                        if (mm.material != null)
+                            updateName = mm.updateByName;
+                        updateElement = mm.updateByElement != null ? TameGameObject.Find(mm.updateByElement, tgos).tameParent : null;
+                    }
+                    TameLight tl = (TameLight)te;
+                    Markers.MarkerChanger[] mcs = te.owner.GetComponents<Markers.MarkerChanger>();
+                    if (mcs != null)
+                    {
+                        if (tl.manifest == null)
+                        {
+                            ManifestLight tlm = new ManifestLight();
+                            tl.manifest = tlm;
+                            tlm.elements.Add(tl);
+                        }
+                        ((ManifestLight)tl.manifest).ExternalChanger(mcs);
+                    }
+                    else
+                        ((ManifestLight)tl.manifest).ExternalChanger(mcs);
+                    if (updateElement != null)
+                    {
+                        tl.manifest.updates = null;
+                        tl.parents.Add(new TameEffect(ManifestKeys.Update, updateElement)
+                        {
+                            child = tl
+                        });
+                        tl.manifest.updateType = TrackBasis.Tame;
+                    }
+                    else if (updateName != "")
+                    {
+                        ManifestHeader mh = ManifestHeader.Read("update " + updateName);
+                        tl.manifest.updateType = TrackBasis.Tame;
+                        tl.manifest.updates = mh;
+                    }
+
+                }
+
+        }
+
+
 
         /// <summary>
         /// establishes the parents (<see cref="TameElement.parents"/>,<see cref="TameElement.slideParents"/> and <see cref="TameElement.rotateParents"/>) for all elements in <see cref="tes"/>. This method is called from within <see cref="LoadManifest"/>
