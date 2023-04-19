@@ -131,9 +131,9 @@ namespace Tames
                             linkType = LinkedKeys.Progress;
                         break;
                     case ManifestKeys.Stack:
-                        //     Debug.Log("is stack");
                         if (Utils.SafeParse(mh.items[1], out progressedDistance))
                             linkType = LinkedKeys.Stack;
+                        Debug.Log("is stack " + progressedDistance);
                         break;
                     case ManifestKeys.Cycle:
                         if (Utils.SafeParse(mh.items[1], out progressedDistance))

@@ -9,7 +9,7 @@ namespace Multi
     /// </summary>
     public class Person
     {
-        public static Person[] people = new Person[10];
+        public static Person[] people = new Person[8];
         public const int LocalDefault = 16;
         public static Person localPerson;
         public bool initiated = false;
@@ -35,6 +35,14 @@ namespace Multi
         private int gripUp;
         public Vector3 switchPosition = Vector3.negativeInfinity;
         private int tick;
+        public int switchCount = 0;
+        public Tames.TameArea nextArea = null;
+        public int action = 0;
+        public const int ActionGrip = 1;
+        public const int ActionUpdateGrip = 2;
+        public const int ActionSwitch = 3;
+        public const int ActionUpdateSwitch = 4;
+
         public Person(ushort id)
         {
             this.id = id;
@@ -48,7 +56,7 @@ namespace Multi
             trigger = new float[2];
             stick = new Vector2[2];
         }
-        public void EncodeInput()
+        public void EncodeLocal()
         {
             headPosition = head.transform.position;
             headLocalEuler = head.transform.localEulerAngles;
@@ -65,71 +73,17 @@ namespace Multi
                 stick[i] = hand[i].data.stick.Vector;
             }
         }
-        public void AddToMessage(Message m)
+        public static void UpdateAll(Records.FrameShot[] frames)
         {
-            m.AddUShort(id);
-            m.AddVector3(headPosition);
-            m.AddVector3(headLocalEuler);
-            for (int i = 0; i < 2; i++)
-            {
-                m.AddVector3(position[i]);
-                m.AddVector3(localEuler[i]);
-                m.AddVector3(index[i]);
-                m.AddVector3(middle[i]);
-                m.AddBool(A[i]);
-                m.AddBool(B[i]);
-                m.AddFloat(grip[i]);
-                m.AddFloat(trigger[i]);
-                m.AddVector2(stick[i]);
-            }
+            for (int i = 0; i < frames.Length; i++)
+                if (i != Player.index)
+                    if (people[i] != null)
+                    {
+                        people[i].Update(frames[i]);
+                    }
         }
-        public static void Skip(Message m)
-        {
-            m.GetVector3();
-            m.GetVector3();
-            for (int i = 0; i < 2; i++)
-            {
-                m.GetVector3();
-                m.GetVector3();
-                m.GetVector3();
-                m.GetVector3();
-                m.GetBool();
-                m.GetBool();
-                m.GetFloat();
-                m.GetFloat();
-                m.GetVector2();
-            }
-        }
-        public void ReadMessage(Message m)
-        {
 
-            id = m.GetUShort();
-            ContinueReadMessage(m);
-        }
-        public void ContinueReadMessage(Message m)
-        {
-            headPosition = m.GetVector3();
-            headLocalEuler = m.GetVector3();
-            for (int i = 0; i < 2; i++)
-            {
-                position[i] = m.GetVector3();
-                localEuler[i] = m.GetVector3();
-                index[i] = m.GetVector3();
-                middle[i] = m.GetVector3();
-                A[i] = m.GetBool();
-                B[i] = m.GetBool();
-                grip[i] = m.GetFloat();
-                trigger[i] = m.GetFloat();
-                stick[i] = m.GetVector2();
-            }
-            if (!isLocal)
-            {
-                head.transform.position = headPosition;
-                head.transform.localEulerAngles = headLocalEuler;
-                for (int i = 0; i < 2; i++)
-                    hand[i].Update(this);
-            }
-        }
+
         /// <summary>
         /// creates the hand model based on the bones in the prefab
         /// </summary>
@@ -145,6 +99,27 @@ namespace Multi
             hand[1] = new HandModel(null, g1, 1);
             hand[1].GetFingers(fingerHeader);
             hand[1].gripDirection = -1;
+        }
+        public void Update(Records.FrameShot frame)
+        {
+            if (frame != null)
+            {
+                hand[0].Grip(15, frame.grip[0]);
+                hand[1].Grip(15, frame.grip[1]);
+                head.transform.position = frame.cpos;
+                head.transform.rotation = frame.crot;
+                hand[0].wrist.transform.position = frame.hpos[0];
+                hand[1].wrist.transform.position = frame.hpos[1];
+                hand[0].wrist.transform.rotation = frame.hrot[0];
+                hand[1].wrist.transform.rotation = frame.hrot[1];
+                headPosition = head.transform.position;
+                headLocalEuler = head.transform.localEulerAngles;
+                for (int i = 0; i < 2; i++)
+                {
+                    position[i] = hand[i].wrist.transform.position;
+                    localEuler[i] = hand[i].wrist.transform.localEulerAngles;
+                }
+            }
         }
         /// <summary>
         /// updates the status of head and hands
@@ -162,6 +137,14 @@ namespace Multi
         {
             headPosition = head.gameObject.transform.position;
             headLocalEuler = head.gameObject.transform.localEulerAngles;
+            switch (action)
+            {
+                case ActionGrip: Grip(nextArea, Tames.TameCamera.cameraTransform); break;
+                case ActionUpdateGrip: UpdateGrip(nextArea); break;
+                case ActionSwitch: Switch(nextArea, Tames.TameCamera.cameraTransform); break;
+                case ActionUpdateSwitch: UpdateSwitch(); break;
+                default: Ungrip(); nextArea = null; break;
+            }
         }
         /// <summary>
         /// finds the proper grip vectors
@@ -182,7 +165,7 @@ namespace Multi
             Transform t = area.relative.transform;
             Vector3 ls = t.localScale;
             int longest = ls.x > ls.y ? (ls.x > ls.z ? 0 : 2) : (ls.y > ls.z ? 1 : 2);
-            Vector3 u,v,w;
+            Vector3 u, v, w;
             switch (longest)
             {
                 case 0: v = t.TransformPoint(Vector3.right) - t.TransformPoint(Vector3.zero); break;
@@ -190,10 +173,10 @@ namespace Multi
                 default: v = t.TransformPoint(Vector3.forward) - t.TransformPoint(Vector3.zero); break;
             }
             v.Normalize();
-            u = cam.position-t.position;
+            u = cam.position - t.position;
             u.Normalize();
-                w=Vector3.Cross(v, u);
-                if (w.y < 0) w = -w;
+            w = Vector3.Cross(v, u);
+            if (w.y < 0) w = -w;
 
             return new Vector3[] { u, w };
         }
@@ -236,8 +219,7 @@ namespace Multi
 
             Vector3 v = hand[0].wrist.transform.forward * 0.07f + hand[0].wrist.transform.up * 0.02f;
             hand[0].wrist.transform.position = area.relative.transform.position + v;
-            hand[0].AfterGrip(true);
-            //       Debug.Log("grip: " + area.relative.transform.position.ToString("0.00") + " , " + hand[0].wrist.transform.position.ToString("0.00"));
+            hand[0].AfterGrip(true);    //       Debug.Log("grip: " + area.relative.transform.position.ToString("0.00") + " , " + hand[0].wrist.transform.position.ToString("0.00"));
         }
         /// <summary>
         ///  updates the hand position and rotation based on the changed transform of the grip area
@@ -266,6 +248,37 @@ namespace Multi
             hand[0].AfterGrip(true);
             hand[0].wrist.transform.position = head.transform.position - head.transform.up * 0.7f - head.transform.right * 0.3f;
         }
-
+        public void Switch(Tames.TameArea area, Transform cam)
+        {
+            hand[0].wrist.SetActive(true);
+            Debug.Log("swc: bef: " + hand[0].lastTipPosition[2].ToString() + hand[0].tipPosition[2].ToString());
+            hand[0].Grip(15, 0);
+            Vector3 u = hand[0].tip[2].transform.position - hand[0].wrist.transform.position;
+            hand[0].wrist.transform.position = area.relative.transform.position - u;
+            hand[0].AfterGrip(true);
+            Debug.Log("swc: aft: " + hand[0].lastTipPosition[2].ToString() + hand[0].tipPosition[2].ToString());
+            switchCount = 1;
+            action = ActionUpdateSwitch;
+        }
+        public bool UpdateSwitch()
+        {
+            if (switchCount == 0)
+                return false;
+            else
+            {
+                switchCount++; 
+                hand[0].AfterGrip(true);
+            }
+            if (switchCount >= 10)
+            {
+                hand[0].wrist.transform.position = head.transform.position;
+                hand[0].wrist.SetActive(false);
+                switchCount = 0;
+                action = 0;
+                return false;
+            }
+            return true;
+        }
+        private void RestHand(int i) { }
     }
 }

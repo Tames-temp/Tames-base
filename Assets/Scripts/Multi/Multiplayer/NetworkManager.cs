@@ -2,29 +2,7 @@ using RiptideNetworking;
 using RiptideNetworking.Utils;
 using System;
 using UnityEngine;
-public enum ServerToClientId : ushort
-{
-    updatePeople = 1,
-    updateInteractives = 2,
-    requestInteractives = 3,
-    addPerson = 4,
-    newBoss = 7,
-    initiateSelf = 8,
-    directionChange = 10,
-    playerLeft = 22,
-}
 
-public enum ClientToServerId : ushort
-{
-    name = 255,
-    updatePerson = 1,
-    updateInteractives = 2,
-    listInteractives = 3,
-    beginGrip = 12,
-    endGrip = 13,
-    directionChange = 10,
-    personInitiated = 8,
-}
 public class NetworkManager : MonoBehaviour
 {
     private static NetworkManager _singleton;
@@ -91,7 +69,7 @@ public class NetworkManager : MonoBehaviour
 
     public void SendName()
     {
-        Message message = Message.Create(MessageSendMode.reliable, (ushort)ClientToServerId.name);
+        Message message = Message.Create(MessageSendMode.reliable, Player.Name);
 //        message.AddString(usernameField.text);
         NetworkManager.Singleton.Client.Send(message);
     }

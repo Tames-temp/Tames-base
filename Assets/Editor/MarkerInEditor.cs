@@ -82,6 +82,33 @@ public class MarkerChangerEditor : Editor
         serializedObject.ApplyModifiedProperties();
     }
 }
+[CustomEditor(typeof(Markers.MarkerEnvironment)), CanEditMultipleObjects]
+public class MarkerEnvironmentEditor : Editor
+{
+    SerializedProperty property;
+    SerializedProperty mode;
+    SerializedProperty switchValue;
+    SerializedProperty steps;
+
+    void OnEnable()
+    {
+        property = serializedObject.FindProperty("property");
+        mode = serializedObject.FindProperty("mode");
+        switchValue = serializedObject.FindProperty("switchValue");
+        steps = serializedObject.FindProperty("steps");
+    }
+
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
+        EditorGUILayout.PropertyField(property);
+        EditorGUILayout.PropertyField(mode);
+        EditorGUILayout.PropertyField(switchValue);
+        EditorGUILayout.PropertyField(steps);
+
+        serializedObject.ApplyModifiedProperties();
+    }
+}
 [CustomEditor(typeof(Markers.MarkerProgress)), CanEditMultipleObjects]
 public class MarkerProgressEditor : Editor
 {
@@ -89,13 +116,15 @@ public class MarkerProgressEditor : Editor
     SerializedProperty initialStatus;
     SerializedProperty setAt;
     SerializedProperty duration;
-    SerializedProperty speedFactor;
-    SerializedProperty speedOffset;
-    SerializedProperty byElement;
-    SerializedProperty byName;
+    SerializedProperty slerp;
     SerializedProperty trigger;
-    SerializedProperty visible;
-    SerializedProperty switchingKey;
+    SerializedProperty byElement;
+    SerializedProperty byMaterial;
+    SerializedProperty manual;
+    SerializedProperty update;
+    SerializedProperty showBy;
+    SerializedProperty active;
+    SerializedProperty activateBy;
 
 
     void OnEnable()
@@ -104,13 +133,15 @@ public class MarkerProgressEditor : Editor
         initialStatus = serializedObject.FindProperty("initialStatus");
         setAt = serializedObject.FindProperty("setAt");
         duration = serializedObject.FindProperty("duration");
-        speedFactor = serializedObject.FindProperty("speedFactor");
-        speedOffset = serializedObject.FindProperty("speedOffset");
-        byElement = serializedObject.FindProperty("byElement");
-        byName = serializedObject.FindProperty("byName");
+        slerp = serializedObject.FindProperty("slerp");
         trigger = serializedObject.FindProperty("trigger");
-        visible = serializedObject.FindProperty("visible");
-        switchingKey = serializedObject.FindProperty("switchingKey");
+        byElement = serializedObject.FindProperty("byElement");
+        byMaterial = serializedObject.FindProperty("byMaterial");
+        manual = serializedObject.FindProperty("manual");
+        update = serializedObject.FindProperty("update");
+        showBy = serializedObject.FindProperty("showBy");
+        active = serializedObject.FindProperty("active");
+        activateBy = serializedObject.FindProperty("activateBy");
     }
 
     public override void OnInspectorGUI()
@@ -120,13 +151,15 @@ public class MarkerProgressEditor : Editor
         EditorGUILayout.PropertyField(initialStatus);
         EditorGUILayout.PropertyField(setAt);
         EditorGUILayout.PropertyField(duration);
-        EditorGUILayout.PropertyField(speedFactor);
-        EditorGUILayout.PropertyField(speedOffset);
-        EditorGUILayout.PropertyField(byElement);
-        EditorGUILayout.PropertyField(byName);
+        EditorGUILayout.PropertyField(slerp);
         EditorGUILayout.PropertyField(trigger);
-        EditorGUILayout.PropertyField(visible);
-        EditorGUILayout.PropertyField(switchingKey);
+        EditorGUILayout.PropertyField(byElement);
+        EditorGUILayout.PropertyField(byMaterial);
+        EditorGUILayout.PropertyField(manual);
+        EditorGUILayout.PropertyField(update);
+        EditorGUILayout.PropertyField(showBy);
+        EditorGUILayout.PropertyField(active);
+        EditorGUILayout.PropertyField(activateBy);
 
         serializedObject.ApplyModifiedProperties();
     }

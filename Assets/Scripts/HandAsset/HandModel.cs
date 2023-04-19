@@ -44,7 +44,8 @@ namespace HandAsset
         public const int Thumb = 4;
 
         public const float GripThreshold = 0.6f;
-        public HandModel(GameObject control, GameObject model, int index)
+
+         public HandModel(GameObject control, GameObject model, int index)
         {
             data = new ControllerData(control);
             //     this.control.gameObject = control;
@@ -155,8 +156,6 @@ namespace HandAsset
         }
         public virtual void CreateHand()
         {
-
-
         }
         public void Grip(int fingers, float grip)
         {

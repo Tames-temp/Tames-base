@@ -9,6 +9,7 @@ namespace Tames
     {
         public float[] value;
     }
+  
     /// <summary>
     /// the class is used for changing the material and light properties for a given progress value
     /// </summary>

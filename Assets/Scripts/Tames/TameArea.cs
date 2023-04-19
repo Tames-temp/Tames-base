@@ -77,7 +77,7 @@ namespace Tames
         /// <summary>
         /// the current state of the area's switch mode 
         /// </summary>
-        public int switchDirection = 1;
+        public int switchDirection = -1;
         /// <summary>
         /// the number of switch states
         /// </summary>
@@ -161,6 +161,9 @@ namespace Tames
                 //     return r;
                 case InteractionGeometry.Box:
                     r = (Mathf.Abs(Utils.M(p, center, axis[X])) < size.x / 2) && (Mathf.Abs(Utils.M(p, center, axis[Y])) < size.y / 2) && (Mathf.Abs(Utils.M(p, center, axis[Z])) < size.z / 2);
+                    //    if (element.name == "lift-last") Debug.Log("last " + Utils.M(p, center, axis[Z])+p.ToString("0.00") + +Utils.M(p, center, axis[Y])+size.ToString("0.00") + center.ToString("0.00"));
+                    //    if (element.name == "lift-last") Debug.Log("last " + (Mathf.Abs(Utils.M(p, center, axis[X])) < size.x / 2) + " " + (Mathf.Abs(Utils.M(p, center, axis[Y])) < size.y / 2) + " " + (Mathf.Abs(Utils.M(p, center, axis[Z])) < size.z / 2));
+                    //      if (element.name == "lift-last") Debug.Log("last " + relative.transform.right.ToString() + relative.transform.up.ToString() + relative.transform.forward.ToString()); 
                     break;
                 case InteractionGeometry.Sphere:
                     r = Vector3.Distance(p, center) < size[X] / 2; break;
@@ -176,7 +179,7 @@ namespace Tames
                     break;
                 default: r = false; break;
             }
-            //       if (element.name == "door3") Debug.Log("door 3 " + p.ToString("0.00") + size.ToString("0.00") + center.ToString("0.00"));
+
             return r;
         }
         /// <summary>
@@ -300,17 +303,35 @@ namespace Tames
             for (int t = 0; t < areas.Count; t++)
                 if (areas[t].forcedSwitchThisFrame == TameElement.Tick)
                     return areas[t].switchDirection;
-            for (int i = 0; i < Person.people.Length; i++)
+       //     if (Person.localPerson.switchCount != 0) Debug.Log("SWC: c count");
+            if (MainScript.multiPlayer)
+                for (int i = 0; i < Person.people.Length; i++)
+                {
+                    if (Person.people[i] != null)
+                    {
+                        if (Person.people[i].switchCount != 0) Debug.Log("SWC: count");
+                        for (int j = 0; j < 2; j++)
+                            for (int t = 0; t < areas.Count; t++)
+                                if (IsSwitch(areas[t].mode))
+                                    if (areas[t].Entered(Person.people[i].hand[j].lastTipPosition[HandAsset.HandModel.Middle], Person.people[i].hand[j].tipPosition[HandAsset.HandModel.Middle]))
+                                    {
+                                           areas[t].Switch(false);
+                                        return areas[t].switchDirection;
+                                    }
+                    }
+                }
+            else
             {
-                if (Person.people[i] != null)
-                    for (int j = 0; j < 2; j++)
-                        for (int t = 0; t < areas.Count; t++)
-                            if (IsSwitch(areas[t].mode))
-                                if (areas[t].Entered(Person.people[i].hand[j].lastTipPosition[HandAsset.HandModel.Middle], Person.people[i].hand[j].tipPosition[HandAsset.HandModel.Middle]))
-                                {
-                                    areas[i].Switch(false);
-                                    return areas[i].switchDirection;
-                                }
+          //      if (Person.localPerson.switchCount == 1) Debug.Log("SWC: count"+ Person.localPerson.hand[0].lastTipPosition[2].ToString()+ Person.localPerson.hand[0].tipPosition[2].ToString());
+                for (int j = 0; j < 2; j++)
+                    for (int t = 0; t < areas.Count; t++)
+                        if (IsSwitch(areas[t].mode))
+                            if (areas[t].Entered(Person.localPerson.hand[j].lastTipPosition[HandAsset.HandModel.Middle], Person.localPerson.hand[j].tipPosition[HandAsset.HandModel.Middle]))
+                            {
+                                if (Person.localPerson.switchCount != 0) Debug.Log("SWC: enterd " + areas[t].element.name+" " + areas.Count+" "+ Person.localPerson.hand[0].lastTipPosition[2].ToString() + Person.localPerson.hand[0].tipPosition[2].ToString());
+                                areas[t].Switch(false);
+                                return areas[t].switchDirection;
+                            }
             }
             return NotSwitched;
         }
@@ -576,14 +597,14 @@ namespace Tames
             if (te.tameType == TameKeys.Object)
             {
                 TameObject to = (TameObject)te;
-                if (to.handle.DoesSlide)
+                if (to.handle.isSlider)
                 {
-                    displacement = Utils.M(relative.transform.position, to.handle.from, to.handle.vector);
+                    displacement = Utils.M(relative.transform.position, to.handle.start, to.handle.vector);
                 }
                 else
                 {
-                    m = Utils.SignedAngle(relative.transform.position, to.handle.pivot, to.handle.start, to.handle.axis);
-                    displacement = m / to.handle.Span;
+                    m = Utils.Angle(relative.transform.position, to.handle.pivot, to.handle.start, to.handle.axis,true);
+                    displacement = m / to.handle.span;
                 }
             }
             //      Debug.Log("arix: gp befor " + gameObject.transform.position.ToString("0.00"));
@@ -624,7 +645,7 @@ namespace Tames
                 };
                 if (r.geometry == InteractionGeometry.Remote)
                 {
-                    r.key = ManifestCustom.FindKey(ma.input);
+                    r.key = TameInputControl.FindKey(ma.input);
                     Debug.Log("area key = " + r);
                 }
                 if (r.geometry == InteractionGeometry.Cylinder)
@@ -650,7 +671,7 @@ namespace Tames
                 {
                     if (geom == InteractionGeometry.Remote)
                     {
-                        p = ManifestCustom.FindKey(aname[p + 1] + "");
+                        p = TameInputControl.FindKey(aname[p + 1] + "");
                         if (p >= 0)
                         {
                             r = new TameArea()
@@ -694,12 +715,19 @@ namespace Tames
                                 }
                             }
                             r.SetUpdate(to, g);
-                            if (to.name == "Spot.018") Debug.Log("area added: " + g.transform.position.ToString() + " " +r.relative.transform.position.ToString()+r.relative.transform.localScale.ToString());
+                            if (to.name == "Spot.018") Debug.Log("area added: " + g.transform.position.ToString() + " " + r.relative.transform.position.ToString() + r.relative.transform.localScale.ToString());
                             g.SetActive(false);
                         }
                     }
                 }
             }
+            if (r != null)
+                switch (r.mode)
+                {
+                    case InteractionMode.Switch1: r.switchDirection = 0; break;
+                    case InteractionMode.Switch2: r.switchDirection = -1; break;
+                    case InteractionMode.Switch3: r.switchDirection = 0; break;
+                }
             // Debug.Log("area return: "+r.element.name + " " + r.mode + " ");
             return r;
         }

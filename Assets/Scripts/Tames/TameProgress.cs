@@ -120,6 +120,8 @@ namespace Tames
         ///  the current progress value (after the last update), between 0 and 1
         /// </summary>
         public float progress = 0;
+        public float lastSlerp = 0;
+        public float slerpProgress = 0;
         /// <summary>
         /// the last total progress value before the last update
         /// </summary>
@@ -134,7 +136,9 @@ namespace Tames
         /// <param name="value">total value (or total progress)</param>
         /// <returns>the value of the would-be-progress</returns>
         private float time = 0;
+        public Slerp slerp = null;
         public TameElement element = null;
+        public bool active = true;
         public TameProgress(TameElement element)
         {
             this.element = element;
@@ -147,6 +151,7 @@ namespace Tames
             //       Speed = p.speed;
             trigger = p.trigger;
             passToChildren = p.passToChildren;
+            slerp = p.slerp;
         }
         private float Reverse(float value)
         {
@@ -330,9 +335,11 @@ namespace Tames
         /// <param name="value">the intended total progress</param>
         public void SetProgress(float value, bool refresh)
         {
+            if (!active) return;
             float v;
             if (tick < TameElement.Tick)
             {
+                lastSlerp = slerpProgress;
                 if (refresh) manager.Refresh();
                 switch (cycle)
                 {
@@ -358,6 +365,10 @@ namespace Tames
                         break;
                 }
                 tick++;
+                if (slerp == null)
+                    slerpProgress = progress;
+                else
+                    slerpProgress = slerp.On(progress);
             }
         }
         public void Initialize(float p)

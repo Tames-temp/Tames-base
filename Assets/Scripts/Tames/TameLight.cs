@@ -26,7 +26,7 @@ namespace Tames
         /// <returns>the update parent of the light, hence only the first element of the returned array is assigned</returns>
         private TameEffect GetEffect(Person headOwner, Person handOwner, TameAreaTrack tat)
         {
-            TameEffect r = null;
+             TameEffect r = null;
             //  if (name == "door1") Debug.Log("enfo z:" + basis + " "+parents.Count);
             if (TrackBasis.Time == basis)
                 r = TameEffect.Time();
@@ -36,6 +36,7 @@ namespace Tames
         }
         override public TameEffect GetParent()
         {
+            if (manual) return null;
             TameEffect r = null;
             int closest;
             float d;
@@ -63,6 +64,7 @@ namespace Tames
                 }
                 else
                 {
+                    changingDirection = areas[0].switchDirection;
                     //        Debug.Log("before error 2.2");
                     int sd = TameArea.CheckSwitch(areas);
                     r = TameEffect.Time();
@@ -176,7 +178,7 @@ namespace Tames
                     //           Debug.Log("color updating " + m.properties.Count);
                     foreach (TameChanger tc in m.properties)
                     {
-                        f = tc.On(progress.progress);
+                        f = tc.On(progress.slerpProgress);
                         switch (tc.property)
                         {
                             case MaterialProperty.Glow:
@@ -204,6 +206,11 @@ namespace Tames
         override public void Update(TameProgress p)
         {
             SetByParent(p);
+            ApplyUpdate();
+        }
+        public override void UpdateManually()
+        {
+            base.UpdateManually();
             ApplyUpdate();
         }
         /// <summary>

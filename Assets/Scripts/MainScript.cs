@@ -45,7 +45,7 @@ namespace Assets.Script
         Vector3 positionDefault;
         HandModel[] hand;
         Vector3 handAng = Vector3.zero;
-        TameManager manifest;
+        TameManager manager;
         string audioFolder;
         private bool savingTexture = false;
         private TameArea closestGrip;
@@ -79,14 +79,20 @@ namespace Assets.Script
         void Start()
         {
             Utils.SetPipelineLogics();
-            panel.SetActive(false);
+            Utils.SetPOCO();
             PrepareLoadScene();
-            text.text = messages[0];
             people = Person.people;
             for (int i = 0; i < people.Length; i++)
                 people[i] = null;
             audioFolder = "Audio/";
-
+            Slerp sl = new Slerp(0.4f);
+            string ss = "";
+            for (float f = 0; f <= 1; f += 0.05f)
+            {
+                float fo = sl.On(f);
+                ss += "\t" + fo;
+            }
+            Debug.Log(ss);
             screenSize = new Vector2(Screen.width, Screen.height);
             mainCamera = Camera.main;
             TameCamera.cameraTransform = mainCamera.transform.parent.parent;
@@ -104,12 +110,12 @@ namespace Assets.Script
             hand = Identifier.Inputs(root, fingerHeader);
             //     Debug.Log("c: " + hand[1].data.controller.name);
 
-            manifest = new TameManager();
+            manager = new TameManager();
             ManifestKeys.LoadCSV("aliases");
-            manifest.LoadManifest(Identifier.LoadLines(Tames.TameManager.ManifestPath));
-            tes = manifest.tes;
-            TameEffect.AllEffects = new TameEffect[manifest.tes.Count];
-            ies = ITameEffect.AllEffects = new ITameEffect[manifest.tes.Count];
+            manager.LoadManifest(Identifier.LoadLines(Tames.TameManager.ManifestPath));
+            tes = manager.tes;
+            TameEffect.AllEffects = new TameEffect[manager.tes.Count];
+            ies = ITameEffect.AllEffects = new ITameEffect[manager.tes.Count];
             ITameEffect.Initialize();
             //  text.text = "";
 
@@ -169,10 +175,8 @@ namespace Assets.Script
                     }
                 }
 
-                if (multiPlayer)
-                    UpdateMulti();
-                else
-                    UpdateSolo();
+
+                UpdateSolo();
                 if (rendCam != null)
                     rendCam.transform.rotation = mainCamera.transform.rotation;
             }
@@ -180,6 +184,33 @@ namespace Assets.Script
                 UpdateReplay();
         }
         public int lastFrameIndex = -1;
+        void UpdateBoth()
+        {
+            TameElement.PassTime();
+            if (VRMode)
+            {
+                localPerson.Update();
+                localPerson.EncodeLocal();
+            }
+            else
+            {
+                localPerson.UpdateHeadOnly();
+            }
+            FrameShot f = CheckInput();
+            if (multiPlayer)
+                Player.SendFrame(Player.index, f);
+            //    AggregateInput(f);
+            int n = TameElement.GetAllParents(TameEffect.AllEffects, tes);
+            //  Debug.Log("custom n " + n);
+            for (int i = 0; i < n; i++)
+            {
+                TameEffect.AllEffects[i].Apply();
+                //          ies[i].Set(TameEffect.AllEffects[i]);
+            }
+            for (int i = 0; i < manager.altering.Count; i++)
+                manager.altering[i].Update();
+        }
+
         void UpdateReplay()
         {
             float t = TameElement.ActiveTime;
@@ -210,10 +241,8 @@ namespace Assets.Script
                     }
                 TameInputControl.keyMap = TameFullRecord.allRecords.frame[i].keyMap;
                 //        delta = 
-                if (multiPlayer)
-                    UpdateMulti();
-                else
-                    UpdateSolo();
+
+                UpdateSolo();
 
             }
             // check which frames are active
@@ -230,7 +259,7 @@ namespace Assets.Script
             if (VRMode)
             {
                 localPerson.Update();
-                localPerson.EncodeInput();
+                localPerson.EncodeLocal();
             }
             else
             {
@@ -241,65 +270,29 @@ namespace Assets.Script
             //  Debug.Log("custom n " + n);
             for (int i = 0; i < n; i++)
             {
+           //     if (TameEffect.AllEffects[i].child.name == "barrier sign") Debug.Log("UP: child ");
                 TameEffect.AllEffects[i].Apply();
                 ies[i].Set(TameEffect.AllEffects[i]);
             }
+            for (int i = 0; i < manager.altering.Count; i++)
+                manager.altering[i].Update();
         }
         // Update is called once per frame
-        void UpdateMulti()
-        {
-            TameElement.PassTime();
-            GetFPS();
-            CheckInput();
-            if (Player.Id < 255)
-            {
-                if (VRMode)
-                {
-                    hand[0].Update(null);
-                    hand[1].Update(null);
-                }
-                localPerson.EncodeInput();
-                Player.SendPersonUpdate();
-                //       Debug.Log("MS: update sent");
-                for (int i = 0; i < people.Length; i++)
-                    if (people[i] != null)
-                        if (people[i].initiated)
-                            if (people[i] != localPerson)
-                            {
-                                // background.Update();
-                                people[i].hand[0].Update(people[i]);
-                                people[i].hand[1].Update(people[i]);
-                            }
-                if (Player.Id == Player.bossId)
-                {
-                    int n = TameElement.GetAllParents(TameEffect.AllEffects, tes);
-                    for (int i = 0; i < n; i++)
-                    {
-                        TameEffect.AllEffects[i].Apply();
-                        ies[i].Set(TameEffect.AllEffects[i]);
-                    }
-                    Player.UpdateInteractives();
-                }
-                else
-                {
-                    for (int i = 0; i < ITameEffect.EffectCount; i++)
-                        ies[i].Apply(tes);
-                }
-            }
-        }
+
 
         private int msgIndex = 0;
-        private void CheckInput(int index = -1)
+        private FrameShot CheckInput(int index = -1)
         {
-            TameInputControl.CheckKeys(index);
-
+            FrameShot f = TameInputControl.CheckKeys(index);
+            TameInputControl.keyMap.Aggregate(Player.frames, f);
             if (Keyboard.current.escapeKey.isPressed)
                 Application.Quit();
 
-            if (VRMode) return;
+            if (VRMode) return null;
             TameCamera.UpdateCamera();
 
             CheckGripAndSwitch();
+            return null;
         }
         bool GripInputActive()
         {
@@ -343,17 +336,16 @@ namespace Assets.Script
             {
                 if (GripInputActive())
                 {
-
                     if ((gmd = GripMoveDirection()) != 0)
                     {
                         grippedObject.Grip(TameElement.deltaTime * gmd * gripSpeed);
-                        localPerson.UpdateGrip(closestGrip);
+                        localPerson.action = Person.ActionUpdateGrip;
                     }
                 }
                 else
                 {
                     grippedObject = null;
-                    localPerson.Ungrip();
+                    localPerson.action = 0;
                 }
             }
             else
@@ -361,11 +353,15 @@ namespace Assets.Script
                 if (SwitchInput())
                 {
                     sa = TameArea.ClosestSwitch(tes, TameCamera.cameraTransform, 2.1f, out TameObject to);
+                    //if (sa != null)                        sa.Switch(true);
                     if (sa != null)
-                        sa.Switch(true);
+                    {
+                        localPerson.nextArea = sa;
+                        localPerson.action = Person.ActionSwitch;
+                    }
                     Debug.Log("switch: " + (sa == null ? "null" : sa.element.name));
                 }
-                else
+                else if (localPerson.action!=Person.ActionUpdateSwitch)
                 {
                     if (GripInputActive())
                     {
@@ -374,7 +370,8 @@ namespace Assets.Script
                         {
                             Debug.Log("grip: " + closestGrip.element.name);
                             grippedObject = to;
-                            localPerson.Grip(closestGrip, TameCamera.cameraTransform);
+                            localPerson.nextArea = closestGrip;
+                            localPerson.action = Person.ActionGrip;
                         }
                     }
                 }

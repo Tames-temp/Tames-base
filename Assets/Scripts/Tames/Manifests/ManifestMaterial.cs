@@ -10,6 +10,19 @@ namespace Tames
     {
         public bool unique = false;
         public List<TameChanger> properties = new List<TameChanger>();
+        public void OrderChanger()
+        {
+            TameChanger c = null;
+            for(int i = 0; i < properties.Count; i++)
+                if(properties[i].property== MaterialProperty.Bright)
+                {
+                    c = properties[i];
+                    properties.RemoveAt(i);
+                    break;
+                }
+            if(c!=null)
+                properties.Add(c);
+        }
         public int Read(string[] lines, int index)
         {
             int i = index + 1;

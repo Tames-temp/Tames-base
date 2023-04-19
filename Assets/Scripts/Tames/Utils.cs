@@ -135,6 +135,11 @@ public enum MaterialProperty
     Bright = 18,
     Focus = 19,
 }
+public enum EnvironmentProperty
+{
+    Tint = 1,
+    Exposure = 2
+}
 /// <summary>
 /// not in use. Light manifests use Spectrum (or Color) and Bright of <see cref="MaterialProperty"/> instead.
 /// </summary>
@@ -322,6 +327,7 @@ public class TrackBasis
     public const byte Tame = 16;
     public const byte Grip = 32;
     public const byte Mover = 64;
+    public const byte Manual = 128;
     public static bool IsHand(int tb)
     {
         return (tb & Hand) != 0;
@@ -505,8 +511,16 @@ public class ManifestKeys
 /// </summary>
 public class Utils
 {
+    private static GameObject PO, CO;
     public static bool HDActive = false;
     public static string[] ProperyKeywords;
+    public static void SetPOCO()
+    {
+        PO = new GameObject("PO");
+        PO.transform.position = Vector3.zero;
+        CO = new GameObject("CO");
+        CO.transform.parent = PO.transform;
+    }
     public static void SetPipelineLogics()
     {
         string pn = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset.GetType().Name;
@@ -634,7 +648,7 @@ public class Utils
     /// <param name="u">rotation axis</param>
     /// <param name="degrees">angle in degrees</param>
     /// <returns></returns>
-    public static Vector3 Rotate(Vector3 p, Vector3 o, Vector3 u, float degrees)
+    public static Vector3 Rot(Vector3 p, Vector3 o, Vector3 u, float degrees)
     {
         float angle = degrees * Mathf.Deg2Rad;
         Vector3 q = On(o, p, u);
@@ -646,6 +660,35 @@ public class Utils
         Vector2 r = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * pq.magnitude;
         return q + r.x * v + r.y * w;
     }
+    public static Vector3 Rotate(Vector3 p, Vector3 o, Vector3 u, float degrees)
+    {
+        Vector3 op = p - o;
+        float opm = op.magnitude;
+        op.Normalize();
+        PO.transform.LookAt(op, u);
+        CO.transform.position = op;
+        PO.transform.Rotate(Vector3.up, degrees);
+        Vector3 q = CO.transform.position;
+        return q * opm + o;
+    }
+    public static float Angle(Vector3 p, Vector3 pivot, Vector3 start, Vector3 axis, bool signed)
+    {
+        Vector3 pn = (p - pivot).normalized;
+        Vector3 sn = (start - pivot).normalized;
+        Vector3 axn = axis.normalized;
+        PO.transform.rotation = Quaternion.identity;
+        float angle = Vector3.Angle(pn, sn);
+        PO.transform.LookAt(sn, axn);
+        CO.transform.position = PO.transform.forward;
+        PO.transform.Rotate(Vector3.up, angle);
+        Vector3 pos = CO.transform.position;
+        PO.transform.Rotate(Vector3.up, -2 * angle);
+        Vector3 neg = CO.transform.position;
+        if (Vector3.Distance(pos, pn) < Vector3.Distance(neg, pn))
+            return angle;
+        else
+            return signed ? -angle : 360 - angle;
+    }
     /// <summary>
     /// returns the rotation angle from a starting point to a destination point around an axis and an origin point. The angle corresponds to the rotation from the landed points (see <see cref="On"/>) of the starting and destination points on the plane with origin and the axis (normal vector). The returned angle is signed (-180 to 180 degrees). For the full angle see <see cref="FullAngle"/>
     /// </summary>
@@ -654,7 +697,7 @@ public class Utils
     /// <param name="start">the starting point</param>
     /// <param name="axis">the rotation axis</param>
     /// <returns>the signed angle of the rotation in degrees</returns>
-    public static float SignedAngle(Vector3 p, Vector3 pivot, Vector3 start, Vector3 axis)
+    public static float _SignedAngle(Vector3 p, Vector3 pivot, Vector3 start, Vector3 axis)
     {
 
         Vector3 a = On(start - pivot, Vector3.zero, axis).normalized;
@@ -672,13 +715,24 @@ public class Utils
     /// <param name="start">the starting point</param>
     /// <param name="axis">the rotation axis</param>
     /// <returns>the full angle of the rotation in degrees</returns>
-    public static float FullAngle(Vector3 p, Vector3 pivot, Vector3 start, Vector3 axis)
+    public static float _FullAngle(Vector3 p, Vector3 pivot, Vector3 start, Vector3 axis)
     {
         Vector3 a = On(start - pivot, Vector3.zero, axis).normalized;
         Vector3 b = On(p - pivot, Vector3.zero, axis).normalized;
         float f = Vector3.Angle(a, b);
         Vector3 c = Rotate(a, Vector3.zero, axis, f);
         return Vector3.Distance(c, b) > Vector3.Distance(a, b) ? 360 - f : f;
+    }
+    public static float _FullAngle(Vector3 p, Vector3 pivot, Vector3 start, Vector3 axis, Vector3 normal)
+    {
+
+        Vector3 a = On(start - pivot, Vector3.zero, axis).normalized;
+        Vector3 n = On(normal - pivot, Vector3.zero, axis).normalized;
+        Vector3 b = On(p - pivot, Vector3.zero, axis).normalized;
+        float fa = Vector3.Angle(a, b);
+        float fn = Vector3.Angle(b, n);
+        if (fn <= 90) return fa;
+        else return 360 - fa;
     }
     /// <summary>
     /// checks of two vectors are parallel. The vectors should be normalized.
@@ -717,6 +771,14 @@ public class Utils
                 u = On(Vector3.right, Vector3.zero, a);
         }
         return u;
+    }
+    public static Vector3 Perp(Vector3 u)
+    {
+        int max = Mathf.Abs(u.x) < Mathf.Abs(u.y) ? (Mathf.Abs(u.y) < Mathf.Abs(u.z) ? 2 : 1) : (Mathf.Abs(u.x) < Mathf.Abs(u.z) ? 2 : 0);
+        Vector3 v = u;
+        v[max] = 0;
+        v[(max + 1)%3] = v[(max + 1) % 3]+1;
+        return Vector3.Cross(u, v);
     }
     /// <summary>
     /// swaps two elements of a float array
@@ -887,7 +949,8 @@ public class Utils
             Vector3 g;
             for (int i = 0; i < v.Length; i++)
             {
-                g = t.TransformPoint(v[i]);
+                //   g = t.TransformPoint(v[i]);
+                g = v[i];
                 if (g.x < min.x) min.x = g.x;
                 if (g.y < min.y) min.y = g.y;
                 if (g.z < min.z) min.z = g.z;

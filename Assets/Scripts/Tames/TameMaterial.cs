@@ -15,6 +15,8 @@ namespace Tames
         public Markers.MarkerChanger[] changers = null;
         public Color initialSpectrum;
         public float initialIntensity;
+        public bool cloned = false;
+        public TameElement lastTameParent = null;
         /// <summary>
         /// instances of the original material, dictated by the type of stencil buffer used
         /// </summary>
@@ -34,7 +36,7 @@ namespace Tames
         public const int EmissionColor = 1;
         public const int MainTex = 2;
         public const int EmissionMap = 3;
-      
+
         public TameMaterial()
         {
             tameType = TameKeys.Material;
@@ -45,6 +47,7 @@ namespace Tames
         /// <returns>the update parent of the material, hence only the first element of the returned array is assigned</returns>
         override public TameEffect GetParent()
         {
+            if (manual) return null;
             TameEffect r = null;
             //      if (name.Equals("illum"))
             //          Debug.Log("mix: assign " + basis[0] + " " + updateParents.Count);
@@ -65,8 +68,8 @@ namespace Tames
             TameEffect ps = GetParent();
             //        if (name.Equals("blink-blue"))
             //        Debug.Log("custom: blink " + index+ " "+all.Length);
-           // for (int i = 0; i < 3; i++)
-                all[index ] = ps;
+            // for (int i = 0; i < 3; i++)
+            all[index] = ps;
         }
         /// <summary>
         /// swaps a specific material in a gameobject with its clone and returns the latter (or null if that material is not on the gameobject)
@@ -108,14 +111,14 @@ namespace Tames
             float ins = 0;
             bool emC = false;
             bool inC = false;
-            //      if (name == "coolermat")
-            //        Debug.Log("input: apply: " + progress[0].progress);
-         //   Debug.Log("changer before " + name);
+          //  if (name == "barrier sign") Debug.Log("UP: " + name + progress.trigger.value[0] + " " + parents.Count);
+      //      Debug.Log("UP: " + name + " " + parents.Count);
+            //   Debug.Log("changer before " + name);
             if (progress != null)
             {
                 foreach (TameChanger tc in m.properties)
                 {
-                    f = tc.On(progress.progress);
+                    f = tc.On(progress.slerpProgress);
                     switch (tc.property)
                     {
                         case MaterialProperty.Color:
@@ -124,19 +127,19 @@ namespace Tames
                             else foreach (Material mat in clones) mat.SetColor(Utils.ProperyKeywords[BaseColor], TameColor.ToColor(f));
                             break;
                         case MaterialProperty.Glow:
-                             emis = f;
+                            emis = f;
                             emC = true;
                             ins = f[3];
                             inC = true;
-                        //    Debug.Log("emic: " + f[0] + "," + f[1] + "," + f[2]);
+                            //    Debug.Log("emic: " + f[0] + "," + f[1] + "," + f[2]);
                             break;
                         case MaterialProperty.Bright:
                             ins = f[0];
                             inC = true;
-                             break;
+                            break;
                         case MaterialProperty.MapX:
                             offsetBase.x = f[0];
-                   //         Debug.Log("changer " + name);
+                            //         Debug.Log("changer " + name);
                             if (clones.Count == 0) original.SetTextureOffset(Utils.ProperyKeywords[MainTex], offsetBase);
                             else foreach (Material mat in clones) mat.SetTextureOffset(Utils.ProperyKeywords[MainTex], offsetBase);
                             break;
@@ -152,6 +155,7 @@ namespace Tames
                             break;
                         case MaterialProperty.LightY:
                             offsetLight.y = f[0];
+                            //      if (name == "barrier sign") Debug.Log(progress.progress+" "+parents[0].parent.progress.progress);
                             //       Debug.Log("cyclingp " + progress[0].progress + " " + offsetLight.ToString("0.00"));
                             if (clones.Count == 0) original.SetTextureOffset(Utils.ProperyKeywords[EmissionMap], offsetLight);
                             else foreach (Material mat in clones) mat.SetTextureOffset(Utils.ProperyKeywords[EmissionMap], offsetLight);
@@ -163,6 +167,15 @@ namespace Tames
                 if (emC)
                     original.SetColor(Utils.ProperyKeywords[EmissionColor], new Color(emis[0], emis[1], emis[2]) * Mathf.Pow(2, ins));
             }
+        }
+        public void SetProvisionalUpdate(TameElement te)
+        {
+            parents.Clear();
+            basis = TrackBasis.Tame;
+            parents.Add(new TameEffect(ManifestKeys.Update, te)
+            {
+                child = this
+            });
         }
         /// <summary>
         /// stores the initial value of the emission color in <see cref="initialSpectrum"/>.
@@ -179,13 +192,20 @@ namespace Tames
         /// <param name="p"></param>
         override public void Update(float p)
         {
-            if(progress!=null)progress.SetProgress(p);
+            if (progress != null) progress.SetProgress(p);
+            //        if (name == "barrier sign") Debug.Log("by number");
             ApplyUpdate();
         }
 
         override public void Update(TameProgress p)
         {
             SetByParent(p);
+            //        if (name == "barrier sign") Debug.Log("by parent");
+                    ApplyUpdate();
+        }
+        public override void UpdateManually()
+        {
+            base.UpdateManually();
             ApplyUpdate();
         }
         /// <summary>
@@ -193,10 +213,11 @@ namespace Tames
         /// </summary>
         override public void Update()
         {
-        
+
+            //      if (name == "barrier sign") Debug.Log("by time");
             SetByTime();
             ApplyUpdate();
-     //       Debug.Log("material time " + name+ " "+progress.progress+" "+markerProgress.cycleType);
+            //       Debug.Log("material time " + name+ " "+progress.progress+" "+markerProgress.cycleType);
         }
         /// <summary>
         /// sets the inintial offsets of the maps
@@ -311,7 +332,7 @@ namespace Tames
                 if (r != null)
                 {
                     sm = r.sharedMaterials;
-                    for(int i = 0; i < sm.Length; i++)
+                    for (int i = 0; i < sm.Length; i++)
                     {
                         if ((ii = originals.IndexOf(sm[i])) >= 0)
                             sm[i] = materials[ii];

@@ -114,7 +114,7 @@ namespace Tames
         public void ReadEnable(ManifestHeader mh, bool isEnable)
         {
             if (mh.items.Count > 0)
-                switchingKey = ManifestCustom.FindKey(mh.items[0]);
+                switchingKey = TameInputControl.FindKey(mh.items[0]);
             initialStatus = isEnable;
         }
         public void ReadDuration(ManifestHeader mh)

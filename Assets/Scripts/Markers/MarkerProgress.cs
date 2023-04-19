@@ -12,20 +12,18 @@ namespace Markers
         public float initialStatus = 0;
         public float setAt = 0;
         public float duration = 1;
-        public float speedFactor = 1;
-        public float speedOffset = 0;
-        public GameObject byElement = null;
-        public string byName = "";
+        public string slerp = "";
         public string trigger = "";
-        public bool visible = true;
-        public string switchingKey = "";
+        public GameObject byElement = null;
+        public Material byMaterial = null;
+        public bool manual = false;
+        public string update = "";
+        public string showBy = "";
+        public bool active = true;
+        public string activateBy = "";
 
         public static void PopulateAll(List<Tames.TameGameObject> tgos)
         {
-            MarkerProgress mp;
-            foreach (Tames.TameGameObject tgo in tgos)
-                if ((mp = tgo.gameObject.GetComponent<MarkerProgress>()) != null)
-                    tgo.markerProgress = mp;
         }
     }
 }

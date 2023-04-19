@@ -10,7 +10,7 @@ namespace Tames
     /// </summary>
     public class TameGameObject
     {
-        public MarkerProgress markerProgress;
+        public MarkerProgress markerProgress = null;
         /// <summary>
         /// this is used to know if the object is already included in a name search
         /// </summary>
@@ -71,6 +71,8 @@ namespace Tames
     /// </summary>
     public class TameObject : TameElement
     {
+        public MarkerQueue markerQueue = null;
+        public MarkerCycle markerCycle = null;
         /// <summary>
         /// the movement handle of this element. This is responsible for all machanical movements within the element, usually dictated by a <see cref="TameProgress"/>.
         /// </summary>
@@ -100,10 +102,9 @@ namespace Tames
         {
             if (progress != null)
             {
-                float pp = progress.progress;
+                float pp = progress.slerpProgress;
                 SetProgress(p);
-                handle.Slide(p, pp);
-                handle.Rotate(p, pp);
+                handle.Move(p, pp);
             }
         }
         /// <summary>
@@ -116,9 +117,7 @@ namespace Tames
             //     base.Update(p);
             if (progress != null)
             {
-                handle.Slide(progress.progress, progress.lastProgress);
-                if (handle.RotationType != MovingTypes.Facer)
-                    handle.Rotate(progress.progress, progress.lastProgress);
+                handle.Move(progress.slerpProgress, progress.lastSlerp);
             }
         }
         /// <summary>
@@ -130,23 +129,27 @@ namespace Tames
             float m = progress.progress;
             if (progress != null)
             {
-                if (handle.DoesSlide)
-                    m = handle.Slide(p, progress.progress, progress.manager.Speed, TameElement.deltaTime);
-                else if (handle.RotationType != MovingTypes.Error)
-                    m = handle.Rotate(p, progress.progress, progress.manager.Speed, TameElement.deltaTime);
+                m = handle.Move(p, progress.progress, progress.manager.Speed, TameElement.deltaTime);
                 progress.SetProgress(m);
             }
         }
         /// <summary>
         /// <see cref="TameElement.Update"/>
         /// </summary>
+        public override void UpdateManually()
+        {
+            base.UpdateManually();
+            if (progress != null)
+            {
+                handle.Move(progress.slerpProgress, progress.lastSlerp);
+            }
+        }
         override public void Update()
         {
             SetByTime();
             if (progress != null)
             {
-                handle.Slide(progress.progress, progress.lastProgress);
-                handle.Rotate(progress.progress, progress.lastProgress);
+                handle.Move(progress.slerpProgress, progress.lastSlerp);
             }
             //              SetChildren();
         }
@@ -163,12 +166,11 @@ namespace Tames
         }
         public void Grip(float delta)
         {
-            Debug.Log(name + " " + (progress == null ? "null" : "-"));
+     //       Debug.Log(name + " " + (progress == null ? "null" : "-"));
             if (progress != null)
             {
                 progress.SetProgress(progress.progress + delta);
-                if (handle.DoesSlide) handle.Slide(progress.progress, progress.lastProgress);
-                if (handle.RotationType == MovingTypes.Rotator) handle.Rotate(progress.progress, progress.lastProgress);
+                handle.Move(progress.progress, progress.lastProgress);
             }
         }
 
@@ -231,6 +233,7 @@ namespace Tames
             bool[] set = new bool[] { false, false, false };
             TameArea ti;
             Person pe;
+            if (manual) return null;
             //   Debug.Log("before error 1");
             if (isGrippable)
             {
@@ -241,7 +244,7 @@ namespace Tames
                     ti = areas[r.areaIndex];
                     ti.gripDisplacement = owner.transform.InverseTransformPoint(pe.hand[r.handIndex].gripCenter) - owner.transform.InverseTransformPoint(ti.relative.transform.position);
                     if (handle.RotationType == MovingTypes.Rotator)
-                        ti.displacement = Utils.SignedAngle(owner.transform.InverseTransformPoint(ti.relative.transform.position), Vector3.zero, handle.start - handle.pivot, handle.axis);
+                        ti.displacement = Utils.Angle(owner.transform.InverseTransformPoint(ti.relative.transform.position), Vector3.zero, handle.start - handle.pivot, handle.axis, true);
                     r.child = this;
                 }
                 return r;
@@ -253,7 +256,7 @@ namespace Tames
                 if (areas[0].geometry == InteractionGeometry.Remote)
                 {
                     //         Debug.Log("before error 2.15 "+ areas[0].key);
-                    if (TameInputControl.checkedKeys[areas[0].key].wasPressedThisFrame)
+                    if (TameInputControl.keyMap.pressed[areas[0].key])
                     {
                         areas[0].Switch(true);
                         r = TameEffect.Time();
@@ -263,8 +266,10 @@ namespace Tames
                 }
                 else
                 {
-                    //        Debug.Log("before error 2.2");
+                    changingDirection = areas[0].switchDirection;
+                    //       if (Person.localPerson.switchCount != 0) Debug.Log("SWC: o count");
                     int sd = TameArea.CheckSwitch(areas);
+                    //    Debug.Log("switch "+sd);
                     r = TameEffect.Time();
                     if (sd != TameArea.NotSwitched)
                         if (changingDirection != sd)
@@ -304,7 +309,7 @@ namespace Tames
                     r.child = this;
                 }
             }
-            //      Debug.Log("before error 4");
+            //   if (name == "lift-last") Debug.Log("dir " + changingDirection + (r == null));
             return r;
         }
         override public void CleanAreas()
@@ -393,11 +398,8 @@ namespace Tames
             }
             return null;
         }
-        public static List<TameGameObject> CreateInteractive(TameElement parentElement, GameObject owner, List<TameElement> tes, int software = -1)
+        private static void CheckLight(GameObject owner, List<TameElement> tes, TameElement parentElement, int software)
         {
-            MarkerOrigin mo;
-            if ((mo = owner.GetComponent<MarkerOrigin>()) != null)
-                software = mo.GetOrigin();
             if (owner.GetComponent<Light>() != null)
             {
                 TameLight tl = new TameLight() { name = owner.name, owner = owner, light = owner.GetComponent<Light>(), index = (ushort)tes.Count };
@@ -413,6 +415,13 @@ namespace Tames
                 //     tl.changers = owner.GetComponents<MarkerChanger>();
                 tes.Add(tl);
             }
+        }
+        public static List<TameGameObject> CreateInteractive(TameElement parentElement, GameObject owner, List<TameElement> tes, int software = -1)
+        {
+            MarkerOrigin mo;
+            if ((mo = owner.GetComponent<MarkerOrigin>()) != null)
+                software = mo.GetOrigin();
+
             List<TameGameObject> tgo = new List<TameGameObject>();
             TameGameObject tg = null;
             GameObject gi;
@@ -434,6 +443,8 @@ namespace Tames
                     obj = Create(gi);
                     if (obj != null)
                     {
+                        obj.markerCycle = gi.GetComponent<MarkerCycle>();
+                        obj.markerQueue = gi.GetComponent<MarkerQueue>();
                         obj.GetAreas();
                         obj.parentObject = parentElement.tameType == TameKeys.Object ? (TameObject)parentElement : null;
                         obj.index = (ushort)tes.Count;
@@ -455,6 +466,8 @@ namespace Tames
                             });
 
                     }
+                    else
+                        CheckLight(gi, tes, parentElement, software);
                     tg = new TameGameObject()
                     {
                         gameObject = gi,

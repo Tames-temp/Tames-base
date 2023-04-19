@@ -16,7 +16,7 @@ namespace Markers
         public GameObject tracker = null;
         public GameObject mover = null;
         public GameObject headTracker = null;
-    //    public List<GameObject> areas = new List<GameObject> ();
+        //    public List<GameObject> areas = new List<GameObject> ();
         private GameObject[] all;
         public string manifestLines = "";
         public GameObject GetObject(int i)
@@ -25,13 +25,13 @@ namespace Markers
         }
         public Transform GetTransform(int i)
         {
-            return all[i]==null?null:all[i].transform;
+            return all[i] == null ? null : all[i].transform;
         }
         void Start()
         {
             all = new GameObject[10];
             all[0] = start;
-            all[1] = end;   
+            all[1] = end;
             all[2] = middle;
             all[3] = axis;
             all[4] = pivot;
@@ -46,6 +46,6 @@ namespace Markers
         {
 
         }
-      
+
     }
 }

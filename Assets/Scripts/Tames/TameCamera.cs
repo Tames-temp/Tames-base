@@ -14,6 +14,7 @@ namespace Tames
         private static int tiltingDirection;
         private static int movingDirection;
         private static float walkingSpeed = 1f;
+        private static float walkingMode = 1f;
         private static float rotationSpeed = 100f; // degree/s
         private static float tiltingSpeed = 70f; // degree/s
         private static string objectName = "...";
@@ -135,7 +136,7 @@ namespace Tames
             GameObject gameObject = null;
             List<GameObject> objects = new List<GameObject>();
             List<byte> what = new List<byte>();
-            for (int i = 0;i< names.Count;i++)
+            for (int i = 0; i < names.Count; i++)
             {
                 finder.header = new ManifestHeader() { items = new List<string>() { names[i] } };
                 finder.PopulateObjects(tgos);
@@ -157,7 +158,7 @@ namespace Tames
 
             return index;
         }
-       
+
         private static void SetMovingDirection()
         {
             movingDirection = 0;
@@ -165,8 +166,8 @@ namespace Tames
             {
                 if (TameInputControl.keyMap.forward) movingDirection = 1;
                 if (TameInputControl.keyMap.back) movingDirection = -1;
+                if (TameInputControl.keyMap.shift) walkingMode = 2f; else walkingMode = 1f;
 
-            
                 if ((movingDirection == 0) && (Gamepad.current != null))
                 {
                     float y = TameInputControl.keyMap.gpMap.stick[0].y;
@@ -182,10 +183,10 @@ namespace Tames
             turningDirection = 0;
             if (InputBasis.turn == InputBasis.Button)
             {
-              
-                    if (TameInputControl.keyMap.left) turningDirection = -1;
-                    if (TameInputControl.keyMap.right) turningDirection = 1;
-                
+
+                if (TameInputControl.keyMap.left) turningDirection = -1;
+                if (TameInputControl.keyMap.right) turningDirection = 1;
+
                 if ((turningDirection == 0) && (Gamepad.current != null))
                 {
                     float x = TameInputControl.keyMap.gpMap.stick[0].x;
@@ -212,7 +213,7 @@ namespace Tames
             }
             else if (InputBasis.tilt == InputBasis.Mouse)
             {
-                y = TameInputControl.keyMap.mouseY;
+                y = TameInputControl.keyMap.mouse.y;
                 if (Mathf.Abs(y) < 0.2f) y = 0; else y = Mathf.Sign(y) * (Mathf.Abs(y) - 0.2f) / 0.8f;
                 currentTilt = y * 80;
             }
@@ -231,7 +232,7 @@ namespace Tames
                     InputBasis.ToggleNext();
 
             if (Keyboard.current != null)
-                if(Keyboard.current.xKey.wasPressedThisFrame)
+                if (Keyboard.current.xKey.wasPressedThisFrame)
                     ToggleCamera();
 
             if (Mouse.current != null)
@@ -257,7 +258,7 @@ namespace Tames
                 if (InputBasis.turn != InputBasis.VR)
                 {
                     flat = Utils.Rotate(flat, Vector3.zero, Vector3.up, rotationSpeed * TameElement.deltaTime * turningDirection);
-                    moving = flat.normalized * movingDirection * walkingSpeed * TameElement.deltaTime;
+                    moving = flat.normalized * movingDirection * walkingSpeed * walkingMode * TameElement.deltaTime;
                     flat.y = flat.magnitude * Mathf.Tan(currentTilt * Mathf.Deg2Rad);
                     cameraTransform.forward = flat.normalized;
                 }
@@ -286,7 +287,7 @@ namespace Tames
                 {
                     fwd = cameraTransform.forward;
                     flat = new Vector3(fwd.x, 0, fwd.z);
-                    moving = flat.normalized * movingDirection * walkingSpeed * TameElement.deltaTime;
+                    moving = flat.normalized * movingDirection * walkingSpeed*walkingMode * TameElement.deltaTime;
                 }
             }
             if (TameManager.walkManager == null)
@@ -294,16 +295,16 @@ namespace Tames
             else
             {
                 fwd = Vector3.zero;
-         //       Debug.Log("walk " + fwd.ToString("0.00") + (currentFace==null?"null":currentFace.parent.name));
+                //       Debug.Log("walk " + fwd.ToString("0.00") + (currentFace==null?"null":currentFace.parent.name));
                 if ((currentFace != null) && (!moveByObject))
                 {
                     fwd = currentFace.Pushing(cameraTransform.position, TameElement.deltaTime);
-                   }
-        //        flat = p;
+                }
+                //        flat = p;
                 p += moving + fwd;
-              //  fwd = TameManifest.walkManager.foot;
-                 currentFace = TameManager.walkManager.Move(p - eyeHeight);
-            //    if(currentFace!=null)                    Debug.Log("walk " + currentFace.parent.name);
+                //  fwd = TameManifest.walkManager.foot;
+                currentFace = TameManager.walkManager.Move(p - eyeHeight);
+                //    if(currentFace!=null)                    Debug.Log("walk " + currentFace.parent.name);
                 cameraTransform.position = TameManager.walkManager.foot + eyeHeight;
             }
 

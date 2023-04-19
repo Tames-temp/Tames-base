@@ -40,14 +40,7 @@ namespace Multi
             for (int i = 0; i < AllEffects.Length; i++)
                 AllEffects[i] = new ITameEffect();
         }
-        public static Message GetAllInteractives(List<TameElement> ix)
-        {
-            Message m = Message.Create(MessageSendMode.reliable, (ushort)ClientToServerId.listInteractives);
-            m.AddByte((byte)ix.Count);
-            //for (int i = 0; i < ix.Count; i++)
-            //    m.AddByte((byte)ix[i].AuthorityType);
-            return m;
-        }
+       
         public void Apply(List<TameElement> tes)
         {
             TameElement te = tes[tameIndex];

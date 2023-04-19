@@ -10,11 +10,13 @@ using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
-    public static ushort bossId = 255;
+   public static Records.FrameShot[] frames = new Records.FrameShot[MainScript.people.Length];
     public static ushort Id = (ushort)255;
-    private float x = 0, y = 0;
-    public bool IsLocal { get; private set; }
-
+    public static ushort index = (ushort)255;
+    public static bool assigned = false;
+    public const ushort FrameData = 1;
+    public const ushort IDAssigned = 2;
+    public const ushort Name = 3;
     private string username;
     //   public static GameObject go = null;
     private static bool WaitForMessage = false;
@@ -28,153 +30,61 @@ public class Player : MonoBehaviour
         return -1;
     }
 
-    [MessageHandler((ushort)ServerToClientId.playerLeft)]
-    private static void PlayerLeft(Message mr)
+    [MessageHandler(IDAssigned)]
+    private static void AssignIndex(Message mr)
     {
-        ushort id = mr.GetUShort();
-        bossId = mr.GetUShort();
-        int i = Index(id);
-        if (i >= 0)
-        {
-            Destroy(MainScript.people[i].head);
-            Destroy(MainScript.people[i].hand[0].wrist);
-            Destroy(MainScript.people[i].hand[1].wrist);
-            MainScript.people[i] = null;
-        }
+        Id = mr.GetUShort();
+        index = mr.GetByte();
+        Person.people[index] = Person.localPerson;
+        assigned = true;
     }
-    [MessageHandler((ushort)ServerToClientId.initiateSelf)]
-    private static void MakeSelf(Message mr)
-    {
-        int index = mr.GetInt();
-        ushort id = Id = mr.GetUShort();
-        bool boss = mr.GetBool();
-        if (boss) bossId = id;
-        MainScript.localPerson.id = Id;
-        MainScript.people[index] = MainScript.localPerson;
-        MainScript.localPerson.initiated = true;
-        MainScript.localPerson.isLocal = true;
-        NetworkManager.Singleton.Client.Send(Message.Create(MessageSendMode.reliable, (ushort)ClientToServerId.personInitiated));
-    }
-    [MessageHandler((ushort)ServerToClientId.addPerson)]
-    private static void AddPerson(Message mr)
-    {
-        int count = mr.GetInt();
-        ushort id;
-        int index;
-        for (int i = 0; i < count; i++)
-        {
-            index = mr.GetInt();
-            id = mr.GetUShort();
-            bool isBoss = mr.GetBool();
-            if (id != Id)
+    [MessageHandler(FrameData)]
+    private static void ReceiveFrame(Message m)
+    { 
+        float time = m.GetFloat();
+        for (int i = 0; i < frames.Length; i++)
+            if (m.GetBool())
             {
-                MainScript.people[index] = new Multi.Person(id) { isLocal = false };
-                MainScript.people[index].CreateModel(MainScript.fingerHeader);
-                MainScript.people[index].initiated = true;
-                if (isBoss)
-                    bossId = id;
+                frames[i] = new Records.FrameShot();
+                frames[i].cpos = m.GetVector3();
+                frames[i].crot = m.GetQuaternion();
+                frames[i].hpos[0] = m.GetVector3();
+                frames[i].hrot[0] = m.GetQuaternion();
+                frames[i].hpos[1] = m.GetVector3();
+                frames[i].hrot[1] = m.GetQuaternion();
+                frames[i].grip[0] = m.GetFloat();
+                frames[i].grip[1] = m.GetFloat();
+                frames[i].KBPressed = m.GetULong();
+                frames[i].KBHold = m.GetULong();
+                frames[i].mouse = m.GetUInt();
+                frames[i].GPPressed = m.GetULong();
+                frames[i].GPHold = m.GetULong();
+                frames[i].VRPressed = m.GetUInt();
+                frames[i].VRHold = m.GetUInt();
             }
-        }
+            else frames[i] = null;
+        Person.UpdateAll(frames);
     }
-    // a request to send interactive data to the server
-    [MessageHandler((ushort)ServerToClientId.requestInteractives)]
-    private static void SendInteractives(Message mr)
+    public static void SendFrame(int index, Records.FrameShot frame)
     {
-        Message m = Message.Create(MessageSendMode.reliable, (ushort)ClientToServerId.listInteractives);
-        m.AddInt(MainScript.tes.Count);
-        for (int i = 0; i < MainScript.tes.Count; i++)
-        {
-            m.AddVector3(MainScript.ies[i].position);
-        }
-        NetworkManager.Singleton.Client.Send(m);
-    }
-    // setting the player as the boss
-
-
-    // receives update for all interactives
-    [MessageHandler((ushort)ServerToClientId.updateInteractives)]
-    private static void UpdateInteractives(Message mr)
-    {
-        mr.GetFloat();
-        int count = ITameEffect.EffectCount = mr.GetInt();
-        ushort id;
-        for (int i = 0; i < count; i++)
-        {
-            ITameEffect.AllEffects[i].tameIndex = mr.GetUShort();
-            //  ITameEffect.AllEffects[i].effect = mr.GetByte();
-            ITameEffect.AllEffects[i].parent = mr.GetByte();
-            ITameEffect.AllEffects[i].progress = mr.GetFloat();
-            ITameEffect.AllEffects[i].position = mr.GetVector3();
-        }
-    }
-    // receives update for all clients
-    [MessageHandler((ushort)ServerToClientId.updatePeople)]
-    private static void UpdateClients(Message m)
-    {
-        m.GetFloat();
-        int index = Index(Id);
-        for (int i = 0; i < MainScript.people.Length; i++)
-        {
-            bool initiated = m.GetBool();
-            if (initiated)
-                if ((MainScript.people[i] != null) && (i != index))
-                {
-                    MainScript.people[i].ReadMessage(m);
-                }
-                else
-                    Person.Skip(m);
-        }
-    }
-    [MessageHandler((ushort)ServerToClientId.directionChange)]
-    private static void DirectionChange(Message m)
-    {
-        m.GetFloat();
-        int index = m.GetInt();
-        int dir = m.GetInt();
-        int area = m.GetInt();
-        MainScript.ies[index].forcedDirectionThisFrame = true;
-        MainScript.ies[index].newDirection = dir;
-        MainScript.ies[index].forcedArea = area;
-    }
-
-    public static void SendPersonUpdate()
-    {
-        Message m = Message.Create(MessageSendMode.unreliable, (ushort)ClientToServerId.updatePerson);
-        m.AddFloat(Time.time);
-        MainScript.localPerson.AddToMessage(m);
-        NetworkManager.Singleton.Client.Send(m);
-    }
-
-    public static void BeginGrip(int index)
-    {
-        Message m = Message.Create(MessageSendMode.reliable, (ushort)ClientToServerId.beginGrip);
-        m.AddFloat(Time.time);
+        Message m = Message.Create(MessageSendMode.unreliable, FrameData);
+        m.AddFloat(frame.time);
         m.AddInt(index);
-        NetworkManager.Singleton.Client.Send(m);
-    }
-    public static void EndGrip(int index)
-    {
-        Message m = Message.Create(MessageSendMode.reliable, (ushort)ClientToServerId.endGrip);
-        m.AddFloat(Time.time);
-        m.AddInt(index);
-        NetworkManager.Singleton.Client.Send(m);
-    }
-    public static void UpdateInteractives()
-    {
-        Message m = Message.Create(MessageSendMode.unreliable, (ushort)ClientToServerId.updateInteractives);
-        m.AddFloat(Time.time);
-        m.AddInt(ITameEffect.EffectCount);
-        for (int i = 0; i < ITameEffect.EffectCount; i++)
-            MainScript.ies[i].Write(m);
-        NetworkManager.Singleton.Client.Send(m);
-    }
-    public static void AskDirectionChange(int index, int direction, int area)
-    {
-        Message m = Message.Create(MessageSendMode.reliable, (ushort)ClientToServerId.directionChange);
-        m.AddFloat(Time.time);
-        m.AddInt(index);
-        m.AddInt(direction);
-        m.AddInt(area);
+        m.AddVector3(frame.cpos);
+        m.AddQuaternion(frame.crot);
+        m.AddVector3(frame.hpos[0]);
+        m.AddQuaternion(frame.hrot[0]);
+        m.AddVector3(frame.hpos[1]);
+        m.AddQuaternion(frame.hrot[1]);
+        m.AddFloat(frame.grip[0]);
+        m.AddFloat(frame.grip[1]);
+        m.AddULong(frame.KBPressed);
+        m.AddULong(frame.KBHold);
+        m.AddUInt(frame.mouse);
+        m.AddULong(frame.GPPressed);
+        m.AddULong(frame.GPHold);
+        m.AddUInt(frame.VRPressed);
+        m.AddUInt(frame.VRHold);
         NetworkManager.Singleton.Client.Send(m);
     }
 }

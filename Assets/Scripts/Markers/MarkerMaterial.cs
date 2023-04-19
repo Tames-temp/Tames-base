@@ -10,8 +10,7 @@ namespace Markers
     {
         public Material material;
         public bool unique;
-        public string updateByName = "";
-        public GameObject updateByElement = null;
+      
 
 
         public MarkerChanger[] MatchMaterial(Material tm)

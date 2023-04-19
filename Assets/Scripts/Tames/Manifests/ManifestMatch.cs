@@ -10,7 +10,7 @@ namespace Tames
     {
         public List<string> a = new List<string>();
         public List<string> b = new List<string>();
-        public static int Read(string[] lines, int index, List<TameMatch> tms)
+        public static int Read(string[] lines, int index, List<TameCorrespond> tms)
         {
             string s = lines[index];
             List<string> ss = new List<string>();
@@ -70,8 +70,8 @@ namespace Tames
             {
                 tmm.a = a;
                 tmm.b = b;
-                TameMatch tm = new TameMatch() { manifest = tmm };
-                tms.Add(tm);
+    //            TameCorrespond tm = new TameCorrespond() { manifest = tmm };
+      //          tms.Add(tm);
             }
             return index;
         }
