@@ -44,7 +44,7 @@ public class Slerp
             m = (0.5f - q) / (0.5f - p);
             B = (3 * q - p * m) / (p * p);
             A = (p * m - 2 * q) / Mathf.Pow(p, 3);
-            Debug.Log("SLERP: " + p + " " + q + " " + A + " " + B);
+         //   Debug.Log("SLERP: " + p + " " + q + " " + A + " " + B);
         }
 
     }
@@ -180,7 +180,7 @@ public class Slerp
             {
                 float P = float.Parse(s[0]);
                 float Q = float.Parse(s[1]);
-                Debug.Log("SLERP: " + P + " " + Q);
+           //     Debug.Log("SLERP: " + P + " " + Q);
                 return new Slerp(P, Q);
 
             }
@@ -301,6 +301,11 @@ public class Slerp
             return new float[] { x, y };
         }
 
+    }
+
+    public Slerp Clone()
+    {
+       return new Slerp(p * 2, q * 2);
     }
 }
 

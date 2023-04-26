@@ -85,6 +85,7 @@ namespace Tames
                 }
                 if (mc.childrenOf != null)
                 {
+                    element.handle.childrenParent = mc.childrenOf;
                     for (int i = 0; i < mc.childrenOf.transform.childCount; i++)
                         finder.objectList.Add(TameGameObject.Find(mc.childrenOf.transform.GetChild(i).gameObject, tgos));
                 }

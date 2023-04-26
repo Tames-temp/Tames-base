@@ -1,4 +1,5 @@
 ﻿using Markers;
+using Multi;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,9 +18,11 @@ namespace Tames
         public bool updatedUnique = false;
         public MarkerProgress markerProgress = null;
         public MarkerEnvironment marketEnvironment = null;
+        public MarkerSpeed markerSpeed = null;
         public static bool isPaused = false;
         public static float FrameValue = -1;
         public static float deltaTime;
+        public static float lastDelta = 1;
         /// <summary>
         /// the universal project tick. It determines the number of frames (and hence updates) passed since the start of the application. It is used to check which progresses are alread updated. See <see cref="TameProgress.tick"/>
         /// </summary>
@@ -96,6 +99,17 @@ namespace Tames
         public List<TameArea> areas = new List<TameArea>();
         public List<TameInputControl> control, actSwitch, visSwitch;
         public bool manual = false;
+        /// <summary>
+        /// whether the <see cref="TameArea.mode"/> of this element's <see cref="areas"/> is <see cref="InteractionMode.Grip"/>
+        /// </summary>
+        public bool isGrippable = false;
+        /// <summary>
+        /// whether the <see cref="TameArea.mode"/> of this element's <see cref="areas"/> is <see cref="InteractionMode"/>.Switch1, 2, or 3
+        /// </summary>
+        public bool isSwitch = false;
+        public bool isDistance = false;
+        public bool isTracking = false;
+        public float directProgress = -1;
         public TameElement()
         {
             control = new List<TameInputControl>();
@@ -110,7 +124,7 @@ namespace Tames
                 TameInputControl tci = TameInputControl.ByStringDuo(list[i]);
                 if (tci != null)
                 {
-                    Debug.Log("MANUL: " + list[i] + " " + (tci == null));
+                    //           Debug.Log("MANUL: " + list[i] + " " + (tci == null));
                     control.Add(tci);
                 }
             }
@@ -120,17 +134,186 @@ namespace Tames
                 progress = new TameProgress(this);
             }
         }
+        private TameEffect GetEffect(Person headOwner, Person handOwner, TameAreaTrack tat)
+        {
+            TameEffect r = null;
+            //  if (name == "door1") Debug.Log("enfo z:" + basis + " "+parents.Count);
+            if (TrackBasis.Time == basis)
+                r = TameEffect.Time();
+            else
+            {
+                // update
+                int closest = -1;
+                float min = float.PositiveInfinity;
+                float d;
+                byte tbas = TrackBasis.Error;
+                Vector3 closestPosition = Vector3.positiveInfinity;
+                if (TrackBasis.IsHead(basis) && (headOwner != null))
+                {
+                    closestPosition = headOwner.headPosition;
+                    min = Vector3.Distance(headOwner.headPosition, mover.transform.position);
+                    tbas = TrackBasis.Head;
+                }
+                if (TrackBasis.IsHand(basis) && (handOwner != null))
+                    if ((d = Vector3.Distance(handOwner.position[tat.hand], mover.transform.position)) < min)
+                    {
+                        min = d;
+                        closestPosition = handOwner.position[tat.hand];
+                        tbas = TrackBasis.Hand;
+                    }
+                if (TrackBasis.IsObject(basis))
+                    if (parents.Count > 0)
+                        for (int i = 0; i < parents.Count; i++)
+                            if (parents[i].type == TrackBasis.Object)
+                                if ((d = Vector3.Distance(parents[i].gameObject.transform.position, mover.transform.position)) < min)
+                                {
+                                    min = d;
+                                    closestPosition = parents[i].gameObject.transform.position;
+                                    closest = i;
+                                    tbas = TrackBasis.Object;
+                                }
+                if (closestPosition.x != float.PositiveInfinity)
+                {
+                    r = TameEffect.Position(closestPosition);
+                    r.type = tbas;
+                }
+                if (closest >= 0) r.gameObject = parents[closest].gameObject;
+            }
+            if (TrackBasis.Tame == basis)
+                if (parents.Count > 0) r = parents[0];
+            return r;
+        }
+        private TameEffect GetEffect()
+        {
+            TameEffect r = null;
+            //  if (name == "door1") Debug.Log("enfo z:" + basis + " "+parents.Count);
+            if (TrackBasis.Time == basis)
+                r = TameEffect.Time();
+            else if (TrackBasis.Tame == basis)
+                if (parents.Count > 0) r = parents[0];
+            if (r != null)
+                r.child = this;
+            return r;
+        }
         /// <summary>
         /// the base method for finding the action parents of the elements in each frame. The first element of the array indicate the update parent (that if is assigned, the other two elements would be null). The next elements contain the slide and rotate parents, respectively. 
         /// </summary>
         /// <returns></returns>
         public virtual TameEffect GetParent()
         {
-            //     if (manual) return null;
-            return null;
+            TameEffect r = null;
+            int closest;
+            float d;
+            float dis;
+            float min = float.PositiveInfinity;
+            bool[] set = new bool[] { false, false, false };
+            TameArea ti;
+            Person pe;
+            if (manual) return null;
+            //   Debug.Log("before error 1");
+            TameObject to;
+            if (isGrippable)
+            {
+                r = TameArea.Grip(areas);
+                if (r != null)
+                {
+                    to = (TameObject)this;
+                    pe = r.personIndex == Person.LocalDefault ? Person.localPerson : Person.people[r.personIndex];
+                    ti = areas[r.areaIndex];
+                    ti.gripDisplacement = owner.transform.InverseTransformPoint(pe.hand[r.handIndex].gripCenter) - owner.transform.InverseTransformPoint(ti.relative.transform.position);
+                    if (to.handle.RotationType == MovingTypes.Rotator)
+                        ti.displacement = Utils.Angle(owner.transform.InverseTransformPoint(ti.relative.transform.position), Vector3.zero, to.handle.start - to.handle.pivot, to.handle.axis, true);
+                    r.child = this;
+                }
+                return r;
+            }
+            if (isSwitch)
+            {
+                r = TameEffect.Time();
+                r.child = this;
+                changingDirection = areas[0].switchDirection;
+                if (areas[0].geometry == InteractionGeometry.Remote)
+                {
+                    if (TameInputControl.keyMap.pressed[areas[0].key])
+                    {
+                        areas[0].Switch(true);
+                        changingDirection = areas[0].switchDirection;
+                        if (name == "_speed") Debug.Log("switched " + changingDirection);
+                    }
+                }
+                else
+                {
+                    changingDirection = areas[0].switchDirection;
+                    //       if (Person.localPerson.switchCount != 0) Debug.Log("SWC: o count");
+                    int sd = TameArea.CheckSwitch(areas);
+                    //    Debug.Log("switch "+sd);
+                    r = TameEffect.Time();
+                    if (sd != TameArea.NotSwitched)
+                        if (changingDirection != sd)
+                        {
+                            Debug.Log("direction " + changingDirection + " > " + sd);
+                            changingDirection = sd;
+                        }
+                    r.child = this;
+                }
+                //          Debug.Log("before error 2.3");
+                return r;
+            }
+            if (isDistance)
+            {
+                r = TameEffect.Time();
+                r.child = this;
+                if (areas[0].range != null)
+                {
+                    d = areas[0].TrackDistance();
+                    if (areas[0].directProgress)
+                        directProgress = d;
+                    else
+                        changingDirection = d < 0 ? -1 : (d > 0 ? 1 : 0);
+                }
+                return r;
+            }
+            if (TrackBasis.IsTracking(basis) || (areas.Count > 0))
+            {
+
+                //      Debug.Log("before error 3");
+                Person headOwner = null, handOwner = null;
+                //    Debug.Log("name = " + areas.Count);
+                TameAreaTrack tat = areas.Count > 0 ? TameArea.TrackWithAreas(areas, mover.transform.position) : TameArea.Track(mover.transform.position);
+                byte tp = 0;
+                if (tat.person >= 0)
+                {
+                    handOwner = tat.person == Person.LocalDefault ? Person.localPerson : Person.people[tat.person];
+                    //     tp = TrackBasis.Hand;
+                }
+                if (tat.head >= 0)
+                {
+                    headOwner = tat.head == Person.LocalDefault ? Person.localPerson : Person.people[tat.head];
+                    //    tp = TrackBasis.Head;
+                }
+
+                changingDirection = tat.direction;
+                if (changingDirection != 0)
+                {
+                    r = GetEffect(headOwner, handOwner, tat);
+                    if (r != null)
+                    {
+                        r.direction = tat.direction;
+                        r.child = this;
+                    }
+                }
+            }
+            else
+            {
+                r = GetEffect();
+                return r;
+                //   if (name == "lift-last") Debug.Log("dir " + changingDirection + (r == null));
+            }
+            return r;
         }
         public static void PassTime()
         {
+            lastDelta = deltaTime;
             deltaTime = FrameValue < 0 ? Time.deltaTime : FrameValue;
             if (!isPaused)
             {
@@ -220,30 +403,32 @@ namespace Tames
         }
         public virtual void Scale()
         {
-            if (manifest != null)
-                if (manifest.scales)
-                    if (progress != null)
+            if (tameType == TameKeys.Object)
+            {
+                TameObject to = (TameObject)this;
+                if (to.scales)
+                {
+                    Vector3 ls;
+                    float s = to.scaleFrom + (to.scaleTo - to.scaleFrom) * progress.slerpProgress;
+                    foreach (GameObject go in scaledObjects)
                     {
-                        Vector3 ls;
-                        float s = manifest.scaleFrom + (manifest.scaleTo - manifest.scaleFrom) * progress.slerpProgress;
-                        foreach (GameObject go in scaledObjects)
-                        {
-                            //      Debug.Log("scale: " + go.name + " : " + manifest.scaleAxis+ " "+s);
-                            ls = go.transform.localScale;
-                            if (manifest.scaleAxis == 0) go.transform.localScale = new Vector3(s, ls.y, ls.z);
-                            else if (manifest.scaleAxis == 1) go.transform.localScale = new Vector3(ls.x, s, ls.z);
-                            else go.transform.localScale = new Vector3(ls.x, ls.y, s);
-                        }
-                        Vector2 tex;
-                        for (int i = 0; i < initialTiles.Count; i++)
-                            try
-                            {
-                                tex = scaledMaterials[i].GetTextureScale(Utils.ProperyKeywords[TameMaterial.MainTex]);
-                                if (manifest.scaleUV == 0) tex.x = s * initialTiles[i]; else tex.y = s * initialTiles[i];
-                                scaledMaterials[i].SetTextureScale(Utils.ProperyKeywords[TameMaterial.MainTex], tex);
-                            }
-                            catch { }
+                        //      Debug.Log("scale: " + go.name + " : " + manifest.scaleAxis+ " "+s);
+                        ls = go.transform.localScale;
+                        if (to.scaleAxis == 0) go.transform.localScale = new Vector3(s, ls.y, ls.z);
+                        else if (to.scaleAxis == 1) go.transform.localScale = new Vector3(ls.x, s, ls.z);
+                        else go.transform.localScale = new Vector3(ls.x, ls.y, s);
                     }
+                    Vector2 tex;
+                    for (int i = 0; i < initialTiles.Count; i++)
+                        try
+                        {
+                            tex = scaledMaterials[i].GetTextureScale(Utils.ProperyKeywords[TameMaterial.MainTex]);
+                            if (to.scaleUV == 0) tex.x = s * initialTiles[i]; else tex.y = s * initialTiles[i];
+                            scaledMaterials[i].SetTextureScale(Utils.ProperyKeywords[TameMaterial.MainTex], tex);
+                        }
+                        catch { }
+                }
+            }
         }
         public void CheckStatus()
         {
@@ -332,14 +517,81 @@ namespace Tames
         /// </summary>
         /// <param name="ti"></param>
         /// <param name="g"></param>
-        public virtual void AddArea(TameArea ti, GameObject g = null) { }
+       // public virtual void AddArea(TameArea ti, GameObject g = null) { }
         /// <summary>
         /// clean disabled interactors. Currently, it only works on <see cref="TameObject"/>s, so please see <see cref="TameObject.CleanAreas"/>
         /// </summary>
         /// <param name="ti"></param>
         /// <param name="g"></param>
 
-        public virtual void CleanAreas() { }
+        public void CleanAreas()
+        {
+            isGrippable = isSwitch = isDistance = false;
+            int retain = 1;
+            foreach (TameArea ti in areas)
+                if (ti.mode == InteractionMode.Grip)
+                {
+                    isGrippable = true;
+                    break;
+                }
+            if (!isGrippable)
+            {
+                foreach (TameArea ti in areas)
+                    if (ti.geometry == InteractionGeometry.Remote)
+                    {
+                        retain = 1;
+                        isSwitch = true;
+                        break;
+                    }
+                if (!isSwitch)
+                    foreach (TameArea ti in areas)
+                        if (TameArea.IsSwitch(ti.mode))
+                        {
+                            retain = 2;
+                            isSwitch = true;
+                            break;
+                        }
+                if (!isSwitch)
+                    foreach (TameArea ti in areas)
+                        if (ti.geometry == InteractionGeometry.Distance)
+                        {
+                            retain = 1;
+                            isDistance = true;
+                            break;
+                        }
+            }
+            if (isGrippable)
+            {
+                for (int i = areas.Count - 1; i >= 0; i--)
+                    if (areas[i].mode != InteractionMode.Grip)
+                        areas.RemoveAt(i);
+                parents.Clear();
+                basis = TrackBasis.Grip;
+            }
+            else if (isSwitch)
+            {
+                if (retain == 1)
+                {
+                    for (int i = areas.Count - 1; i >= 0; i--)
+                        if (areas[i].geometry != InteractionGeometry.Remote)
+                            areas.RemoveAt(i);
+                }
+                else
+                    for (int i = areas.Count - 1; i >= 0; i--)
+                        if ((!TameArea.IsSwitch(areas[i].mode)) || (areas[i].geometry == InteractionGeometry.Distance))
+                            areas.RemoveAt(i);
+                parents.Clear();
+                basis = TrackBasis.Grip;
+            }
+            else if (isDistance)
+            {
+                for (int i = areas.Count - 1; i >= 0; i--)
+                    if (areas[i].geometry != InteractionGeometry.Distance)
+                        areas.RemoveAt(i);
+                parents.Clear();
+                basis = TrackBasis.Grip;
+            }
+        }
 
         /// <summary>
         /// add a time update control. By doing so, it removes all parents with shared effects (see <see cref="TameEffect.effect"/> for the notion of shared effect). This method is called by <see cref="PopulateUpdates"/>
@@ -430,20 +682,12 @@ namespace Tames
                 }
                 else if (mp.byMaterial != null)
                 {
-                    foreach (TameElement te in tes)
+                    tm = TameMaterial.Find(mp.byMaterial, tes);
+                    if (tm != null)
                     {
-                        if (te.tameType == TameKeys.Material)
-                        {
-                            tm = (TameMaterial)te;
-                            if (!tm.cloned)
-                                if (tm.original = mp.byMaterial)
-                                {
-                                    MonoUpdate(TrackBasis.Tame, tm);
-                                    break;
-                                }
-                        }
+                        MonoUpdate(TrackBasis.Tame, tm);
+                        return true;
                     }
-                    return true;
                 }
                 else if (mp.update != "")
                 {
@@ -467,7 +711,7 @@ namespace Tames
                 finder.Populate(tes, tgos);
 
                 // if(name=="pipes")
-                Debug.Log("inlx = " + name + " " + manifest.updateType + " " + manifest.updates.items[0] + " " + finder.elementList.Count);
+                //        Debug.Log("inlx = " + name + " " + manifest.updateType + " " + manifest.updates.items[0] + " " + finder.elementList.Count);
                 switch (finder.trackMode)
                 {
                     case TrackBasis.Object:
@@ -523,7 +767,7 @@ namespace Tames
         /// <param name="tgos">list of all game objects related to the interactive elements (see <see cref="TameManager.SurveyInteractives"/>)</param>
         public void PopulateUpdates(List<TameElement> tes, List<TameGameObject> tgos)
         {
-            if (name == "barrier sign") Debug.Log("UP: bef " + parents.Count);
+            //     if (name == "barrier sign") Debug.Log("UP: bef " + parents.Count);
             TameFinder finder = new TameFinder();
             progress = new TameProgress(this);
             if (updatedUnique) return;
@@ -558,12 +802,12 @@ namespace Tames
                         AddUpdate(ManifestKeys.Update, new List<TameElement>() { to.parentObject });
                 }
             }
-            if (name == "barrier sign") Debug.Log("UP: aft " + parents[0].parent.name);
+            //  if (name == "barrier sign") Debug.Log("UP: aft " + parents[0].parent.name);
             if (basis != TrackBasis.Tame)
                 for (int i = parents.Count - 1; i >= 0; i--)
                     if (parents[i].type == TrackBasis.Tame)
                         parents.RemoveAt(i);
-            if (name == "barrier sign") Debug.Log("UP: aft1 " + parents.Count);
+            // if (name == "barrier sign") Debug.Log("UP: aft1 " + parents.Count);
         }
         /// <summary>
         /// Gets the parents of all interactive elements in the project, this should be called during each frame if there is a chance that parents are changed (for example there are multiple objects or people being tracked for the same element, so their position affects which one would be the parent. The method also sorts the parents so they would be updated in order
@@ -661,7 +905,7 @@ namespace Tames
             List<GameObject> io = new List<GameObject>();
             TameArea ir;
             io.AddRange(MarkerArea.FindAreas(owner));
-
+            if (name == "_speed") Debug.Log("ac: " + owner.name + " " + io.Count);
             for (int i = 0; i < cc; i++)
                 if (TameArea.HasAreaKeyword(owner.transform.GetChild(i).name))
                 {
@@ -672,7 +916,7 @@ namespace Tames
             foreach (GameObject go in io)
                 if ((ir = TameArea.ImportArea(go, this)) != null)
                 {
-                    // Debug.Log(" area accepted " + owner.name + " " + ir.geometry);
+                    //       Debug.Log("Area accepted " + owner.name + " " + ir.geometry);
                     ir.element = this;
                     areas.Add(ir);
                 }
@@ -764,35 +1008,44 @@ namespace Tames
                     SetDurations(markerProgress);
                     SetShowKeys(markerProgress);
                     SetActiveKeys(markerProgress);
-                    if (name == "barrier sign") Debug.Log("UP: trig " + progress.trigger.value[0]);
+                    //     if (name == "barrier sign") Debug.Log("UP: trig " + progress.trigger.value[0]);
                     //    if (visSwitch.Count > 0) Debug.Log("MKM: " + name + "> " + visSwitch[0].keyValue[0] + " " + visSwitch[0].hold + " " + visSwitch[0].direction + " " + visSwitch[0].control);
                     //    Debug.Log("marker progress: not null " + markerProgress.cycleType);
 
                 }
-                /*       if (markerSpeed != null)
-                       {
-                           if ((markerSpeed.speedFactor > 0) && (markerSpeed.speedOffset > 0))
-                           {
-                               if (markerSpeed.byElement != null)
-                                   progress.manager.parent = TameGameObject.Find(markerSpeed.byElement, tgos).tameParent;
-                               else
-                               {
-                                   finder.elementList.Clear();
-                                   finder.header.items.Clear();
-                                   finder.header.items.Add(markerSpeed.byName);
-                                   finder.PopulateElements(tes, tgos);
-                                   if (finder.elementList.Count > 0)
-                                       progress.manager.parent = finder.elementList[0];
-                               }
-                               if (progress.manager.parent != null)
-                               {
-                                   progress.manager.factor = markerSpeed.speedFactor;
-                                   progress.manager.offset = markerSpeed.speedOffset;
-                               }
-                           }
-                       }
-                */
-
+                if (markerSpeed != null)
+                {
+                    if (markerSpeed.factor > 0)
+                    {
+                        if (markerSpeed.byElement != null)
+                            progress.manager.parent = TameGameObject.Find(markerSpeed.byElement, tgos).tameParent;
+                        else if (markerSpeed.byMaterial != null)
+                        {
+                            TameMaterial tm = TameMaterial.Find(markerSpeed.byMaterial, tes);
+                            if (tm != null)
+                                progress.manager.parent = tm;
+                        }
+                        else if (markerSpeed.byName != "")
+                        {
+                            finder.elementList.Clear();
+                            finder.header.items.Clear();
+                            finder.header.items.Add(markerSpeed.byName);
+                            finder.PopulateElements(tes, tgos);
+                            if (finder.elementList.Count > 0)
+                                progress.manager.parent = finder.elementList[0];
+                        }
+                        if (progress.manager.parent == null)
+                        {
+                            progress.manager.factor = 1;
+                            progress.manager.offset = -1;
+                        }
+                        else
+                        {
+                            progress.manager.factor = markerSpeed.factor;
+                            progress.manager.offset = markerSpeed.offset;
+                        }
+                    }
+                }
             }
         }
         /// <summary>
@@ -816,7 +1069,7 @@ namespace Tames
 
             switch (tp.type)
             {
-                case TrackBasis.Tame: tp.child.Update(p);                     break;
+                case TrackBasis.Tame: tp.child.Update(p); break;
                 case TrackBasis.Object: tp.child.Update(tp.gameObject.transform.position); break;
                 case TrackBasis.Hand:
                 case TrackBasis.Head: tp.child.Update(tp.position); break;
@@ -825,6 +1078,157 @@ namespace Tames
             }
 
             tp.child.Scale();
+        }
+        public List<TameLink> clones = new(), links = new();
+        public void AddClones(MarkerLink ml, bool ofChildren, List<TameGameObject> tgos)
+        {
+            if (ofChildren)
+                clones.Add(new TameLink(ml));
+            else
+            {
+                if (ml.childrenNames != "")
+                {
+                    TameFinder finder = new TameFinder() { owner = this };
+                    finder.header = ManifestHeader.Read("update " + ml.childrenNames);
+                    finder.PopulateObjects(tgos);
+                    foreach (TameGameObject go in finder.objectList)
+                        clones.Add(new TameLink(go.gameObject, ml));
+                }
+                if (ml.childrenOf != null)
+                    for (int i = 0; i < ml.gameObject.gameObject.transform.childCount; i++)
+                        clones.Add(new TameLink(ml.gameObject.gameObject.transform.GetChild(i).gameObject, ml));
+            }
+        }
+        public void AddLinks(MarkerLink ml, bool ofChildren, List<TameGameObject> tgos)
+        {
+            if (ofChildren)
+                links.Add(new TameLink(ml));
+            else
+            {
+                if (ml.childrenNames != "")
+                {
+                    TameFinder finder = new TameFinder() { owner = this };
+                    finder.header = ManifestHeader.Read("update " + ml.childrenNames);
+                    finder.PopulateObjects(tgos);
+                    foreach (TameGameObject go in finder.objectList)
+                        links.Add(new TameLink(go.gameObject, ml));
+                }
+                if (ml.childrenOf != null)
+                    for (int i = 0; i < ml.gameObject.gameObject.transform.childCount; i++)
+                        links.Add(new TameLink(ml.gameObject.gameObject.transform.GetChild(i).gameObject, ml));
+            }
+        }
+        private float GetLinkValue(MarkerLink.LinkTypes lt, float[] range)
+        {
+            return lt switch
+            {
+                MarkerLink.LinkTypes.Parent => range[0],
+                MarkerLink.LinkTypes.Custom => range[1],
+                _ => UnityEngine.Random.value * (range[3] - range[2]) + range[2],
+            };
+        }
+        public List<TameElement> PopulateClones()
+        {
+            List<TameElement> r = new();
+            float p;
+            if (tameType == TameKeys.Object)
+            {
+                foreach (TameLink tl in clones)
+                {
+                    TameObject to = CloneAsObject(tl.gameObject.transform, tl.type == MarkerLink.CloneTypes.CloneEverything);
+                    to.owner.transform.parent = tl.gameObject.transform.parent;
+                    to.owner.transform.localPosition = tl.gameObject.transform.localPosition;
+                    to.owner.transform.localRotation = tl.gameObject.transform.localRotation;
+                    to.handle.Move(p = GetLinkValue(tl.offsetBase, new float[] { progress.progress, tl.offset, 0f, 1f }), 0);
+                    to.progress.SetProgress(p);
+                    to.progress.manager.Duration = GetLinkValue(tl.speedBase, new float[] { progress.manager.Duration, tl.factor, progress.manager.Duration / tl.factor, progress.manager.Duration * tl.factor });
+                    r.Add(to);
+                }
+            }
+            return r;
+        }
+        public void PopulateLinks()
+        {
+            GameObject go, po, bo;
+            TamePath path;
+            Transform tlt;
+            TameLink tl;
+            if (tameType == TameKeys.Object)
+            {
+                TameObject to = (TameObject)this;
+                path = to.handle.path;
+                path.linked = new Transform[links.Count];
+                path.linkOffset = new float[links.Count];
+                for (int i = 0; i < links.Count; i++)
+                {
+                    tl = links[i];
+                    tlt = tl.gameObject.transform;
+                    Vector3 p0 = path.Position(0);
+                    Vector3 pm = tlt.position;
+                    Quaternion qm = tlt.rotation;
+
+                    Quaternion q0 = path.Rotation(0);
+                    Quaternion qo = qm * Quaternion.Inverse(q0);
+                    go = new GameObject(tl.gameObject.name + " - owner");
+                    go.transform.parent = tlt.parent;
+                    go.transform.rotation = qo;
+                    bo = new GameObject(tl.gameObject.name + " - base");
+                    bo.transform.parent = go.transform;
+                    bo.transform.localRotation = q0;
+                    bo.transform.position = tlt.position;
+                    bo.transform.localPosition -= p0;
+                    go.transform.position = bo.transform.position;
+                    bo.transform.position = tlt.position;
+                    tlt.parent = bo.transform;
+                    tlt.position = pm;
+                    tlt.rotation = qm;
+                    path.linked[i] = bo.transform;
+                    path.linkOffset[i] = GetLinkValue(tl.offsetBase, new float[] { progress.progress, tl.offset, 0f, 1f });
+                }
+            }
+        }
+        private TameObject CloneAsObject(Transform t, bool everything)
+        {
+            TameObject th = (TameObject)this;
+            TameObject to = new TameObject();
+            GameObject goc, go;
+            to.owner = t.gameObject;
+            if (everything)
+                for (int i = 0; i < th.owner.transform.childCount; i++)
+                    if (!th.handle.Interactive(go = th.owner.transform.GetChild(i).gameObject))
+                    {
+                        goc = GameObject.Instantiate(go);
+                        goc.transform.parent = t;
+                        goc.transform.localPosition = go.transform.localPosition;
+                        goc.transform.localRotation = go.transform.localRotation;
+                        goc.transform.localScale = go.transform.localScale;
+                    }
+            to.name = t.name;
+            to.owner = t.gameObject;
+            to.mover = GameObject.Instantiate(th.mover);
+            to.mover.transform.parent = t;
+            to.mover.transform.localPosition = mover.transform.localPosition;
+            to.mover.transform.localRotation = mover.transform.localRotation;
+            to.parents = th.parents;
+            to.progress = th.progress.Clone(to);
+            // Debug.Log("man dur: " + to.progress.manager.Speed);
+            to.handle = th.handle.Clone(to.owner, to.mover);
+            to.handle.path.element = to;
+            to.areas = new();
+            foreach (TameArea area in areas)
+                to.areas.Add(area.Clone(to));
+            to.isGrippable = isGrippable;
+            to.isDistance = isDistance;
+            to.isSwitch = isSwitch;
+            to.manual = manual;
+            to.actSwitch = actSwitch;
+            to.basis = basis;
+            to.changingDirection = changingDirection;
+            to.initialVisibility = initialVisibility;
+            to.tameType = tameType;
+            to.visSwitch = visSwitch;
+            to.control = control;
+            return to;
         }
     }
 }

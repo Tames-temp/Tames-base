@@ -133,7 +133,7 @@ namespace Tames
                     case ManifestKeys.Stack:
                         if (Utils.SafeParse(mh.items[1], out progressedDistance))
                             linkType = LinkedKeys.Stack;
-                        Debug.Log("is stack " + progressedDistance);
+              //          Debug.Log("is stack " + progressedDistance);
                         break;
                     case ManifestKeys.Cycle:
                         if (Utils.SafeParse(mh.items[1], out progressedDistance))

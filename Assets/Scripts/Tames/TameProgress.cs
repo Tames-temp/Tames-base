@@ -25,14 +25,14 @@ namespace Tames
             else
                 return sign[2];
         }
+
     }
     public class TameDurationManager
     {
         public TameElement parent = null;
         public float offset = 0;
         public float factor = 0;
-        public bool speedBased = false;
-        /// <summary>
+         /// <summary>
         /// the speed of changing progress (per second). Changing the speed would change the duration (= 1 / speed)
         /// </summary>
         public float Speed { get { return speed; } set { speed = value; duration = 1 / speed; } }
@@ -46,13 +46,11 @@ namespace Tames
         {
             if (parent != null)
             {
-                if (speedBased)
-                    Speed = offset + parent.progress.progress * factor;
-                else
-                    Duration = offset + parent.progress.progress * factor;
+                Speed = offset < 0 ? 0 : offset + parent.progress.progress * factor;
+                //       if (parent.name == "_speed")                    Debug.Log("speed: " + speed+ " < "+offset+" "+factor+" "+parent.progress.progress);
             }
         }
-        public TameDurationManager Duplicate()
+        public TameDurationManager Clone()
         {
             return new TameDurationManager()
             {
@@ -139,6 +137,9 @@ namespace Tames
         public Slerp slerp = null;
         public TameElement element = null;
         public bool active = true;
+
+        public float A = 0;
+        public float lastSpeed = 0;
         public TameProgress(TameElement element)
         {
             this.element = element;
@@ -147,7 +148,7 @@ namespace Tames
         {
             cycle = p.cycle;
             //   stop = p.stop;
-            manager = p.manager.Duplicate();
+            manager = p.manager.Clone();
             //       Speed = p.speed;
             trigger = p.trigger;
             passToChildren = p.passToChildren;
@@ -214,7 +215,7 @@ namespace Tames
             float dp, dif;
             float pt;
             manager.Refresh();
-            float[] passed = pass == PassTypes.Progress ? parentProg : parentTotal;
+            //   float[] passed = pass == PassTypes.Progress ? parentProg : parentTotal;
             if (trigger == null)
             {
                 if (pass == PassTypes.Progress)
@@ -236,7 +237,7 @@ namespace Tames
                     dp = manager.Speed < 0 ? parentTotal[1] - parentTotal[0] : (manager.Speed / parentSpeed) * (parentTotal[1] - parentTotal[0]);
                 }
                 SetProgress(totalProgress + dp * interactDirection, false);
-            //   if(element.name=="pipes")       Debug.Log("switch: " + (parentProg[1] - parentProg[0]) + " > " + progress+" "+interactDirection);
+                //    if (element.name == "rotator") Debug.Log("switch: > " +manager.parent.progress.progress+" "+ progress + " " + manager.Speed);
             }
             else
             {
@@ -251,20 +252,51 @@ namespace Tames
                     changingDirection = trigger.Direction(pt) * interactDirection;
                 }
                 pt = totalProgress + changingDirection * deltaTime * (manager.Speed < 0 ? 1 : manager.Speed);
-             //   if (element.name == "cooler") Debug.Log("enfo prog " + progress + " " + trigger.mono + " " + changingDirection);
+                //   if (element.name == "cooler") Debug.Log("enfo prog " + progress + " " + trigger.mono + " " + changingDirection);
                 SetProgress(pt, false);
             }
         }
         public void SetByTime(float deltaTime)
         {
-            //          if (element.name == "door3")                Debug.Log("prog " + changingDirection);
+            if (element.name == "sush clone") Debug.Log(":: " + manager.Duration);
+            //   if (element.name == "rotator") Debug.Log("prog " + manager.parent.progress.progress);
 
             // float[] pp = new float[] { time, time + deltaTime * interactDirection };
             // time += deltaTime * interactDirection;
 
-             float[] pp = new float[] { time, time + deltaTime };
-            time += deltaTime ;
+            float[] pp = new float[] { time, time + deltaTime };
+            time += deltaTime;
+     
             SetByParent(pp, pp, PassTypes.Total, deltaTime);
+        }
+        private float _p, _lp, _sp, _t, _lt;
+        private void Push() 
+        {
+            _p = progress;
+            _lp = lastProgress;
+            _sp = slerpProgress;
+            _t = totalProgress;
+            _lt = lastTotal;
+     //       _time = time;
+        }
+        private void Pull()
+        {
+            progress = _p;
+            lastProgress = _lp;
+            slerpProgress = _sp;
+            totalProgress = _t;
+            lastTotal = _lt;
+   //         time = _time;
+   //         tick--;
+        }
+        public float FakeByOffset(float offset)
+        {
+            Push();
+            float v = totalProgress+ offset;
+            SetProgLin(v);
+            v = progress;
+            Pull();
+            return v;
         }
         /// <summary>
         /// sets the progress based on the passage of time. The progress is determined by time, changingDirection and speed of the progress
@@ -275,7 +307,7 @@ namespace Tames
             float pt;
             manager.Refresh();
             float duration = manager.Duration < 0 ? 1 : manager.Duration;
-            if (trigger == null)
+           if (trigger == null)
             {
                 if (cycle != CycleTypes.Stop)
                 {
@@ -335,45 +367,78 @@ namespace Tames
         /// <param name="value">the intended total progress</param>
         public void SetProgress(float value, bool refresh)
         {
+            if (element.name == "sush clone") Debug.Log(":: " + manager.Duration);
             if (!active) return;
-            float v;
+            if (refresh) manager.Refresh();
             if (tick < TameElement.Tick)
             {
-                lastSlerp = slerpProgress;
-                if (refresh) manager.Refresh();
-                switch (cycle)
-                {
-                    case CycleTypes.Stop:
-                        if (value < 0) value = 0;
-                        if (value > 1) value = 1;
-                        lastProgress = lastTotal = progress;
-                        progress = totalProgress = value;
-                        break;
-                    case CycleTypes.Reverse:
-                        v = Reverse(value);
-                        lastTotal = totalProgress;
-                        lastProgress = progress;
-                        progress = v;
-                        totalProgress = value;
-                        break;
-                    case CycleTypes.Cycle:
-                        v = Cycle(value);
-                        lastTotal = totalProgress;
-                        lastProgress = progress;
-                        progress = v;
-                        totalProgress = value;
-                        break;
-                }
-                tick++;
-                if (slerp == null)
-                    slerpProgress = progress;
+                if (A > 0)
+                    SetProgAcce(value);
                 else
-                    slerpProgress = slerp.On(progress);
+                    SetProgLin(value);
             }
+            tick++;
         }
+        private void SetProgLin(float value)
+        {
+            float v;
+            lastSlerp = slerpProgress;
+            switch (cycle)
+            {
+                case CycleTypes.Stop:
+                    if (value < 0) value = 0;
+                    if (value > 1) value = 1;
+                    lastProgress = lastTotal = progress;
+                    progress = totalProgress = value;
+                    break;
+                case CycleTypes.Reverse:
+                    v = Reverse(value);
+                    lastTotal = totalProgress;
+                    lastProgress = progress;
+                    progress = v;
+                    totalProgress = value;
+                    break;
+                case CycleTypes.Cycle:
+                    v = Cycle(value);
+                    lastTotal = totalProgress;
+                    lastProgress = progress;
+                    progress = v;
+                    totalProgress = value;
+                    break;
+            }
+            if (slerp == null)
+                slerpProgress = progress;
+            else
+                slerpProgress = slerp.On(progress);
+        }
+  
+        public void SetProgAcce(float value)
+        {
+            
+        }
+
         public void Initialize(float p)
         {
             lastProgress = totalProgress = progress = lastTotal = p;
+        }
+
+        public TameProgress Clone(TameElement te)
+        {
+         TameProgress tp= new TameProgress(te)
+            {
+                progress = progress,
+                totalProgress = totalProgress,
+                lastProgress = lastProgress,
+                lastTotal = lastTotal,
+                lastSlerp = lastSlerp,
+                slerpProgress = slerpProgress,
+                slerp = slerp == null ? null : slerp.Clone(),
+                trigger = trigger,
+                manager = manager.Clone(),
+                active = active,
+                cycle = cycle,
+            };
+             return tp;
         }
     }
 }

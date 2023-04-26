@@ -58,6 +58,19 @@ namespace Tames
             if (r != null) r.child = this;
             return r;
         }
+        public static TameMaterial Find(Material m, List<TameElement>tes)
+        {
+            TameMaterial tm;
+            foreach (TameElement te in tes)
+                if (te.tameType == TameKeys.Material)
+                {
+                    tm = (TameMaterial)te;
+                    if (!tm.cloned)
+                        if (tm.original = m)
+                            return tm;
+                }
+            return null;
+        }
         /// <summary>
         /// ovverrides <see cref="TameElement.AssignParent"/>
         /// </summary>

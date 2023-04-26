@@ -86,6 +86,7 @@ namespace Tames
         /// if the area's switch was activated in this frame
         /// </summary>
         public int forcedSwitchThisFrame = -1;
+        public float[] range = null;
         /// <summary>
         /// the name of objects in the interactor's manifest that are attached to the instances of this interactor. The objects are names of game objects with naming patterns explained in <see cref="TameFinder.Relations"/> though not accepting the rotation operator. This lise is based on the list of objects in the manifest line with subkey of "update" (see <see cref="ManifestHeader.subKey"/> with names separated by commas:
         ///     update names,name2,...
@@ -102,6 +103,25 @@ namespace Tames
         public const string AreaGeometry = "bcs";
         public const string AreaUpdate = "flmo";
         public string keyString = "";
+        public bool directProgress = false;
+        public Vector3 scale;
+        private static float[] GetRange(string input)
+        {
+            string s = "";
+            for (int i = 0; i < input.Length; i++)
+                if (input[i] != ' ') s += input[i];
+            string[] ss = s.Split(',');
+            float[] fs = new float[ss.Length];
+            float f;
+            for (int i = 0; i < ss.Length; i++)
+                if (Utils.SafeParse(ss[i], out f))
+                {
+                    fs[i] = f;
+                }
+                else
+                    return null;
+            return fs;
+        }
         public static bool HasAreaKeyword(string name)
         {
             string tl = name.ToLower();
@@ -303,7 +323,7 @@ namespace Tames
             for (int t = 0; t < areas.Count; t++)
                 if (areas[t].forcedSwitchThisFrame == TameElement.Tick)
                     return areas[t].switchDirection;
-       //     if (Person.localPerson.switchCount != 0) Debug.Log("SWC: c count");
+            //     if (Person.localPerson.switchCount != 0) Debug.Log("SWC: c count");
             if (MainScript.multiPlayer)
                 for (int i = 0; i < Person.people.Length; i++)
                 {
@@ -315,20 +335,20 @@ namespace Tames
                                 if (IsSwitch(areas[t].mode))
                                     if (areas[t].Entered(Person.people[i].hand[j].lastTipPosition[HandAsset.HandModel.Middle], Person.people[i].hand[j].tipPosition[HandAsset.HandModel.Middle]))
                                     {
-                                           areas[t].Switch(false);
+                                        areas[t].Switch(false);
                                         return areas[t].switchDirection;
                                     }
                     }
                 }
             else
             {
-          //      if (Person.localPerson.switchCount == 1) Debug.Log("SWC: count"+ Person.localPerson.hand[0].lastTipPosition[2].ToString()+ Person.localPerson.hand[0].tipPosition[2].ToString());
+                //      if (Person.localPerson.switchCount == 1) Debug.Log("SWC: count"+ Person.localPerson.hand[0].lastTipPosition[2].ToString()+ Person.localPerson.hand[0].tipPosition[2].ToString());
                 for (int j = 0; j < 2; j++)
                     for (int t = 0; t < areas.Count; t++)
                         if (IsSwitch(areas[t].mode))
                             if (areas[t].Entered(Person.localPerson.hand[j].lastTipPosition[HandAsset.HandModel.Middle], Person.localPerson.hand[j].tipPosition[HandAsset.HandModel.Middle]))
                             {
-                                if (Person.localPerson.switchCount != 0) Debug.Log("SWC: enterd " + areas[t].element.name+" " + areas.Count+" "+ Person.localPerson.hand[0].lastTipPosition[2].ToString() + Person.localPerson.hand[0].tipPosition[2].ToString());
+                                if (Person.localPerson.switchCount != 0) Debug.Log("SWC: enterd " + areas[t].element.name + " " + areas.Count + " " + Person.localPerson.hand[0].lastTipPosition[2].ToString() + Person.localPerson.hand[0].tipPosition[2].ToString());
                                 areas[t].Switch(false);
                                 return areas[t].switchDirection;
                             }
@@ -341,7 +361,7 @@ namespace Tames
         /// <param name="forced"></param>
         public void Switch(bool forced)
         {
-            Debug.Log("switch " + switchDirection);
+            //    Debug.Log("switch " + switchDirection);
             switch (mode)
             {
                 case InteractionMode.Switch1: switchDirection = 1 - switchDirection; break;
@@ -350,6 +370,43 @@ namespace Tames
             }
             if (forced)
                 forcedSwitchThisFrame = TameElement.Tick;
+        }
+        public float TrackDistance()
+        {
+            TameAreaTrack tat = Track(relative.transform.position);
+            Person p = tat.person == Person.LocalDefault ? Person.localPerson : Person.people[tat.person];
+            float d = Vector3.Distance(p.head.transform.position, relative.transform.position);
+
+            switch (range.Length)
+            {
+                case 1: Debug.Log(d + " " + (d < range[0] ? 1 : -1)); return d < range[0] ? 1 : -1;
+                case 2:
+                    if (range[0] > range[1])
+                    {
+                        if (d > range[0]) return 0;
+                        if (d < range[1]) return 1;
+                        return (d - range[1]) / (range[0] - range[1]);
+                    }
+                    else
+                    {
+                        if (d < range[0]) return 0;
+                        if (d > range[1]) return 1;
+                        return (d - range[0]) / (range[1] - range[0]);
+                    }
+                default:
+                    if (range[2] > range[0])
+                    {
+                        if (d < range[0]) return 0;
+                        if (d > range[2]) return 0;
+                        if (d > range[1]) return 1; else return -1;
+                    }
+                    else
+                    {
+                        if (d > range[0]) return 0;
+                        if (d < range[2]) return 0;
+                        if (d > range[1]) return -1; else return 1;
+                    }
+            }
         }
         public static TameAreaTrack Track(Vector3 p)
         {
@@ -548,7 +605,8 @@ namespace Tames
         /// <param name="g">a game object for attaching to this interactor. It can be null it the <see cref="update"/> is not set to <see cref="InteractionUpdate.Object"/></param>
         public void SetUpdate(TameElement te, GameObject g)
         {
-            Vector3 scale = Vector3.one, v;
+            scale = Vector3.one;
+            Vector3 v;
             switch (geometry)
             {
                 case InteractionGeometry.Sphere: scale = Utils.DetectSphere(g); break;
@@ -565,33 +623,8 @@ namespace Tames
                     }
                     break;
             }
+            CreateRelative();
 
-            relative = new GameObject();
-            //   relative.SetActive(false);
-            relative.transform.localScale = scale;
-            relative.transform.rotation = gameObject.transform.rotation;
-            if (te.name == "rotat") Debug.Log("switch " + gameObject.name + " " + update);
-            switch (update)
-            {
-                case InteractionUpdate.Fixed:
-                    relative.transform.position = gameObject.transform.position;
-                    break;
-                case InteractionUpdate.Parent:
-                    relative.transform.parent = gameObject.transform.parent;
-                    relative.transform.position = gameObject.transform.position;
-                    break;
-                case InteractionUpdate.Mover:
-                    if (te.tameType == TameKeys.Object)
-                    {
-                        relative.transform.parent = te.mover.transform;
-                        relative.transform.localPosition = te.mover.transform.InverseTransformPoint(gameObject.transform.position);
-                    }
-                    break;
-                case InteractionUpdate.Object:
-                    relative.transform.parent = g.transform;
-                    relative.transform.localPosition = g.transform.InverseTransformPoint(gameObject.transform.position);
-                    break;
-            }
 
             float m;
             if (te.tameType == TameKeys.Object)
@@ -603,7 +636,7 @@ namespace Tames
                 }
                 else
                 {
-                    m = Utils.Angle(relative.transform.position, to.handle.pivot, to.handle.start, to.handle.axis,true);
+                    m = Utils.Angle(relative.transform.position, to.handle.pivot, to.handle.start, to.handle.axis, true);
                     displacement = m / to.handle.span;
                 }
             }
@@ -611,6 +644,34 @@ namespace Tames
             //  gameObject.transform.parent = relative.transform;
             //   gameObject.transform.localPosition = Vector3.zero;
             //       Debug.Log("arix: gp after " + gameObject.transform.position.ToString("0.00"));
+        }
+        private void CreateRelative()
+        {
+            relative = TameManager.AddArea("area rel");
+            //   relative.SetActive(false);
+            relative.transform.localScale = scale;
+            relative.transform.rotation = gameObject.transform.rotation;
+            switch (update)
+            {
+                case InteractionUpdate.Fixed:
+                    relative.transform.position = gameObject.transform.position;
+                    break;
+                case InteractionUpdate.Parent:
+                    relative.transform.parent = gameObject.transform.parent;
+                    relative.transform.position = gameObject.transform.position;
+                    break;
+                case InteractionUpdate.Mover:
+                    if (element.tameType == TameKeys.Object)
+                    {
+                        relative.transform.parent = element.mover.transform;
+                        relative.transform.localPosition = element.mover.transform.InverseTransformPoint(gameObject.transform.position);
+                    }
+                    break;
+                case InteractionUpdate.Object:
+                    //   relative.transform.parent = g.transform;
+                    //   relative.transform.localPosition = g.transform.InverseTransformPoint(gameObject.transform.position);
+                    break;
+            }
         }
         static InteractionMode GetMode(int i)
         {
@@ -632,7 +693,7 @@ namespace Tames
             TameArea r = null;
             int m;
             InteractionGeometry geom;
-            MarkerArea ma = g.transform.GetComponent<MarkerArea>();
+            MarkerArea ma = g.GetComponent<MarkerArea>();
             if (ma != null)
             {
                 r = new TameArea()
@@ -648,10 +709,23 @@ namespace Tames
                     r.key = TameInputControl.FindKey(ma.input);
                     Debug.Log("area key = " + r);
                 }
-                if (r.geometry == InteractionGeometry.Cylinder)
-                    r.upAxis = Utils.DetectCylinderVector(g);
-                r.SetUpdate(to, g);
-                g.SetActive(false);
+                if (r.geometry == InteractionGeometry.Distance)
+                {
+                    r.range = GetRange(ma.input);
+                    if (r.range != null)
+                    {
+                        if (r.range.Length == 2)
+                            r.directProgress = true;
+                    }
+                    else r = null;
+                }
+                if (r != null)
+                {
+                    if (r.geometry == InteractionGeometry.Cylinder)
+                        r.upAxis = Utils.DetectCylinderVector(g);
+                    r.SetUpdate(to, g);
+                    g.SetActive(false);
+                }
             }
             else
             {
@@ -728,7 +802,8 @@ namespace Tames
                     case InteractionMode.Switch2: r.switchDirection = -1; break;
                     case InteractionMode.Switch3: r.switchDirection = 0; break;
                 }
-            // Debug.Log("area return: "+r.element.name + " " + r.mode + " ");
+            if (r != null) if (r.mode == InteractionMode.Switch2) Debug.Log("initial: " + r.element.name + " " + r.mode + " " + r.switchDirection);
+
             return r;
         }
         /// <summary>
@@ -839,6 +914,37 @@ namespace Tames
                     }
                 }
             return r;
+        }
+      
+        public TameArea Clone(TameElement te)
+        {
+            TameArea area = new TameArea() { element = te };
+            area.directProgress = directProgress;
+            area.forcedSwitchThisFrame = forcedSwitchThisFrame;
+            area.geometry = geometry;
+            area.update = update;
+            area.upAxis = upAxis;
+            area.key = key;
+            area.localGripVector = localGripVector;
+            area.displacement = displacement;
+            area.mode = mode;
+            area.range = range;
+            area.size = size;
+            area.switchDirection = switchDirection;
+            area.switchStates = switchStates;
+            GameObject go = new GameObject("area");
+            go.transform.parent = element.owner.transform;
+            go.transform.position = gameObject.transform.position;
+            go.transform.rotation = gameObject.transform.rotation;
+            Vector3 p = go.transform.localPosition;
+            Quaternion q = go.transform.localRotation;
+            go.transform.parent = te.owner.transform;
+            go.transform.localPosition = p;
+            go.transform.localRotation = q;
+            area.gameObject = go;
+            area.CreateRelative();
+            return area;
+
         }
     }
 }

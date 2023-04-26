@@ -78,7 +78,7 @@ namespace Tames
                 case ManifestKeys.Speed:
                 case ManifestKeys.Duration:
                     ReadDuration(mh);
-                    Debug.Log("duration " + manager.Duration + " " + mh.items[0]);
+       //             Debug.Log("duration " + manager.Duration + " " + mh.items[0]);
                     break;
                 case ManifestKeys.Trigger:
                     trigger = ReadTrigger(mh);
@@ -126,7 +126,7 @@ namespace Tames
                     manager.Speed = manager.offset = f;
                 if (mh.items.Count > 2)
                 {
-                    manager.speedBased = true;
+               //     manager.speedBased = true;
                     if (Utils.SafeParse(mh.items[1], out f))
                         if (f > 0)
                         {
@@ -142,7 +142,7 @@ namespace Tames
             else
             {
                 if (Utils.SafeParse(mh.items[0], out f)) manager.Duration = manager.offset = f;
-                manager.speedBased = false;
+           //     manager.speedBased = false;
                 if (mh.items.Count > 2)
                 {
                     if (Utils.SafeParse(mh.items[1], out f))
@@ -296,7 +296,7 @@ namespace Tames
                 if (Utils.SafeParse(mh.items[0], out f))
                 {
                     manager.Duration = manager.offset = f;
-                    manager.speedBased = false;
+              //      manager.speedBased = false;
                     mgrParent = "";
                     if (mh.items.Count > 2)
                     {

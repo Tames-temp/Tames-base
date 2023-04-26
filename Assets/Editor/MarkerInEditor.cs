@@ -109,6 +109,85 @@ public class MarkerEnvironmentEditor : Editor
         serializedObject.ApplyModifiedProperties();
     }
 }
+[CustomEditor(typeof(Markers.MarkerLink)), CanEditMultipleObjects]
+public class MarkerLinkEditor : Editor
+{
+    SerializedProperty type;
+    SerializedProperty childrenNames;
+    SerializedProperty childrenOf;
+    SerializedProperty parent;
+    SerializedProperty offsetBase;
+    SerializedProperty speedBase;
+    SerializedProperty offset;
+    SerializedProperty factor;
+
+    void OnEnable()
+    {
+        type = serializedObject.FindProperty("type");
+        childrenNames = serializedObject.FindProperty("childrenNames");
+        childrenOf = serializedObject.FindProperty("childrenOf");
+        parent = serializedObject.FindProperty("parent");
+        offsetBase = serializedObject.FindProperty("offsetBase");
+        offset = serializedObject.FindProperty("offset");
+        speedBase = serializedObject.FindProperty("speedBase");
+        factor = serializedObject.FindProperty("factor");
+    }
+
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
+        EditorGUILayout.PropertyField(type);
+        EditorGUILayout.PropertyField(childrenNames);
+        EditorGUILayout.PropertyField(childrenOf);
+        EditorGUILayout.PropertyField(parent);
+        EditorGUILayout.PropertyField(offsetBase);
+         EditorGUILayout.PropertyField(offset);
+        EditorGUILayout.PropertyField(speedBase);
+        EditorGUILayout.PropertyField(factor);
+
+        serializedObject.ApplyModifiedProperties();
+    }
+}
+[CustomEditor(typeof(Markers.MarkerScale)), CanEditMultipleObjects]
+public class MarkerScaleEditor : Editor
+{
+    SerializedProperty byObject;
+    SerializedProperty byName;
+    SerializedProperty childrenOf;
+    SerializedProperty axis;
+    SerializedProperty from;
+    SerializedProperty to;
+    SerializedProperty affectedUV;
+   
+
+
+    void OnEnable()
+    {
+        byObject = serializedObject.FindProperty("byObject");
+        byName = serializedObject.FindProperty("byName");
+        childrenOf = serializedObject.FindProperty("childrenOf");
+        axis = serializedObject.FindProperty("axis");
+        from = serializedObject.FindProperty("from");
+        to = serializedObject.FindProperty("to");
+        affectedUV = serializedObject.FindProperty("affectedUV");
+     
+    }
+
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
+        EditorGUILayout.PropertyField(byObject);
+        EditorGUILayout.PropertyField(byName);
+        EditorGUILayout.PropertyField(childrenOf);
+        EditorGUILayout.PropertyField(axis);
+        EditorGUILayout.PropertyField(from);
+        EditorGUILayout.PropertyField(to);
+        EditorGUILayout.PropertyField(affectedUV);
+      
+
+        serializedObject.ApplyModifiedProperties();
+    }
+}
 [CustomEditor(typeof(Markers.MarkerProgress)), CanEditMultipleObjects]
 public class MarkerProgressEditor : Editor
 {

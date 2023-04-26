@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{A31850F6-DB21-5FEB-2832-B71FB6F2001E}</ProjectGuid>
+    <ProjectGuid>{DB283FC6-66BC-26E3-CD8A-81D479CCC19C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.XR.OpenXR.Features.MetaQuestSupport</AssemblyName>
@@ -716,7 +716,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Unity.XR.OpenXR.csproj">
-      <Project>{280668A9-5A47-1A71-2589-2E5C9614CB4B}</Project>
+      <Project>{BCA3E065-216E-9EA3-4722-858E667356C4}</Project>
       <Name>Unity.XR.OpenXR</Name>
     </ProjectReference>
   </ItemGroup>

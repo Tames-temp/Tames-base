@@ -48,7 +48,7 @@ namespace Others
                 Walking.WalkFace[] wf = new Walking.WalkFace[t.Length / 3];
                 for (int i = 0; i < t.Length; i += 3)
                     wf[i / 3] = new Walking.WalkFace(new Vector3[] { v[t[i]], v[t[i + 1]], v[t[i + 2]] }) { parent = ground };
-                Debug.Log("GRS: " + wf.Length);
+           //     Debug.Log("GRS: " + wf.Length);
                 Vector2[] mm = MinMax(vg);
                 float dx, dz;
                 float y;
@@ -67,7 +67,7 @@ namespace Others
         {
             int pc, n = roots.Count / 1000 + (roots.Count % 1000 == 0 ? 0 : 1);
             plants = new GameObject[n];
-            Debug.Log("GRS: pl " + roots.Count + " " + plants.Length);
+   //         Debug.Log("GRS: pl " + roots.Count + " " + plants.Length);
             for (int i = 0; i < n; i++)
             {
                 pc = i == n - 1 ? roots.Count % 1000 : 1000;
@@ -127,7 +127,7 @@ namespace Others
             else
                 for (int i = 0; i < mid.Length; i++)
                     mid[i] = root + Vector3.up * i / (float)segmentCount * h;
-            int ki,kk;
+            int ki,ti;
             for (int i = 0; i <= segmentCount; i++)
             {
                 ki = k + i * 2;
@@ -149,14 +149,15 @@ namespace Others
             for (int i = 0; i < segmentCount; i++)
             {
                 ki = k + i * 2;
-                ts[t + i * 6] = k + i * 2;
-                ts[t + i * 6 + 1] = k + i * 2 + 1;
-                ts[t + i * 6 + 2] = k + i * 2 + 2;
+                ti = t + i * 6;
+                ts[ti] = ki;
+                ts[ti + 1] = ki+ 1;
+                ts[ti + 2] = ki + 2;
                 if (i < segmentCount - 1)
                 {
-                    ts[t + i * 6 + 3] = k + i * 2 + 1;
-                    ts[t + i * 6 + 4] = k + i * 2 + 3;
-                    ts[t + i * 6 + 5] = k + i * 2 + 2;
+                    ts[ti + 3] = ki + 1;
+                    ts[ti + 4] = ki + 3;
+                    ts[ti + 5] = ki + 2;
                 }
             }
         }

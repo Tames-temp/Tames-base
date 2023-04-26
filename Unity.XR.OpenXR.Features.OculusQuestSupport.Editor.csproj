@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{623DFECB-B057-5E00-FD0A-A74FA7C9EC62}</ProjectGuid>
+    <ProjectGuid>{A3F84C44-5025-3614-78F3-1D8FFC2FBA90}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.XR.OpenXR.Features.OculusQuestSupport.Editor</AssemblyName>
@@ -732,23 +732,23 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Unity.XR.OpenXR.Editor.csproj">
-      <Project>{B232FE4A-AF7A-F5AE-B0DF-4B77D2DB4A78}</Project>
+      <Project>{3F603EC5-CD1D-BEB5-9520-A38A692B150F}</Project>
       <Name>Unity.XR.OpenXR.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.OpenXR.csproj">
-      <Project>{280668A9-5A47-1A71-2589-2E5C9614CB4B}</Project>
+      <Project>{BCA3E065-216E-9EA3-4722-858E667356C4}</Project>
       <Name>Unity.XR.OpenXR</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.OpenXR.Features.OculusQuestSupport.csproj">
-      <Project>{A273381F-D03F-ADAC-6D8A-9AF999C811B8}</Project>
+      <Project>{94EB51CD-DC2B-D409-5BB8-D2DD68542BB6}</Project>
       <Name>Unity.XR.OpenXR.Features.OculusQuestSupport</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEditor.TestRunner.csproj">
-      <Project>{737DCC79-0B38-C463-85E1-332C9BDF2428}</Project>
+      <Project>{CA4AB4E6-996C-1AD2-8857-C8159F79201A}</Project>
       <Name>UnityEditor.TestRunner</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEngine.TestRunner.csproj">
-      <Project>{220193E2-750C-9BDA-ECC3-5A03B80EF6C9}</Project>
+      <Project>{30B52F71-6222-9F35-680C-2950573BD59C}</Project>
       <Name>UnityEngine.TestRunner</Name>
     </ProjectReference>
   </ItemGroup>

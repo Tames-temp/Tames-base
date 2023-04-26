@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{EE8779BE-21F2-99C2-827B-D7EDCE517DC5}</ProjectGuid>
+    <ProjectGuid>{ECF8E2FA-F21C-A91B-C890-7FCF210E9F56}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>UnityEditor.SpatialTracking</AssemblyName>
@@ -732,15 +732,15 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="UnityEngine.SpatialTracking.csproj">
-      <Project>{B9A65855-B97C-D041-702A-EF88EA90149B}</Project>
+      <Project>{0C49718B-6E63-EF34-7759-53C84D20199D}</Project>
       <Name>UnityEngine.SpatialTracking</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEditor.TestRunner.csproj">
-      <Project>{737DCC79-0B38-C463-85E1-332C9BDF2428}</Project>
+      <Project>{CA4AB4E6-996C-1AD2-8857-C8159F79201A}</Project>
       <Name>UnityEditor.TestRunner</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEngine.TestRunner.csproj">
-      <Project>{220193E2-750C-9BDA-ECC3-5A03B80EF6C9}</Project>
+      <Project>{30B52F71-6222-9F35-680C-2950573BD59C}</Project>
       <Name>UnityEngine.TestRunner</Name>
     </ProjectReference>
   </ItemGroup>

@@ -2,7 +2,7 @@
 using UnityEngine;
 namespace Tames
 {
-  
+
 
     /// <summary>
     /// the class for handling all physical movements of <see cref="TameObject"/>s. A valid handles object should include a mechanism with a rotating or/and a sliding keys. Hence it should be possible to construct the following keys (see <see cref="HandleKey"/>) from its parent game object: one <see cref="mover"/>, for sliding: <see cref="start"/> and <see cref="end"/>, and for rotation: <see cref="pivot"/> and <see cref="start"/>. 
@@ -82,7 +82,7 @@ namespace Tames
         /// <summary>
         /// the span of rotation in degrees (0 if full circle span).
         /// </summary>
-         public float span = 0;
+        public float span = 0;
         /// <summary>
         /// the rotation type (Error if not a rotator). The possibility of rotation is determined by the existence of both <see cref="pivot"/> and <see cref="start"/> in the 3D model (see <see cref="HandleKey"/>)
         /// </summary>
@@ -110,7 +110,8 @@ namespace Tames
         public float duration = -1;
         public GameObject linker;
         public float linkedScale = 1;
-    //    public bool walk = false;
+        Transform[] transforms; //    public bool walk = false;
+        public GameObject childrenParent = null;
         public const string KeyArea = "_area_";
         public const string KeyAreaBox = "_box";
         public const string KeyAreaCube = "_cub";
@@ -264,6 +265,7 @@ namespace Tames
                     if (followMode == 2)
                         r.trackBasis = TrackBasis.Head;
                 }
+                r.transforms = ts;
             }
             return r;
         }
@@ -309,12 +311,15 @@ namespace Tames
             if ((pivot.x != float.NegativeInfinity) && (start.x != float.NegativeInfinity))
             {
                 TameOrbit orbit;
-                path = orbit = new TameOrbit();
-                orbit.parent = mover.transform.parent;
-                orbit.axis = hinge - pivot;
+                path = orbit = new TameOrbit()
+                {
+                    parent = mover.transform.parent,
+                    self = mover.transform.parent,
+                    axis = hinge - pivot,
+                    pivot = pivot,
+                    mover = mover.transform
+                };
                 orbit.start = Utils.On(start, pivot, orbit.axis);
-                orbit.pivot = pivot;
-                orbit.mover = mover.transform;
                 if (hinge.x == float.NegativeInfinity)
                     rotType = MovingTypes.Facer;
                 else
@@ -335,14 +340,14 @@ namespace Tames
                     }
                 }
                 orbit.span = span;
-                Debug.Log("sapn " + mover.transform.parent.name + " " + span);
+                //     Debug.Log("sapn " + mover.transform.parent.name + " " + span);
                 //       Debug.Log("pre v  " + mover.transform.parent.name + " " + (path == null));
             }
         }
         public void SetMover()
         {
             if (linkedType == LinkedKeys.None)
-                 path.AssignMovers(new GameObject[] { mover }, true);
+                path.AssignMovers(new GameObject[] { mover }, true);
         }
         /// <summary>
         /// sets the basic properties of sliding (<see cref="start"/>, <see cref="end"/>, <see cref="vector"/>, and <see cref="DoesSlide"/>).
@@ -369,7 +374,7 @@ namespace Tames
             }
             else
                 facing = FacingLogic.Free;
-             }
+        }
 
         public void AlignQueued(ManifestBase tmb)
         {
@@ -460,6 +465,7 @@ namespace Tames
                 case LinkedKeys.Cycle: MoveCycle(m, false); break;
                 case LinkedKeys.Stack: MoveStacked(m, true); break;
             }
+            path.MoveLinked(m);
             return m;
         }
         /// <summary>
@@ -481,7 +487,7 @@ namespace Tames
                 case LinkedKeys.Stack: m = MoveLinked(pGlobal, current, speed, dT, true); break;
                 case LinkedKeys.Local: MoveLinked(pGlobal, current, speed, dT, false); break;
             }
-
+            path.MoveLinked(m);
             return m;
         }
 
@@ -578,6 +584,37 @@ namespace Tames
             path.Move(0, m);
             return m;
         }
+        public bool Interactive(GameObject g)
+        {
+            if (g == mover) return true;
+            if (isSlider)
+                if (g == ((TameSlider)path).gameObject) return true;
+            foreach (Transform t in transforms)
+                if (t != null)
+                    if (t.gameObject == g) return true;
+            if (g == childrenParent) return true;
+            return false;
 
+        }
+        public TameHandles Clone(GameObject owner, GameObject mover)
+        {
+            TameHandles th = new TameHandles()
+            {
+                mover = mover,
+                facing = facing,
+                linkedType = linkedType,
+                linkedOffset = linkedOffset,
+                linkedScale = linkedScale,
+                isSlider = isSlider,
+            };
+            th.path = path.Clone(owner, mover, linkedType);
+            th.mover.transform.parent = owner.transform;
+            th.mover.transform.localPosition = mover.transform.localPosition;
+            th.mover.transform.localRotation = mover.transform.localRotation;
+            th.child = new TameLinked[child.Length];
+            for (int i = 0; i < child.Length; i++)
+                th.child[i] = new TameLinked() { gameObject = path.attached[i].gameObject, initial = child[i].initial };
+            return th;
+        }
     }
 }

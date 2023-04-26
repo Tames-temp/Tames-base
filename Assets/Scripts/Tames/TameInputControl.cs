@@ -168,8 +168,8 @@ namespace Tames
                     }
                     else if (list.Length >= 2)
                     {
-                        Debug.Log("MANUL " + list[0]);
-                        Debug.Log("MANUL " + list[1]);
+              //          Debug.Log("MANUL " + list[0]);
+                //        Debug.Log("MANUL " + list[1]);
                         int k1 = FindKey(list[0]);
                         if (k1 >= 0)
                         {
@@ -180,7 +180,7 @@ namespace Tames
                             else
                             {
                                 int k2 = FindKey(list[1]);
-                                Debug.Log("MANUL " + k1 + " , "+k2);
+                     //           Debug.Log("MANUL " + k1 + " , "+k2);
                                 if ((k2 != k1) && (k2 >= 0))
                                     return new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Key, keyValue = new int[] { k1, k2 }, direction = InputDirections.Key };
                             }

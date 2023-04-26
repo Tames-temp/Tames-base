@@ -100,13 +100,30 @@ namespace Tames
                 attached[i].rotation = q;
             }
         }
-        private Vector3 Position(float m)
+        override public Vector3 Position(float m)
         {
-            return Utils.Rotate(start, pivot, span>0?-axis:axis, m * span);
+            return Utils.Rotate(start, pivot, span > 0 ? -axis : axis, m * span);
+        }
+        override public Quaternion Rotation(float m)
+        {
+            return Quaternion.LookRotation(Position(m), axis);
         }
         private Quaternion Rotation(Vector3 pos)
         {
             return Quaternion.LookRotation(pos, axis);
+        }
+        public override void MoveLinked(float m)
+        {
+            float mi;
+            if (linked != null)
+                for (int i = 0; i < linked.Length; i++)
+                {
+                    mi = element.progress.FakeByOffset(linkOffset[i]);
+                    Vector3 p = Position(mi);
+                    linked[i].localPosition = p;
+                    if (facing == FacingLogic.Free)
+                        linked[i].localRotation = Rotation(p - pivot);
+                }
         }
         override public void Move(int index, float m)
         {
@@ -143,6 +160,50 @@ namespace Tames
                     else return Mathf.Abs(a) < (360 - s) / 2 ? 0 : 1;
                 }
             }
+        }
+        public override TamePath Clone(GameObject owner, GameObject mover, LinkedKeys lt)
+        {
+            TameOrbit ts = new()
+            {
+                start = start,
+                pivot = pivot,
+                span = span,
+                end = end,
+                axis = axis,
+                up = up,
+                rot = rot,
+                attached = new Transform[attached.Length],
+                bases = new Transform[bases.Length],
+                facing = facing,
+            };
+            ts.parent = ts.self = owner.transform;
+            //   to.mover = mover.transform;
+            if (lt == LinkedKeys.None)
+            {
+                ts.bases[0] = new GameObject().transform;
+                ts.bases[0].parent = owner.transform;
+                ts.bases[0].localPosition = bases[0].localPosition;
+                ts.bases[0].localRotation = bases[0].localRotation;
+                ts.attached[0] = mover.transform;
+                ts.attached[0].parent = ts.bases[0];
+                ts.attached[0].localPosition = attached[0].localPosition;
+                ts.attached[0].localRotation = attached[0].localRotation;
+
+            }
+            else
+                for (int i = 0; i < bases.Length; i++)
+                {
+                    ts.bases[i] = new GameObject().transform;
+                    ts.bases[i].parent = owner.transform;
+                    ts.bases[i].localPosition = bases[i].localPosition;
+                    ts.bases[i].localRotation = bases[i].localRotation;
+                    ts.attached[i] = GameObject.Instantiate(attached[i]);
+                    ts.attached[i].parent = ts.bases[i];
+                    ts.attached[i].localPosition = attached[i].localPosition;
+                    ts.attached[i].localRotation = attached[i].localRotation;
+                }
+
+            return ts;
         }
     }
 }

@@ -18,8 +18,8 @@ namespace Assets.Script
 {
     public class MainScript : MonoBehaviour
     {
-        public GameObject canvas;
-        public GameObject panel;
+    //    public GameObject canvas;
+    //    public GameObject panel;
         public bool VRMode;
         public static Light Sun;
         public static bool multiPlayer = false;
@@ -34,7 +34,7 @@ namespace Assets.Script
         public static int MouseButton;
         // objects
         public static Camera mainCamera;
-        public Text text;
+      //  public Text text;
         public static Vector2 screenSize;
         // mirror
         // door
@@ -53,34 +53,14 @@ namespace Assets.Script
         private float gripSpeed = 1;
         public static string fingerHeader = "upfinger";
         public static bool replayMode = false;
-        private static string[] messages = new string[]
-        {
-            "G'day everyone! And thank you for stopping by to watch this video about Tames.",
-            "Tames is a Unity toolkit desgined to bypass scripting when architectural students and researchers want to create game-like interactive and dynamic environments.",
-            "It allows six modes of interaction.",
-            "The first mode is 'manual' with a hand grabbing a handle object. \nNo textual input is needed and only the 3D model suffices for defining it.",
-            "Tames will know what part of the 3D model can be grabbed by the hand and how it should affect the object.",
-            "The second mode is 'tracking'. An invisible object behind the corridor's wall tracks and moves along with me in the corridor.",
-            "Based on its position, the lights gradually change from yellow to red to blue. \nAgain the interaction itself is defined in the 3D model with no scripts needed",
-            "However, a line in a plain text file, like below, is needed to define the lights' change: \nlight corridor*; color gradual yellow red blue",
-            "The third mode is a 'reverse' interaction in which the design dictates what happens to me, not the other way.",
-            "The walkway on the floor pushes me forth. No script is needed for the push force. It is defined in its 3D model.",
-            "We also just saw the fourth mode: 'presence'. \nThe door automatically slided open when I got near it.",
-            "They close when I move away from them. \nThis is also basically defined in the door's 3D model by 'area' objects.",
-            "The fifth mode is 'remote control', where I affect the design by pressing hotkeys as if I hold a remote control device.",
-            "Here, I press 1 or 2 to change the 'temperature', which turns these cooling fans on or off.",
-            "Finally, there is the 'switch' mode. \nIt is like the remote control but the controlling unit is also a visible element in the design.",
-            "This red switch opens and closes the cylindrical cover around the robot. \nThis mode is also defined in the 3D model not by scripts.",
-            "Of the six modes, only three require textual input by the designer. \nThe inputs are simple and minimal as above (yellow).",
-            "Many of these can further be simplified by components added to objects in the Unity scene.",
-            "Thank you for watching. Have a nice day!"
-        };
-        private Camera rendCam;
+         private Camera rendCam;
         void Start()
         {
             Utils.SetPipelineLogics();
             Utils.SetPOCO();
+         //   panel.SetActive(false);
             PrepareLoadScene();
+         //   text.text = messages[0];
             people = Person.people;
             for (int i = 0; i < people.Length; i++)
                 people[i] = null;
@@ -92,7 +72,7 @@ namespace Assets.Script
                 float fo = sl.On(f);
                 ss += "\t" + fo;
             }
-            Debug.Log(ss);
+        //    Debug.Log(ss);
             screenSize = new Vector2(Screen.width, Screen.height);
             mainCamera = Camera.main;
             TameCamera.cameraTransform = mainCamera.transform.parent.parent;
@@ -150,7 +130,7 @@ namespace Assets.Script
                 if (counter == 30)
                 {
                     counter = 0;
-                    text.text = (averageFPS / 30).ToString("0");
+             //       text.text = (averageFPS / 30).ToString("0");
                     averageFPS = 0;
                 }
             }

@@ -6,7 +6,7 @@ namespace Markers
 {
     public enum EditorGeometry
     {
-        Box, Sphere, Cylinder, Plane, Remote
+        Box, Sphere, Cylinder, Plane, Remote, Distance
     }
     public enum EditorUpdate
     {
@@ -46,6 +46,7 @@ namespace Markers
                 case EditorGeometry.Sphere: return InteractionGeometry.Sphere;
                 case EditorGeometry.Cylinder: return InteractionGeometry.Cylinder;
                 case EditorGeometry.Remote: return InteractionGeometry.Remote;
+                case EditorGeometry.Distance: return InteractionGeometry.Distance;
                 default: return InteractionGeometry.Plane;
             }
         }
@@ -93,35 +94,23 @@ namespace Markers
                 Populate(go, areas);
             }
         }
-        public static void PopulateAll(GameObject root)
+        public static void PopulateAll(GameObject[] root)
         {
             allAreas.Clear();
-            Populate(root, allAreas);
-        }
-        public static void PopulateAll(List<Tames.TameGameObject> tgos)
-        {
-            allAreas.Clear();
-            MarkerArea area;
-            foreach (Tames.TameGameObject tgo in tgos)
-                if ((area = tgo.gameObject.GetComponent<MarkerArea>()) != null)
-                {
-                    allAreas.Add(area);
-                    Debug.Log("all areas " +area.gameObject.name+" > "+ (area.appliesTo==null?"null":area.appliesTo.name));
-                }
+            Populate(root[0], allAreas);
+            Populate(root[1], allAreas);
         }
         public static List<GameObject> FindAreas(GameObject g)
         {
-            List<GameObject> r = new List<GameObject>();
-            bool b = g.name == "door3";
+            List<GameObject> r = new();
             for (int i = 0; i < allAreas.Count; i++)
             {
-          
-
                 if (allAreas[i].appliesTo == g)
                     r.Add(allAreas[i].gameObject);
-                else if (allAreas[i].gameObject.transform.parent.gameObject == g)
+                else if ((allAreas[i].appliesTo == null) && (allAreas[i].gameObject.transform.parent.gameObject == g))
                     r.Add(g);
             }
+            if (g.name == "_speed") Debug.Log("found " + r.Count);
             return r;
 
         }

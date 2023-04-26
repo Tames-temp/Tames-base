@@ -81,7 +81,7 @@ namespace Tames
             float[] value;
             for (int i = 1; i < mh.items.Count; i++)
             {
-                Debug.Log("read-y: " + mh.items[i]);
+   //             Debug.Log("read-y: " + mh.items[i]);
                 s = Utils.Split(mh.items[i], ",");
                 if (s.Count < n) return null;
                 value = new float[n];

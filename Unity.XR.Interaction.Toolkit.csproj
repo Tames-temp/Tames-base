@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{E18FD6A4-5912-253A-2A42-C45050733246}</ProjectGuid>
+    <ProjectGuid>{D3B70859-1D64-E3F9-C462-8D5BF8265988}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.XR.Interaction.Toolkit</AssemblyName>
@@ -882,19 +882,19 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="UnityEngine.SpatialTracking.csproj">
-      <Project>{B9A65855-B97C-D041-702A-EF88EA90149B}</Project>
+      <Project>{0C49718B-6E63-EF34-7759-53C84D20199D}</Project>
       <Name>UnityEngine.SpatialTracking</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEngine.XR.LegacyInputHelpers.csproj">
-      <Project>{5C5BE7AF-722C-B954-A0AF-BB6FCE0397BD}</Project>
+      <Project>{0EAAF90C-C500-A7F1-6FB5-8A217ACBC177}</Project>
       <Name>UnityEngine.XR.LegacyInputHelpers</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.InputSystem.csproj">
-      <Project>{E5858B84-72CF-DB0D-1422-83BAF67CB506}</Project>
+      <Project>{F6E489A8-CD3B-BC34-2DE9-C7135A703950}</Project>
       <Name>Unity.InputSystem</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.CoreUtils.csproj">
-      <Project>{ECDA52E8-8B94-1E61-A74F-53465A7B256B}</Project>
+      <Project>{FBB8CF87-39D8-72CC-5E98-D292EC033931}</Project>
       <Name>Unity.XR.CoreUtils</Name>
     </ProjectReference>
   </ItemGroup>

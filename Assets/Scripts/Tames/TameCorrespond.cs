@@ -43,7 +43,7 @@ namespace Tames
         {
             if ((root == null) || (element == null)) return;
             target = FindClosest(root.transform, float.PositiveInfinity, null);
-            Debug.Log("CSP: " + target.name);
+       //     Debug.Log("CSP: " + target.name);
             Vector3 u, targetPos;
             Quaternion targetRot;
 

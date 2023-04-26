@@ -8,7 +8,6 @@ namespace Tames
     public class TameCamera
     {
         public static GameObject gameObject = null;
-        private static GameObject camera;
         public static Transform cameraTransform;
         private static int turningDirection;
         private static int tiltingDirection;
@@ -17,9 +16,7 @@ namespace Tames
         private static float walkingMode = 1f;
         private static float rotationSpeed = 100f; // degree/s
         private static float tiltingSpeed = 70f; // degree/s
-        private static string objectName = "...";
         private static bool moveByObject = false;
-        private static bool turnByObject = false;
         private static float currentTilt = 0;
         public static Vector3 eyeHeight = 1.6f * Vector3.up;
         public static Walking.WalkFace currentFace = null;
@@ -33,62 +30,20 @@ namespace Tames
             if (currentObject == -1) currentObject = gameObjects.Length != 0 ? 0 : -1;
             else if (currentObject == gameObjects.Length - 1) currentObject = -1;
             else currentObject++;
+            Debug.Log("RC tog " + currentObject);
         }
-        public static int ReadCamera2(ManifestHeader mh, string[] lines, int index)
+        public static void ReadCamera(List<TameGameObject> tgos)
         {
-            int i = index;
-            int fcount = 0;
-            bool[] fs = new bool[] { false, false };
-            if (mh.items.Count > 0) objectName = mh.items[0];
-            if (lines.Length >= index)
-            {
-                ManifestHeader h = ManifestHeader.Read(lines[index + 1]);
-                if (h.subKey == ManifestKeys.Camera)
+            Markers.MarkerCarrier mc;
+            List<GameObject> objects = new List<GameObject>();
+            foreach (TameGameObject tgo in tgos)
+                if ((mc = tgo.gameObject.GetComponent<Markers.MarkerCarrier>()) != null)
                 {
-                    i++;
-                    for (int j = 0; j < h.items.Count; j++)
-                    {
-                        switch (h.items[j].ToLower())
-                        {
-                            //       case "tilt": fs[0] = true; break;
-                            case "move": fs[0] = true; break;
-                            case "turn": fs[1] = true; break;
-                        }
-                    }
-                    for (int j = 0; j < 2; j++)
-                        fcount += fs[j] ? 1 : 0;
-                    if (fcount == 0)
-                    { moveByObject = false; turnByObject = false; }
-                    else
-                    {
-                        //  tilt = fs[0];
-                        moveByObject = fs[0];
-                        turnByObject = fs[1];
-                    }
+                    objects.Add(tgo.gameObject);
+                    feature.Add((byte)((mc.rotation ? 2 : 0) + (mc.position ? 1 : 0)));
                 }
-            }
-            return i;
-        }
-        public static int ReadCamera3(ManifestHeader mh, string[] lines, int index)
-        {
-            int fcount = 0;
-            moveByObject = false;
-            turnByObject = false;
-            string what;
-            if (mh.items.Count > 1)
-            {
-                what = mh.items[0].ToLower();
-                objectName = mh.items[1];
-                switch (what)
-                {
-                    //       case "tilt": fs[0] = true; break;
-                    case "both":
-                    case "all": moveByObject = turnByObject = true; break;
-                    case "move": moveByObject = true; break;
-                    case "turn": turnByObject = true; break;
-                }
-            }
-            return index;
+           gameObjects = objects.ToArray();
+        //    Debug.Log("RC: " + gameObjects.Length);
         }
         public static int ReadCamera(ManifestHeader mh, string[] lines, int index)
         {
@@ -114,24 +69,10 @@ namespace Tames
             }
             return index;
         }
-        public static void AssignCamera2(List<TameGameObject> tgos)
-        {
-            TameFinder finder = new TameFinder();
-            List<string> split = Utils.Split(objectName, ",");
-            finder.header = new ManifestHeader() { items = split };
-            finder.PopulateObjects(tgos);
-            if (finder.objectList.Count > 0)
-                gameObject = finder.objectList[0].gameObject;
-            //    camera = new GameObject();
-            if (gameObject == null)
-            {
-                moveByObject = false;
-                turnByObject = false;
-            }
-
-        }
+     
         public static void AssignCamera(List<TameGameObject> tgos)
         {
+            return;
             TameFinder finder = new TameFinder();
             GameObject gameObject = null;
             List<GameObject> objects = new List<GameObject>();
@@ -253,6 +194,7 @@ namespace Tames
             Vector3 moving = Vector3.zero;
             if (currentObject < 0)
             {
+                moveByObject = false;
                 fwd = cameraTransform.forward;
                 flat = new Vector3(fwd.x, 0, fwd.z);
                 if (InputBasis.turn != InputBasis.VR)
@@ -267,13 +209,15 @@ namespace Tames
             }
             else
             {
-                if ((feature[currentObject] & 2) == 0)
+                Debug.Log("RC: turn " + InputBasis.turn+ " "+ feature[currentObject]);
+                if ((feature[currentObject] & 2) > 0)
                 {
                     if (InputBasis.turn != InputBasis.VR)
-                        cameraTransform.rotation = gameObject.transform.rotation;
+                        cameraTransform.rotation = gameObjects[currentObject].transform.rotation;
                 }
                 else if (InputBasis.turn != InputBasis.VR)
                 {
+
                     fwd = cameraTransform.forward;
                     flat = new Vector3(fwd.x, 0, fwd.z);
                     flat = Utils.Rotate(flat, Vector3.zero, Vector3.up, rotationSpeed * TameElement.deltaTime * turningDirection);
@@ -281,33 +225,39 @@ namespace Tames
                     cameraTransform.forward = flat.normalized;
                 }
 
-                if ((feature[currentObject] & 1) == 0)
-                    cameraTransform.position = gameObject.transform.position;
+                if ((feature[currentObject] & 1) > 0)
+                {
+                    cameraTransform.position = gameObjects[currentObject].transform.position;
+                    moveByObject = true;
+                }
                 else
                 {
+                    moveByObject = false;
                     fwd = cameraTransform.forward;
                     flat = new Vector3(fwd.x, 0, fwd.z);
-                    moving = flat.normalized * movingDirection * walkingSpeed*walkingMode * TameElement.deltaTime;
+                    moving = flat.normalized * movingDirection * walkingSpeed * walkingMode * TameElement.deltaTime;
                 }
             }
-            if (TameManager.walkManager == null)
-                cameraTransform.position += moving;
-            else
+            if (!moveByObject)
             {
-                fwd = Vector3.zero;
-                //       Debug.Log("walk " + fwd.ToString("0.00") + (currentFace==null?"null":currentFace.parent.name));
-                if ((currentFace != null) && (!moveByObject))
+                if (TameManager.walkManager == null)
+                    cameraTransform.position += moving;
+                else
                 {
-                    fwd = currentFace.Pushing(cameraTransform.position, TameElement.deltaTime);
+                    fwd = Vector3.zero;
+                    //       Debug.Log("walk " + fwd.ToString("0.00") + (currentFace==null?"null":currentFace.parent.name));
+                    if (currentFace != null)
+                    {
+                        fwd = currentFace.Pushing(cameraTransform.position, TameElement.deltaTime);
+                    }
+                    //        flat = p;
+                    p += moving + fwd;
+                    //  fwd = TameManifest.walkManager.foot;
+                    currentFace = TameManager.walkManager.Move(p - eyeHeight);
+                    //    if(currentFace!=null)                    Debug.Log("walk " + currentFace.parent.name);
+                    cameraTransform.position = TameManager.walkManager.foot + eyeHeight;
                 }
-                //        flat = p;
-                p += moving + fwd;
-                //  fwd = TameManifest.walkManager.foot;
-                currentFace = TameManager.walkManager.Move(p - eyeHeight);
-                //    if(currentFace!=null)                    Debug.Log("walk " + currentFace.parent.name);
-                cameraTransform.position = TameManager.walkManager.foot + eyeHeight;
             }
-
         }
     }
 }

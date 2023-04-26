@@ -187,6 +187,7 @@ public enum InteractionGeometry
     Cylinder = 2,
     Sphere = 3,
     Remote = 5,
+    Distance = 6,
     Error = 10,
 }
 /// <summary>
@@ -339,6 +340,10 @@ public class TrackBasis
     public static bool IsObject(int tb)
     {
         return (tb & Object) != 0;
+    }
+    public static bool IsTracking(int tb)
+    {
+        return (tb& Hand+Head+Object) != 0;
     }
 }
 public class Alias

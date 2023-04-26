@@ -82,7 +82,7 @@ namespace Tames
             for (int i = 0; i < tgos.Count; i++)
                 if ((ma = tgos[i].gameObject.GetComponent<MarkerAlter>()) != null)
                 {
-                    Debug.Log("ALTERX " + tgos[i].gameObject.name);
+           //         Debug.Log("ALTERX " + tgos[i].gameObject.name);
                     if (ma.syncAlternative == null)
                         markers.Add(ma);
                     else
@@ -90,7 +90,7 @@ namespace Tames
                 }
             for (int i = 0; i < markers.Count; i++)
             {
-                Debug.Log("ALTER " + markers[i].gameObject.name);
+         //       Debug.Log("ALTER " + markers[i].gameObject.name);
                 ta = new TameAlternative();
                 ta.SetKeys(markers[i].back, true);
                 ta.SetKeys(markers[i].forward, false);
@@ -108,7 +108,7 @@ namespace Tames
                 for (int j = markers.Count - 1; j > i; j--)
                     if (markers[j].label.ToLower() == markers[i].label.ToLower())
                     {
-                        Debug.Log("ALTER ADDED " + markers[j].gameObject.name);
+                    //    Debug.Log("ALTER ADDED " + markers[j].gameObject.name);
                         alt = new Alternative();
                         alt.gameObject.Add(markers[j].gameObject);
                         if (!initialized)
@@ -126,7 +126,7 @@ namespace Tames
                         markers.RemoveAt(j);
                         ta.alternatives.Add(alt);
                     }
-                Debug.Log("ALTER INIT " + initial);
+           //     Debug.Log("ALTER INIT " + initial);
                 ta.SetInitial(initial);
                 tas.Add(ta);
             }

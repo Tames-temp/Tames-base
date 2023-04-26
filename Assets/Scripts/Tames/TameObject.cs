@@ -40,7 +40,7 @@ namespace Tames
                     return tame;
             return null;
         }
-        /// <summary>
+         /// <summary>
         /// finds the first <see cref="TameGameObject"/> based on its <see cref="gameObject"/> name.
         /// </summary>
         /// <param name="name">the search name</param>
@@ -71,20 +71,17 @@ namespace Tames
     /// </summary>
     public class TameObject : TameElement
     {
+        public float scaleFrom, scaleTo;
+        public bool scales = false;
+        public int scaleAxis = -1;
+        public int scaleUV = 0;
         public MarkerQueue markerQueue = null;
         public MarkerCycle markerCycle = null;
         /// <summary>
         /// the movement handle of this element. This is responsible for all machanical movements within the element, usually dictated by a <see cref="TameProgress"/>.
         /// </summary>
         public TameHandles handle;
-        /// <summary>
-        /// whether the <see cref="TameArea.mode"/> of this element's <see cref="areas"/> is <see cref="InteractionMode.Grip"/>
-        /// </summary>
-        public bool isGrippable = false;
-        /// <summary>
-        /// whether the <see cref="TameArea.mode"/> of this element's <see cref="areas"/> is <see cref="InteractionMode"/>.Switch1, 2, or 3
-        /// </summary>
-        public bool isSwitch = false;
+
         /// <summary>
         /// the parent tame object of this object (this is the parent object in the 3D model, not in the update hierarchy 
         /// </summary>
@@ -146,7 +143,10 @@ namespace Tames
         }
         override public void Update()
         {
-            SetByTime();
+            if (directProgress >= 0)
+                Update(directProgress);
+            else
+                SetByTime();
             if (progress != null)
             {
                 handle.Move(progress.slerpProgress, progress.lastSlerp);
@@ -166,7 +166,7 @@ namespace Tames
         }
         public void Grip(float delta)
         {
-     //       Debug.Log(name + " " + (progress == null ? "null" : "-"));
+            //       Debug.Log(name + " " + (progress == null ? "null" : "-"));
             if (progress != null)
             {
                 progress.SetProgress(progress.progress + delta);
@@ -174,180 +174,7 @@ namespace Tames
             }
         }
 
-        private TameEffect GetEffect(Person headOwner, Person handOwner, TameAreaTrack tat)
-        {
-            TameEffect r = null;
-            //  if (name == "door1") Debug.Log("enfo z:" + basis + " "+parents.Count);
-            if (TrackBasis.Time == basis)
-                r = TameEffect.Time();
-            else
-            {
-                // update
-                int closest = -1;
-                float min = float.PositiveInfinity;
-                float d;
-                byte tbas = TrackBasis.Error;
-                Vector3 closestPosition = Vector3.positiveInfinity;
-                if (TrackBasis.IsHead(basis) && (headOwner != null))
-                {
-                    closestPosition = headOwner.headPosition;
-                    min = Vector3.Distance(headOwner.headPosition, mover.transform.position);
-                    tbas = TrackBasis.Head;
-                }
-                if (TrackBasis.IsHand(basis) && (handOwner != null))
-                    if ((d = Vector3.Distance(handOwner.position[tat.hand], mover.transform.position)) < min)
-                    {
-                        min = d;
-                        closestPosition = handOwner.position[tat.hand];
-                        tbas = TrackBasis.Hand;
-                    }
-                if (TrackBasis.IsObject(basis))
-                    if (parents.Count > 0)
-                        for (int i = 0; i < parents.Count; i++)
-                            if (parents[i].type == TrackBasis.Object)
-                                if ((d = Vector3.Distance(parents[i].gameObject.transform.position, mover.transform.position)) < min)
-                                {
-                                    min = d;
-                                    closestPosition = parents[i].gameObject.transform.position;
-                                    closest = i;
-                                    tbas = TrackBasis.Object;
-                                }
-                if (closestPosition.x != float.PositiveInfinity)
-                {
-                    r = TameEffect.Position(closestPosition);
-                    r.type = tbas;
-                }
-                if (closest >= 0) r.gameObject = parents[closest].gameObject;
-            }
-            if (TrackBasis.Tame == basis)
-                if (parents.Count > 0) r = parents[0];
-            return r;
-        }
-        override public TameEffect GetParent()
-        {
-            TameEffect r = null;
-            int closest;
-            float d;
-            float dis;
-            float min = float.PositiveInfinity;
-            bool[] set = new bool[] { false, false, false };
-            TameArea ti;
-            Person pe;
-            if (manual) return null;
-            //   Debug.Log("before error 1");
-            if (isGrippable)
-            {
-                r = TameArea.Grip(areas);
-                if (r != null)
-                {
-                    pe = r.personIndex == Person.LocalDefault ? Person.localPerson : Person.people[r.personIndex];
-                    ti = areas[r.areaIndex];
-                    ti.gripDisplacement = owner.transform.InverseTransformPoint(pe.hand[r.handIndex].gripCenter) - owner.transform.InverseTransformPoint(ti.relative.transform.position);
-                    if (handle.RotationType == MovingTypes.Rotator)
-                        ti.displacement = Utils.Angle(owner.transform.InverseTransformPoint(ti.relative.transform.position), Vector3.zero, handle.start - handle.pivot, handle.axis, true);
-                    r.child = this;
-                }
-                return r;
-            }
-            //    Debug.Log("before error 2");
-            if (isSwitch)
-            {
-                //      Debug.Log("before error 2.1 "+name +" "+areas.Count);
-                if (areas[0].geometry == InteractionGeometry.Remote)
-                {
-                    //         Debug.Log("before error 2.15 "+ areas[0].key);
-                    if (TameInputControl.keyMap.pressed[areas[0].key])
-                    {
-                        areas[0].Switch(true);
-                        r = TameEffect.Time();
-                        r.child = this;
-                        changingDirection = areas[0].switchDirection;
-                    }
-                }
-                else
-                {
-                    changingDirection = areas[0].switchDirection;
-                    //       if (Person.localPerson.switchCount != 0) Debug.Log("SWC: o count");
-                    int sd = TameArea.CheckSwitch(areas);
-                    //    Debug.Log("switch "+sd);
-                    r = TameEffect.Time();
-                    if (sd != TameArea.NotSwitched)
-                        if (changingDirection != sd)
-                        {
-                            Debug.Log("direction " + changingDirection + " > " + sd);
-                            changingDirection = sd;
-                        }
-                    r.child = this;
-                }
-                //          Debug.Log("before error 2.3");
-                return r;
-            }
-            //      Debug.Log("before error 3");
-            Person headOwner = null, handOwner = null;
-            Vector3 closestPosition = Vector3.positiveInfinity;
-            //    Debug.Log("name = " + areas.Count);
-            TameAreaTrack tat = areas.Count > 0 ? TameArea.TrackWithAreas(areas, mover.transform.position) : TameArea.Track(mover.transform.position);
-            byte tp = 0;
-            if (tat.person >= 0)
-            {
-                handOwner = tat.person == Person.LocalDefault ? Person.localPerson : Person.people[tat.person];
-                //     tp = TrackBasis.Hand;
-            }
-            if (tat.head >= 0)
-            {
-                headOwner = tat.head == Person.LocalDefault ? Person.localPerson : Person.people[tat.head];
-                //    tp = TrackBasis.Head;
-            }
-
-            changingDirection = tat.direction;
-            if (changingDirection != 0)
-            {
-                r = GetEffect(headOwner, handOwner, tat);
-                if (r != null)
-                {
-                    r.direction = tat.direction;
-                    r.child = this;
-                }
-            }
-            //   if (name == "lift-last") Debug.Log("dir " + changingDirection + (r == null));
-            return r;
-        }
-        override public void CleanAreas()
-        {
-            isGrippable = isSwitch = false;
-            int retain = 1;
-            foreach (TameArea ti in areas)
-                if (ti.mode == InteractionMode.Grip)
-                {
-                    isGrippable = true;
-                    break;
-                }
-            if (!isGrippable)
-                foreach (TameArea ti in areas)
-                    if (ti.geometry == InteractionGeometry.Remote)
-                    {
-                        retain = 1;
-                        isSwitch = true;
-                        break;
-                    }
-                    else if (TameArea.IsSwitch(ti.mode))
-                    {
-                        retain = 2;
-                        isSwitch = true;
-                        break;
-                    }
-
-            if (isGrippable || isSwitch)
-            {
-                for (int i = areas.Count - 1; i >= 0; i--)
-                    if (((retain == 1) && (areas[i].mode != InteractionMode.Grip) && (areas[i].geometry != InteractionGeometry.Remote)) || ((retain == 2) && (!TameArea.IsSwitch(areas[i].mode))))
-                        areas.RemoveAt(i);
-                parents.Clear();
-                basis = TrackBasis.Grip;
-                //       Debug.Log(name + " " + handle.DoesSlide + " " + handle.RotationType);
-            }
-        }
-        override public void AddArea(TameArea ti, GameObject g = null)
+        private void AddArea(TameArea ti, GameObject g = null)
         {
             TameArea ti2 = ti;
             if (ti.update == InteractionUpdate.Object)
@@ -390,10 +217,12 @@ namespace Tames
             if (handle != null)
             {
                 TameObject to = new TameObject() { handle = handle };
+                to.handle.path.element = to;
                 to.mover = handle.mover;
                 to.owner = g;
                 to.name = g.name;
                 to.markerProgress = g.GetComponent<MarkerProgress>();
+                to.markerSpeed = g.GetComponent<MarkerSpeed>();
                 return to;
             }
             return null;
@@ -402,7 +231,15 @@ namespace Tames
         {
             if (owner.GetComponent<Light>() != null)
             {
-                TameLight tl = new TameLight() { name = owner.name, owner = owner, light = owner.GetComponent<Light>(), index = (ushort)tes.Count };
+                TameLight tl = new TameLight()
+                {
+                    name = owner.name,
+                    owner = owner,
+                    light = owner.GetComponent<Light>(),
+                    index = (ushort)tes.Count,
+                    markerProgress = owner.GetComponent<MarkerProgress>(),
+                    markerSpeed = owner.GetComponent<MarkerSpeed>()
+                };
                 tl.GetAreas(software);
                 tl.parents.Add(new TameEffect()
                 {

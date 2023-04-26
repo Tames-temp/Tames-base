@@ -35,7 +35,7 @@ namespace Tames
             /// <summary>
             /// the average normal of the faces at the center of the segment, relative to the mover's transfrom
             /// </summary>
-            public Vector3 normal;
+       //     public Vector3 normal;
             /// <summary>
             /// index of the segment
             /// </summary>
@@ -70,7 +70,7 @@ namespace Tames
         /// <summary>
         /// the game object representing the path
         /// </summary>
-        private GameObject gameObject;
+        public GameObject gameObject;
         /// <summary>
         /// points on the path, local to element's transform (mover's parent)
         /// </summary>
@@ -94,15 +94,17 @@ namespace Tames
         private Vector3[] U;
 
         private int[] replace, T, oT;
-        private const int Division = 128;
+        private int division = 128;
         private float delta;
         //     private Transform auxParent, auxChild;
         private GameObject gaux;
+        public Mesh mesh;
         public TameSlider(Transform mover, Vector3 from, Vector3 to)
         {
             this.mover = mover;
             closed = false;
             gameObject = new GameObject("_path");
+            self = gameObject.transform;
             gameObject.transform.parent = mover.transform.parent;
             gameObject.transform.position = mover.transform.parent.position;
             gameObject.transform.rotation = Quaternion.identity;
@@ -129,6 +131,7 @@ namespace Tames
             try
             {
                 gameObject = new GameObject(pathObject.name + "-clone");
+                self = gameObject.transform;
                 pathObject.SetActive(false);
                 gameObject.transform.parent = mover.transform.parent;
                 gameObject.transform.position = pathObject.transform.position;
@@ -138,9 +141,9 @@ namespace Tames
                 MeshFilter mf = pathObject.GetComponent<MeshFilter>();
                 if (mf != null)
                 {
-                    Mesh mesh = mf.sharedMesh;
+                    mesh = mf.sharedMesh;
                     Vector3[] v = mesh.vertices;
-                    Vector3[] n = mesh.normals;
+                    //  Vector3[] n = mesh.normals;
                     T = mesh.triangles;
                     oT = mesh.triangles;
                     replace = new int[v.Length];
@@ -164,7 +167,7 @@ namespace Tames
                                     });
                                 }
                     CreateNeighbors(segments);
-                    AddEnds(segments, n);
+                    AddEnds(segments);
                     int index = Closest(from, segments);
                     segments = Clean(segments, index, out int ni);
                     index = ni;
@@ -182,8 +185,12 @@ namespace Tames
                     valid = true;
                 }
             }
-            catch { }
+            catch (Exception)
+            {
+                Debug.Log("error ");
+            }
         }
+
         override public void AssignMovers(GameObject[] g, bool def = false)
         {
             bases = new Transform[g.Length];
@@ -192,10 +199,10 @@ namespace Tames
             {
                 attached[i] = g[i].transform;
                 bases[i] = new GameObject(gameObject.name + "-" + i).transform;
-                bases[i].transform.parent = gameObject.transform;
+                bases[i].parent = gameObject.transform;
                 IndexDelta id = def ? IndexDelta.Zero : Closest(g[i].transform.position);
-                bases[i].transform.localPosition = Position(id);
-                bases[i].transform.localRotation = facing == FacingLogic.Free ? Rotation(id) : Quaternion.identity;
+                bases[i].localPosition = Position(id);
+                bases[i].localRotation = facing == FacingLogic.Free ? Rotation(id) : Quaternion.identity;
                 Vector3 p = g[i].transform.position;
                 Quaternion q = g[i].transform.rotation;
                 g[i].transform.parent = bases[i].transform;
@@ -203,6 +210,7 @@ namespace Tames
                 g[i].transform.rotation = q;
             }
         }
+
         override public void AssignMoverBasis(GameObject g)
         {
             mover = g.transform;
@@ -240,6 +248,20 @@ namespace Tames
                     bases[i].transform.localRotation = Rotation(nid);
             }
         }
+        public override void MoveLinked(float m)
+        {
+            float mi;
+            if (linked != null)
+                for (int i = 0; i < linked.Length; i++)
+                {
+                    mi = element.progress.FakeByOffset(linkOffset[i]);
+                    IndexDelta id = GetID(mi);
+                    Vector3 p = Position(id);
+                    linked[i].transform.localPosition = p;
+                    if (facing == FacingLogic.Free)
+                        linked[i].transform.localRotation = Rotation(id);
+                }
+        }
         override public void Move(int index, float m)
         {
             IndexDelta id = GetID(m);
@@ -271,6 +293,14 @@ namespace Tames
             if (d > 1) d = 1;
             return new IndexDelta(i, d);
         }
+        public override Vector3 Position(float m)
+        {
+            return Position(GetID(m));
+        }
+        public override Quaternion Rotation(float m)
+        {
+            return Rotation(GetID(m));
+        }
         private Quaternion Rotation(IndexDelta id)
         {
             //      Vector3 p = Position(id);
@@ -286,7 +316,7 @@ namespace Tames
         override public float GetM(Vector3 global)
         {
             IndexDelta id = Closest(global);
-            return (id.index + id.delta) / (closed ? point.Length : point.Length-1);
+            return (id.index + id.delta) / (closed ? point.Length : point.Length - 1);
         }
         private IndexDelta Closest(Vector3 global)
         {
@@ -365,13 +395,21 @@ namespace Tames
                 for (int j = i + 1; j < segment.Length; j++)
                     if ((segment[i].end[0] == segment[j].end[1]) || (segment[i].end[1] == segment[j].end[0]))
                         segment[j].Reverse();
-
+            float li, minL = float.PositiveInfinity;
             for (int i = 0; i < segment.Length; i++)
                 if (i < segment.Length - 1)
-                    l += Vector3.Distance(segment[i].center, segment[i + 1].center);
+                {
+                    l += li = Vector3.Distance(segment[i].center, segment[i + 1].center);
+                    if ((li < minL) && (li > 0)) minL = li;
+                }
                 else if (closed)
-                    l += Vector3.Distance(segment[i].center, segment[0].center);
-            delta = l / Division;
+                {
+                    l += li = Vector3.Distance(segment[i].center, segment[0].center);
+                    if ((li < minL) && (li > 0)) minL = li;
+                }
+            division = (int)(l / minL);
+            if (division > 1024) division = 1024;
+            delta = l / division;
             p.Add(segment[0].center);
             e.Add(segment[0].end[0]);
             //   normals.Add(segment[0].normal);
@@ -408,7 +446,7 @@ namespace Tames
                         }
                     }
                 }
-            if ((!closed) && (n <= Division))
+            if ((!closed) && (n <= division))
             {
                 p.Add(segment[segment.Length - 1].center);
                 e.Add(segment[segment.Length - 1].end[0]);
@@ -504,7 +542,7 @@ namespace Tames
                 else break;
             return r;
         }
-        private void AddEnds(List<Segment> a, Vector3[] n)
+        private void AddEnds(List<Segment> a)
         {
             int[] tcount = new int[T.Length / 3];
             for (int i = 0; i < tcount.Length; i++)
@@ -538,7 +576,6 @@ namespace Tames
                 {
                     end = new Vector3[] { ends[i].end[ts], w },
                     face = new int[] { ends[i].face[Tend], -1 },
-                    normal = (ends[i].normal + n[oT[ends[i].face[Tend] + 3 - jj]]) / 2,
                     center = (ends[i].end[ts] + w) / 2,
                     side = new Segment[] { ends[i], null },
                     index = a.Count
@@ -570,6 +607,59 @@ namespace Tames
                         segment[a.Count - i - 1] = a[i];
 
             }
+        }
+        public override TamePath Clone(GameObject owner, GameObject mover, LinkedKeys lt)
+        {
+            TameSlider ts;
+            if (segment.Length == 2)
+                ts = new TameSlider(mover.transform, start, end);
+            else
+            {
+                Debug.Log("before: " + owner.name);
+                GameObject path = new GameObject();
+                path.transform.parent = owner.transform;
+                path.transform.localPosition = gameObject.transform.localPosition;
+                path.transform.localRotation = gameObject.transform.localRotation;
+                MeshFilter mf = path.AddComponent<MeshFilter>();
+                Mesh m = new Mesh()
+                {
+                    vertices = mesh.vertices,
+                    triangles = mesh.triangles
+                };
+                mf.mesh = m;
+                ts = new TameSlider(path, mover, start, end);
+                Debug.Log("after " + owner.name);
+            }
+            Debug.Log("after " + (ts.point == null));
+            ts.attached = new Transform[attached.Length];
+            ts.bases = new Transform[bases.Length];
+            ts.facing = facing;
+            ts.parent = owner.transform;
+            if (lt == LinkedKeys.None)
+            {
+                ts.bases[0] = new GameObject().transform;
+                ts.bases[0].parent = ts.gameObject.transform;
+                ts.bases[0].localPosition = bases[0].localPosition;
+                ts.bases[0].localRotation = bases[0].localRotation;
+                ts.attached[0] = mover.transform;
+                ts.attached[0].parent = ts.bases[0];
+                ts.attached[0].localPosition = attached[0].localPosition;
+                ts.attached[0].localRotation = attached[0].localRotation;
+
+            }
+            else
+                for (int i = 0; i < bases.Length; i++)
+                {
+                    ts.bases[i] = new GameObject().transform;
+                    ts.bases[i].parent = ts.gameObject.transform;
+                    ts.bases[i].localPosition = bases[i].localPosition;
+                    ts.bases[i].localRotation = bases[i].localRotation;
+                    ts.attached[i] = GameObject.Instantiate(attached[i]);
+                    ts.attached[i].parent = ts.bases[i];
+                    ts.attached[i].localPosition = attached[i].localPosition;
+                    ts.attached[i].localRotation = attached[i].localRotation;
+                }
+            return ts;
         }
     }
 }

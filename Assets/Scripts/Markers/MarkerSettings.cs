@@ -9,8 +9,7 @@ namespace Markers
     public class MarkerSettings:MonoBehaviour
     {
         public string eyeHeights = "1.6";
-        public string carrierNames = "";
-        public string customManifests = "";
+         public string customManifests = "";
         public bool replay = false;
     }
 }

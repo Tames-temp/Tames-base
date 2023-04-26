@@ -10,7 +10,7 @@ namespace Multi
     public class Person
     {
         public static Person[] people = new Person[8];
-        public const int LocalDefault = 16;
+        public const int LocalDefault = 8;
         public static Person localPerson;
         public bool initiated = false;
         public bool isLocal = false;
