@@ -4,80 +4,108 @@ using UnityEditor;
 using UnityEngine;
 namespace Markers
 {
-    public enum EditorGeometry
-    {
-        Box, Sphere, Cylinder, Plane, Remote, Distance
-    }
+
     public enum EditorUpdate
     {
         Auto, Fixed, Local, Mover
     }
-    public enum EditorMode
-    {
-        InsideOnly, OutsideOnly, InsidePositive, OutsidePositive, Grip, Switch_1, Switch_2, Switch_3
-    }
+
     public class MarkerArea : MonoBehaviour
     {
         //  public bool thisIsArea;
         public GameObject appliesTo;
-        public EditorGeometry geometry;
+        public InteractionGeometry geometry;
         public string input;
         public EditorUpdate update;
-        public EditorMode mode;
+        public InteractionMode mode;
         public static List<MarkerArea> allAreas = new List<MarkerArea>();
         //    public GameObject area = null;
 
         // Start is called before the first frame update
-        void Start()
+        public string[] ToLines()
         {
-
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
-        public InteractionGeometry GetGeometry()
-        {
-            switch (geometry)
+            return new string[]
             {
-                case EditorGeometry.Box: return InteractionGeometry.Box;
-                case EditorGeometry.Sphere: return InteractionGeometry.Sphere;
-                case EditorGeometry.Cylinder: return InteractionGeometry.Cylinder;
-                case EditorGeometry.Remote: return InteractionGeometry.Remote;
-                case EditorGeometry.Distance: return InteractionGeometry.Distance;
-                default: return InteractionGeometry.Plane;
-            }
+                ":area",
+                MarkerSettings.ObjectToLine(gameObject),
+               MarkerSettings.ObjectToLine(appliesTo),
+                geometry.ToString(),
+                input,
+                update.ToString(),
+                mode.ToString(),
+            };
         }
-        public InteractionMode GetMode()
+        public static int FromLines(string[] line, int index, int version)
         {
-            switch (mode)
-            {
-                case EditorMode.Grip: return InteractionMode.Grip;
-                case EditorMode.Switch_1: return InteractionMode.Switch1;
-                case EditorMode.Switch_2: return InteractionMode.Switch2;
-                case EditorMode.Switch_3: return InteractionMode.Switch3;
-                case EditorMode.InsideOnly: return InteractionMode.Inside;
-                case EditorMode.OutsideOnly: return InteractionMode.Outside;
-                case EditorMode.InsidePositive: return InteractionMode.InOut;
-                case EditorMode.OutsidePositive: return InteractionMode.OutIn;
-                default: return InteractionMode.Grip;
-            }
+            GameObject go = MarkerSettings.LineToObject(line[index]);
+            MarkerArea ma;
+            if (go != null)
+                switch (version)
+                {
+                    case 1:
+                        if ((ma = go.GetComponent<MarkerArea>()) == null) ma = go.AddComponent<MarkerArea>();
+                        ma.appliesTo = MarkerSettings.LineToObject(line[index + 1]);
+                        ma.geometry = Geo(line[index + 2]);
+                        ma.input = line[index + 3];
+                        ma.update = Up(line[index + 4]);
+                        ma.mode = Mod(line[index + 5]);
+                        return index + 6;
+                }
+            return index;
         }
+
+
+        private static InteractionGeometry Geo(string s)
+        {
+            return s switch
+            {
+                "Box" => InteractionGeometry.Box,
+                "Sphere" => InteractionGeometry.Sphere,
+                "Cylinder" => InteractionGeometry.Cylinder,
+                "Remote" => InteractionGeometry.Remote,
+                "Distance" => InteractionGeometry.Distance,
+                _ => InteractionGeometry.Plane
+            };
+        }
+        private static EditorUpdate Up(string s)
+        {
+            return s switch
+            {
+                "Auto" => EditorUpdate.Auto,
+                "Fixed" => EditorUpdate.Fixed,
+                "Mover" => EditorUpdate.Mover,
+                _ => EditorUpdate.Local
+            };
+        }
+        private static InteractionMode Mod(string s)
+        {
+            return s switch
+            {
+                "Outside" => InteractionMode.Outside,
+                "Inside" => InteractionMode.Inside,
+                "Negative" => InteractionMode.Negative,
+                "Positive" => InteractionMode.Positive,
+                "Switch1" => InteractionMode.Switch1,
+                "Switch2" => InteractionMode.Switch2,
+                "Switch3" => InteractionMode.Switch3,
+                _ => InteractionMode.Grip,
+            };
+        }
+
         public InteractionUpdate GetUpdate()
         {
             switch (update)
             {
                 case EditorUpdate.Auto:
-                    if (mode == EditorMode.Grip) return InteractionUpdate.Mover;
-                    else if ((mode == EditorMode.Switch_1) || (mode == EditorMode.Switch_2) || (mode == EditorMode.Switch_3)) return InteractionUpdate.Parent;
+                    if (mode == InteractionMode.Grip) return InteractionUpdate.Mover;
+                    else if ((mode == InteractionMode.Switch1) || (mode == InteractionMode.Switch2) || (mode == InteractionMode.Switch3)) return InteractionUpdate.Parent;
                     else return InteractionUpdate.Fixed;
                 case EditorUpdate.Fixed: return InteractionUpdate.Fixed;
                 case EditorUpdate.Local: return InteractionUpdate.Parent;
                 default: return InteractionUpdate.Mover;
             }
         }
+
         private static void Populate(GameObject parent, List<MarkerArea> areas)
         {
             int cc = parent.transform.childCount;

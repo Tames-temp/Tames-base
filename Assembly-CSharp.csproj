@@ -104,6 +104,7 @@
     <Compile Include="Assets\Scripts\Tames\TameChanger.cs" />
     <Compile Include="Assets\Scripts\Tames\TameArea.cs" />
     <Compile Include="Assets\Scripts\Walking\WalkFace.cs" />
+    <Compile Include="Assets\Scripts\Markers\MarkerFlicker.cs" />
     <Compile Include="Assets\Scripts\Tames\TameFinder.cs" />
     <Compile Include="Assets\Scripts\Tames\Slerp.cs" />
     <Compile Include="Assets\Scripts\Tames\TameEnvironmentChanger.cs" />
@@ -113,9 +114,11 @@
     <Compile Include="Assets\Scripts\Tames\Manifests\ManifestLight.cs" />
     <Compile Include="Assets\Scripts\Multi\Multiplayer\NetworkManager.cs" />
     <Compile Include="Assets\Scripts\Markers\MarkerMaster.cs" />
+    <Compile Include="Assets\Scripts\Tames\TameMaterialAlternative.cs" />
     <Compile Include="Assets\Scripts\Records\FrameShot.cs" />
     <Compile Include="Assets\Scripts\Identifier.cs" />
     <Compile Include="Assets\Scripts\Tames\TamePath.cs" />
+    <Compile Include="Assets\Scripts\Markers\MarkerAlterMaterial.cs" />
     <Compile Include="Assets\Scripts\Tames\TameInputControl.cs" />
     <Compile Include="Assets\Scripts\Tames\Manifests\ManifestMaterial.cs" />
     <Compile Include="Assets\Scripts\Tames\Manifests\ManifestHeader.cs" />

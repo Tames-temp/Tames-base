@@ -86,14 +86,14 @@ namespace Assets.Script
             counter = -1;
             averageFPS = 0;
             GameObject[] root = SceneManager.GetActiveScene().GetRootGameObjects();
-            Material handmat = Identifier.HandMats(root);
+        //    Material handmat = Identifier.HandMats(root);
             hand = Identifier.Inputs(root, fingerHeader);
             //     Debug.Log("c: " + hand[1].data.controller.name);
 
             manager = new TameManager();
             ManifestKeys.LoadCSV("aliases");
-            manager.LoadManifest(Identifier.LoadLines(Tames.TameManager.ManifestPath));
-            tes = manager.tes;
+            //      manager.LoadManifest(Identifier.LoadLines(Tames.TameManager.ManifestPath));
+            manager.LoadManifest();    tes = manager.tes;
             TameEffect.AllEffects = new TameEffect[manager.tes.Count];
             ies = ITameEffect.AllEffects = new ITameEffect[manager.tes.Count];
             ITameEffect.Initialize();
@@ -115,6 +115,7 @@ namespace Assets.Script
                     NetworkManager.commandIP = args[i].Substring(7);
                     break;
                 }
+            Debug.Log("cam " + TameCamera.cameraTransform.position.ToString());
         }
 
         void PrepareLoadScene()
@@ -247,7 +248,7 @@ namespace Assets.Script
             }
             CheckInput();
             int n = TameElement.GetAllParents(TameEffect.AllEffects, tes);
-            //  Debug.Log("custom n " + n);
+         //   Debug.Log("custom n " + n);
             for (int i = 0; i < n; i++)
             {
            //     if (TameEffect.AllEffects[i].child.name == "barrier sign") Debug.Log("UP: child ");
@@ -256,6 +257,8 @@ namespace Assets.Script
             }
             for (int i = 0; i < manager.altering.Count; i++)
                 manager.altering[i].Update();
+            for (int i = 0; i < manager.alteringMaterial.Count; i++)
+                manager.alteringMaterial[i].Update();
         }
         // Update is called once per frame
 
@@ -269,7 +272,9 @@ namespace Assets.Script
                 Application.Quit();
 
             if (VRMode) return null;
+        //    Debug.Log("bef " + TameCamera.cameraTransform.position.ToString());
             TameCamera.UpdateCamera();
+         //   Debug.Log("aft " + TameCamera.cameraTransform.position.ToString());
 
             CheckGripAndSwitch();
             return null;

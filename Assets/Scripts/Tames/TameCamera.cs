@@ -42,8 +42,8 @@ namespace Tames
                     objects.Add(tgo.gameObject);
                     feature.Add((byte)((mc.rotation ? 2 : 0) + (mc.position ? 1 : 0)));
                 }
-           gameObjects = objects.ToArray();
-        //    Debug.Log("RC: " + gameObjects.Length);
+            gameObjects = objects.ToArray();
+            //    Debug.Log("RC: " + gameObjects.Length);
         }
         public static int ReadCamera(ManifestHeader mh, string[] lines, int index)
         {
@@ -69,7 +69,7 @@ namespace Tames
             }
             return index;
         }
-     
+
         public static void AssignCamera(List<TameGameObject> tgos)
         {
             return;
@@ -209,7 +209,7 @@ namespace Tames
             }
             else
             {
-                Debug.Log("RC: turn " + InputBasis.turn+ " "+ feature[currentObject]);
+                Debug.Log("RC: turn " + InputBasis.turn + " " + feature[currentObject]);
                 if ((feature[currentObject] & 2) > 0)
                 {
                     if (InputBasis.turn != InputBasis.VR)
@@ -244,18 +244,18 @@ namespace Tames
                     cameraTransform.position += moving;
                 else
                 {
-                    fwd = Vector3.zero;
                     //       Debug.Log("walk " + fwd.ToString("0.00") + (currentFace==null?"null":currentFace.parent.name));
                     if (currentFace != null)
                     {
                         fwd = currentFace.Pushing(cameraTransform.position, TameElement.deltaTime);
-                    }
-                    //        flat = p;
-                    p += moving + fwd;
-                    //  fwd = TameManifest.walkManager.foot;
+
+                        //        flat = p;
+                        p += moving + fwd;
+                    }     //  fwd = TameManifest.walkManager.foot;
                     currentFace = TameManager.walkManager.Move(p - eyeHeight);
-                    //    if(currentFace!=null)                    Debug.Log("walk " + currentFace.parent.name);
-                    cameraTransform.position = TameManager.walkManager.foot + eyeHeight;
+                        //    if(currentFace!=null)                    Debug.Log("walk " + currentFace.parent.name);
+                    
+                    cameraTransform.position = TameManager.walkManager.foot + eyeHeight;                    
                 }
             }
         }

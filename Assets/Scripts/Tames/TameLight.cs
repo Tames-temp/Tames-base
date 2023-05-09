@@ -48,7 +48,7 @@ namespace Tames
                     //           Debug.Log("color updating " + m.properties.Count);
                     foreach (TameChanger tc in m.properties)
                     {
-                        f = tc.On(progress.slerpProgress);
+                        f = tc.On(progress.slerpProgress,progress.totalProgress);
                         switch (tc.property)
                         {
                             case MaterialProperty.Glow:

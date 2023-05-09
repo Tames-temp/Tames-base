@@ -40,7 +40,7 @@ namespace Tames
                     return tame;
             return null;
         }
-         /// <summary>
+        /// <summary>
         /// finds the first <see cref="TameGameObject"/> based on its <see cref="gameObject"/> name.
         /// </summary>
         /// <param name="name">the search name</param>
@@ -65,6 +65,7 @@ namespace Tames
                 list.Add(tgo.gameObject);
             return list;
         }
+      
     }
     /// <summary>
     /// this class represents all <see cref="TameElement"/>s that are mechanical in nature.
@@ -240,6 +241,9 @@ namespace Tames
                     markerProgress = owner.GetComponent<MarkerProgress>(),
                     markerSpeed = owner.GetComponent<MarkerSpeed>()
                 };
+                MarkerFlicker[] mf=owner.GetComponents<MarkerFlicker>();
+                if(mf.Length==0)mf= null;   
+                tl.markerFlicker = mf;
                 tl.GetAreas(software);
                 tl.parents.Add(new TameEffect()
                 {

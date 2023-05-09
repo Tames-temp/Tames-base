@@ -134,9 +134,9 @@ namespace Tames
                 switch (mode)
                 {
                     case InteractionMode.Outside: return 1;
-                    case InteractionMode.OutIn: return 1;
+                    case InteractionMode.Negative: return 1;
                     case InteractionMode.Inside: return 0;
-                    case InteractionMode.InOut: return -1;
+                    case InteractionMode.Positive: return -1;
                 }
                 return 0;
             }
@@ -148,9 +148,9 @@ namespace Tames
                 switch (mode)
                 {
                     case InteractionMode.Outside: return 0;
-                    case InteractionMode.OutIn: return -1;
+                    case InteractionMode.Negative: return -1;
                     case InteractionMode.Inside: return 1;
-                    case InteractionMode.InOut: return 1;
+                    case InteractionMode.Positive: return 1;
                 }
                 return 0;
             }
@@ -545,7 +545,7 @@ namespace Tames
                                         {
                                             min = d;
                                             pIndex = i;
-                                            dir = t.mode == InteractionMode.OutIn ? -1 : 1;
+                                            dir = t.mode == InteractionMode.Negative ? -1 : 1;
                                             headArea = k;
                                         }
                                 }
@@ -554,7 +554,7 @@ namespace Tames
                                     {
                                         min = d;
                                         pIndex = i;
-                                        dir = t.mode == InteractionMode.InOut ? -1 : 1;
+                                        dir = t.mode == InteractionMode.Positive ? -1 : 1;
                                         headArea = k;
                                     }
                         }
@@ -679,8 +679,8 @@ namespace Tames
             {
                 case 0: return InteractionMode.Inside;
                 case 1: return InteractionMode.Outside;
-                case 2: return InteractionMode.InOut;
-                case 3: return InteractionMode.OutIn;
+                case 2: return InteractionMode.Positive;
+                case 3: return InteractionMode.Negative;
                 case 4: return InteractionMode.Grip;
                 case 5: return InteractionMode.Switch1;
                 case 6: return InteractionMode.Switch2;
@@ -698,9 +698,9 @@ namespace Tames
             {
                 r = new TameArea()
                 {
-                    geometry = ma.GetGeometry(),
+                    geometry = ma.geometry,
                     update = ma.GetUpdate(),
-                    mode = ma.GetMode(),
+                    mode = ma.mode,
                     gameObject = g,
                     element = to,
                 };

@@ -23,27 +23,86 @@ namespace Markers
 
         public MaterialProperty GetProperty()
         {
-            switch (property)
+            return property switch
             {
-                case EditorChangerType.Color: return MaterialProperty.Color;
-                case EditorChangerType.U_Offset: return MaterialProperty.MapX;
-                case EditorChangerType.V_Offset: return MaterialProperty.MapY;
-                case EditorChangerType.EmissiveColor: return MaterialProperty.Glow;
-                case EditorChangerType.Focus: return MaterialProperty.Focus;
-                case EditorChangerType.Intensity: return MaterialProperty.Bright;
-                case EditorChangerType.Emissive_U: return MaterialProperty.LightX;
-                default : return MaterialProperty.LightY; //EditorChangerType.Emissive_V
-            }
+                EditorChangerType.Color => MaterialProperty.Color,
+                EditorChangerType.U_Offset => MaterialProperty.MapX,
+                EditorChangerType.V_Offset => MaterialProperty.MapY,
+                EditorChangerType.EmissiveColor => MaterialProperty.Glow,
+                EditorChangerType.Focus => MaterialProperty.Focus,
+                EditorChangerType.Intensity => MaterialProperty.Bright,
+                EditorChangerType.Emissive_U => MaterialProperty.LightX,
+                _ => MaterialProperty.LightY,//EditorChangerType.Emissive_V
+            };
+        }
+        private static EditorChangerType CT(string s)
+        {
+            return s switch
+            {
+                "Color" => EditorChangerType.Color,
+                "U_Offset" => EditorChangerType.U_Offset,
+                "V_Offset" => EditorChangerType.V_Offset,
+                "EmissiveColor" => EditorChangerType.EmissiveColor,
+                "Focus" => EditorChangerType.Focus,
+                "Intensity" => EditorChangerType.Intensity,
+                "Emissive" => EditorChangerType.Emissive_U,
+                _ => EditorChangerType.Emissive_V,
+            };
         }
         public ToggleType GetToggle()
         {
-            switch (mode)
+            return mode switch
             {
-                case EditorChangeStep.Gradual: return ToggleType.Gradient;
-                case EditorChangeStep.Switch: return ToggleType.Switch;
-                default: return ToggleType.Stepped;
-            }
+                EditorChangeStep.Gradual => ToggleType.Gradient,
+                EditorChangeStep.Switch => ToggleType.Switch,
+                _ => ToggleType.Stepped,
+            };
         }
-       
+        private static EditorChangeStep TT(string s)
+        {
+            return s switch
+            {
+                "Gradual" => EditorChangeStep.Gradual,
+                "Switch" => EditorChangeStep.Switch,
+                _ => EditorChangeStep.Stepped,
+
+            };
+        }
+        public string[] ToLines()
+        {
+            return new string[]
+            {
+                ":changer",
+                MarkerSettings.ObjectToLine(gameObject),
+                property.ToString(),
+                mode.ToString() ,
+                switchValue+"",
+                steps
+            };
+        }
+        public static int FromLines(string[] lines, int index, int version)
+        {
+            GameObject go = MarkerSettings.LineToObject(lines[index]);
+            MarkerChanger[] mas;
+            MarkerChanger ma;
+                if (go != null)
+                switch (version)
+                {
+                    case 1:
+                        mas= go.GetComponents<MarkerChanger>();
+                        ma = null;
+                        EditorChangerType type = CT(lines[index + 1]);
+                        foreach (MarkerChanger changer in mas) if (changer.property == type)
+                            { ma = changer; break; }
+                        if (ma != null)
+                            ma = go.AddComponent<MarkerChanger>();
+                        ma.property = type;
+                        ma.mode = TT(lines[index + 2]);
+                        ma.switchValue = float.Parse(lines[index + 3]);
+                        ma.steps = lines[index + 4];
+                        return index + 5;
+                }
+            return index;
+        }
     }
 }

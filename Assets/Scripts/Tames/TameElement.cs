@@ -15,10 +15,12 @@ namespace Tames
     /// </summary>
     public class TameElement
     {
+        //   public List<TameChanger> properties;
         public bool updatedUnique = false;
         public MarkerProgress markerProgress = null;
         public MarkerEnvironment marketEnvironment = null;
         public MarkerSpeed markerSpeed = null;
+        public MarkerFlicker[] markerFlicker = null;
         public static bool isPaused = false;
         public static float FrameValue = -1;
         public static float deltaTime;
@@ -985,6 +987,7 @@ namespace Tames
         /// </summary>
         public virtual void SetProgressProperties(List<TameElement> tes, List<TameGameObject> tgos)
         {
+            List<TameChanger> chs;
             TameFinder finder = new TameFinder();
             if (progress != null)
             {
@@ -1044,6 +1047,13 @@ namespace Tames
                             progress.manager.factor = markerSpeed.factor;
                             progress.manager.offset = markerSpeed.offset;
                         }
+                    }
+                }
+                if (manifest != null)
+                {
+                    if (tameType == TameKeys.Light)
+                    {
+                        chs = ((ManifestLight)manifest).properties;
                     }
                 }
             }

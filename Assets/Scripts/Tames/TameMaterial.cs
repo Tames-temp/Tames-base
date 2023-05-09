@@ -58,7 +58,7 @@ namespace Tames
             if (r != null) r.child = this;
             return r;
         }
-        public static TameMaterial Find(Material m, List<TameElement>tes)
+        public static TameMaterial Find(Material m, List<TameElement> tes)
         {
             TameMaterial tm;
             foreach (TameElement te in tes)
@@ -124,14 +124,14 @@ namespace Tames
             float ins = 0;
             bool emC = false;
             bool inC = false;
-          //  if (name == "barrier sign") Debug.Log("UP: " + name + progress.trigger.value[0] + " " + parents.Count);
-      //      Debug.Log("UP: " + name + " " + parents.Count);
+            //  if (name == "barrier sign") Debug.Log("UP: " + name + progress.trigger.value[0] + " " + parents.Count);
+            //      Debug.Log("UP: " + name + " " + parents.Count);
             //   Debug.Log("changer before " + name);
             if (progress != null)
             {
                 foreach (TameChanger tc in m.properties)
                 {
-                    f = tc.On(progress.slerpProgress);
+                    f = tc.On(progress.slerpProgress, progress.totalProgress);
                     switch (tc.property)
                     {
                         case MaterialProperty.Color:
@@ -175,10 +175,12 @@ namespace Tames
                             break;
                     }
                 }
+           //     original.SetFloat("_EmissiveIntensity", Mathf.Pow(2, ins));
                 if ((!emC) && inC)
                     original.SetColor(Utils.ProperyKeywords[EmissionColor], initialSpectrum * Mathf.Pow(2, ins));
                 if (emC)
                     original.SetColor(Utils.ProperyKeywords[EmissionColor], new Color(emis[0], emis[1], emis[2]) * Mathf.Pow(2, ins));
+
             }
         }
         public void SetProvisionalUpdate(TameElement te)
@@ -214,7 +216,7 @@ namespace Tames
         {
             SetByParent(p);
             //        if (name == "barrier sign") Debug.Log("by parent");
-                    ApplyUpdate();
+            ApplyUpdate();
         }
         public override void UpdateManually()
         {
@@ -326,9 +328,11 @@ namespace Tames
         {
             ManifestMaterial tmm = (ManifestMaterial)manifest;
             foreach (TameChanger tc in tmm.properties)
-                if ((tc.property == MaterialProperty.Glow) || (tc.property == MaterialProperty.LightX) || (tc.property == MaterialProperty.LightY))
+                if ((tc.property == MaterialProperty.Glow) || (tc.property == MaterialProperty.LightX) || (tc.property == MaterialProperty.LightY) || (tc.property == MaterialProperty.Bright))
+                {
                     if (!original.IsKeywordEnabled("_EmissiveColor"))
                         original.EnableKeyword("_EmissiveColor");
+                }
             GetInitial();
         }
         public static List<Material> LocalizeMaterials(List<GameObject> gos, List<float> initial)

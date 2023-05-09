@@ -9,7 +9,7 @@ namespace Tames
     public class ManifestMaterial : ManifestBase
     {
         public bool unique = false;
-        public List<TameChanger> properties = new List<TameChanger>();
+   //     public List<TameChanger> properties = new List<TameChanger>();
         public void OrderChanger()
         {
             TameChanger c = null;

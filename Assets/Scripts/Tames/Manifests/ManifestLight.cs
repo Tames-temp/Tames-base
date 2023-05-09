@@ -8,7 +8,7 @@ namespace Tames
 {
     public class ManifestLight : ManifestBase
     {
-        public List<TameChanger> properties = new List<TameChanger>();
+   //     public List<TameChanger> properties = new List<TameChanger>();
         public int Read(string[] lines, int index)
         {
             int i = index + 1;

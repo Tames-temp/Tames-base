@@ -7,6 +7,7 @@ namespace Tames
 {
     public class ManifestBase
     {
+        public List<TameChanger> properties = new List<TameChanger>();
         /// <summary>
         /// the manifest header of this manifest
         /// </summary>

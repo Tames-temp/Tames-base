@@ -202,8 +202,8 @@ public enum InteractionMode
 {
     Inside = 1,
     Outside = 2,
-    InOut = 3,
-    OutIn = 4,
+    Positive = 3,
+    Negative = 4,
     Grip = 5,
     Switch1 = 6,
     Switch2 = 7,
@@ -243,7 +243,8 @@ public enum ToggleType
 {
     Gradient = 0,
     Stepped = 1,
-    Switch = 2
+    Switch = 2,
+    Flicker = 3
 }
 /// <summary>
 /// the vector of walking surface push force
@@ -343,7 +344,7 @@ public class TrackBasis
     }
     public static bool IsTracking(int tb)
     {
-        return (tb& Hand+Head+Object) != 0;
+        return (tb & Hand + Head + Object) != 0;
     }
 }
 public class Alias
@@ -516,6 +517,7 @@ public class ManifestKeys
 /// </summary>
 public class Utils
 {
+
     private static GameObject PO, CO;
     public static bool HDActive = false;
     public static string[] ProperyKeywords;
@@ -540,6 +542,9 @@ public class Utils
             ProperyKeywords = new string[] { "_BaseColor", "_EmissionColor", "_MainTex", "_EmissionMap" };
         }
     }
+   
+   
+  
     public static void Write3(BinaryWriter bw, Vector3 p)
     {
         bw.Write(p.x);
@@ -782,7 +787,7 @@ public class Utils
         int max = Mathf.Abs(u.x) < Mathf.Abs(u.y) ? (Mathf.Abs(u.y) < Mathf.Abs(u.z) ? 2 : 1) : (Mathf.Abs(u.x) < Mathf.Abs(u.z) ? 2 : 0);
         Vector3 v = u;
         v[max] = 0;
-        v[(max + 1)%3] = v[(max + 1) % 3]+1;
+        v[(max + 1) % 3] = v[(max + 1) % 3] + 1;
         return Vector3.Cross(u, v);
     }
     /// <summary>

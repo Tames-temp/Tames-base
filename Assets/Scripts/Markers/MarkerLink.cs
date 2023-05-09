@@ -25,6 +25,7 @@ namespace Markers
         public float offset = 0;// -1 is random
         public LinkTypes speedBase = LinkTypes.Custom;
         public float factor = 1;//-1 random
+
     }
 
    

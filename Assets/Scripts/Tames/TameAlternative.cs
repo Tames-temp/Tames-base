@@ -8,7 +8,7 @@ using Markers;
 
 namespace Tames
 {
-    public class TameAlternative
+     public class TameAlternative
     {
         internal class Alternative
         {

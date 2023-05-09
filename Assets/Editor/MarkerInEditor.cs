@@ -43,16 +43,16 @@ public class OriginInEditor : Editor
 {
     //    SerializedProperty thisIsArea;
     SerializedProperty origin;
-     void OnEnable()
+    void OnEnable()
     {
-         origin = serializedObject.FindProperty("origin");
-     }
+        origin = serializedObject.FindProperty("origin");
+    }
 
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
-         EditorGUILayout.PropertyField(origin);
-          serializedObject.ApplyModifiedProperties();
+        EditorGUILayout.PropertyField(origin);
+        serializedObject.ApplyModifiedProperties();
     }
 }
 [CustomEditor(typeof(Markers.MarkerChanger)), CanEditMultipleObjects]
@@ -109,6 +109,42 @@ public class MarkerEnvironmentEditor : Editor
         serializedObject.ApplyModifiedProperties();
     }
 }
+[CustomEditor(typeof(Markers.MarkerSettings))]
+class MarkerSettingsEditor : Editor
+{
+    SerializedProperty eyeHeights;
+    SerializedProperty customManifests;
+    SerializedProperty materialEmission;
+    SerializedProperty replay;
+    void OnEnable()
+    {
+        replay = serializedObject.FindProperty("replay");
+        eyeHeights = serializedObject.FindProperty("eyeHeights");
+        customManifests = serializedObject.FindProperty("customManifests");
+        materialEmission = serializedObject.FindProperty("materialEmission");
+       }
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
+        EditorGUILayout.PropertyField(replay);
+        EditorGUILayout.PropertyField(eyeHeights);
+        EditorGUILayout.PropertyField(customManifests);
+        EditorGUILayout.PropertyField(materialEmission);
+         Markers.MarkerSettings settings = (Markers.MarkerSettings)target;
+        if(GUILayout.Button("Freeze intensity"))
+        {
+            settings.FreezeIntensity();
+        }
+        if (GUILayout.Button("Save"))
+        {
+            settings.Save();
+        }
+        if (GUILayout.Button("Load"))
+        {
+            settings.Load();
+        }
+    }
+}
 [CustomEditor(typeof(Markers.MarkerLink)), CanEditMultipleObjects]
 public class MarkerLinkEditor : Editor
 {
@@ -141,7 +177,7 @@ public class MarkerLinkEditor : Editor
         EditorGUILayout.PropertyField(childrenOf);
         EditorGUILayout.PropertyField(parent);
         EditorGUILayout.PropertyField(offsetBase);
-         EditorGUILayout.PropertyField(offset);
+        EditorGUILayout.PropertyField(offset);
         EditorGUILayout.PropertyField(speedBase);
         EditorGUILayout.PropertyField(factor);
 
@@ -158,7 +194,7 @@ public class MarkerScaleEditor : Editor
     SerializedProperty from;
     SerializedProperty to;
     SerializedProperty affectedUV;
-   
+
 
 
     void OnEnable()
@@ -170,7 +206,7 @@ public class MarkerScaleEditor : Editor
         from = serializedObject.FindProperty("from");
         to = serializedObject.FindProperty("to");
         affectedUV = serializedObject.FindProperty("affectedUV");
-     
+
     }
 
     public override void OnInspectorGUI()
@@ -183,7 +219,7 @@ public class MarkerScaleEditor : Editor
         EditorGUILayout.PropertyField(from);
         EditorGUILayout.PropertyField(to);
         EditorGUILayout.PropertyField(affectedUV);
-      
+
 
         serializedObject.ApplyModifiedProperties();
     }
@@ -240,6 +276,41 @@ public class MarkerProgressEditor : Editor
         EditorGUILayout.PropertyField(active);
         EditorGUILayout.PropertyField(activateBy);
 
+        serializedObject.ApplyModifiedProperties();
+    }
+}
+[CustomEditor(typeof(Markers.MarkerFlicker)), CanEditMultipleObjects]
+public class MarkerFlickerEditor : Editor
+{
+    SerializedProperty property;
+    SerializedProperty byMaterial;
+    SerializedProperty byLight;
+    SerializedProperty minFlicker;
+    SerializedProperty maxFlicker;
+    SerializedProperty flickerCount;
+    SerializedProperty steadyPortion;
+
+    void OnEnable()
+    {
+        property = serializedObject.FindProperty("property");
+        byMaterial = serializedObject.FindProperty("byMaterial");
+        byLight = serializedObject.FindProperty("byLight");
+        minFlicker = serializedObject.FindProperty("minFlicker");
+        maxFlicker = serializedObject.FindProperty("maxFlicker");
+        flickerCount = serializedObject.FindProperty("flickerCount");
+        steadyPortion = serializedObject.FindProperty("steadyPortion");
+    }
+
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
+        EditorGUILayout.PropertyField(property);
+        EditorGUILayout.PropertyField(byMaterial);
+        EditorGUILayout.PropertyField(byLight);
+        EditorGUILayout.PropertyField(minFlicker);
+        EditorGUILayout.PropertyField(maxFlicker);
+        EditorGUILayout.PropertyField(flickerCount);
+        EditorGUILayout.PropertyField(steadyPortion);
         serializedObject.ApplyModifiedProperties();
     }
 }
