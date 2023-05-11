@@ -1,4 +1,4 @@
-﻿using Assets.Script;
+﻿
 using Multi;
 using System;
 using System.Collections.Generic;
@@ -275,12 +275,12 @@ namespace Tames
         /// <returns>a <see cref="TameEffect"/> object containing the person's index and the index of the gripping hand</returns>
         public static TameEffect Grip(List<TameArea> tis)
         {
-            int from = MainScript.multiPlayer ? 0 : Person.LocalDefault;
-            int to = MainScript.multiPlayer ? Person.people.Length : Person.LocalDefault + 1;
+            int from = CoreTame.multiPlayer ? 0 : Person.LocalDefault;
+            int to = CoreTame.multiPlayer ? Person.people.Length : Person.LocalDefault + 1;
             Person person;
             for (int i = from; i < to; i++)
             {
-                person = i == Person.LocalDefault ? MainScript.localPerson : Person.people[i];
+                person = i == Person.LocalDefault ? CoreTame.localPerson : Person.people[i];
                 //       Debug.Log("person : " + person.id);
                 if (person != null)
                     for (int j = 0; j < 2; j++)
@@ -324,7 +324,7 @@ namespace Tames
                 if (areas[t].forcedSwitchThisFrame == TameElement.Tick)
                     return areas[t].switchDirection;
             //     if (Person.localPerson.switchCount != 0) Debug.Log("SWC: c count");
-            if (MainScript.multiPlayer)
+            if (CoreTame.multiPlayer)
                 for (int i = 0; i < Person.people.Length; i++)
                 {
                     if (Person.people[i] != null)
@@ -410,8 +410,8 @@ namespace Tames
         }
         public static TameAreaTrack Track(Vector3 p)
         {
-            int from = MainScript.multiPlayer ? 0 : Person.LocalDefault;
-            int to = MainScript.multiPlayer ? Person.people.Length : Person.LocalDefault + 1;
+            int from = CoreTame.multiPlayer ? 0 : Person.LocalDefault;
+            int to = CoreTame.multiPlayer ? Person.people.Length : Person.LocalDefault + 1;
             float d, minHead = float.PositiveInfinity, minHand = float.PositiveInfinity;
             Person pers;
             int pIndex = -1;
@@ -419,7 +419,7 @@ namespace Tames
             int hIndex = -1;
             for (int i = from; i < to; i++)
             {
-                pers = i == Person.LocalDefault ? MainScript.localPerson : Person.people[i];
+                pers = i == Person.LocalDefault ? CoreTame.localPerson : Person.people[i];
 
                 if (pers != null)
                 {
@@ -442,8 +442,8 @@ namespace Tames
         }
         public static TameAreaTrack TrackWithAreas(List<TameArea> tis, Vector3 p)
         {
-            int from = MainScript.multiPlayer ? 0 : Person.LocalDefault;
-            int to = MainScript.multiPlayer ? Person.people.Length : Person.LocalDefault + 1;
+            int from = CoreTame.multiPlayer ? 0 : Person.LocalDefault;
+            int to = CoreTame.multiPlayer ? Person.people.Length : Person.LocalDefault + 1;
             float d, minHead = float.PositiveInfinity, minHand = float.PositiveInfinity;
             Person person;
             int pIndex = -1;
@@ -457,7 +457,7 @@ namespace Tames
             {
                 for (int a = 0; a < tis.Count; a++)
                 {
-                    person = i == Person.LocalDefault ? MainScript.localPerson : Person.people[i];
+                    person = i == Person.LocalDefault ? CoreTame.localPerson : Person.people[i];
                     if (person != null)
                     {
                         inside = tis[a].Inside(person.headPosition);
@@ -526,8 +526,8 @@ namespace Tames
             TameAreaTrack r = null;
 
 
-            int from = MainScript.multiPlayer ? 0 : Person.LocalDefault;
-            int to = MainScript.multiPlayer ? Person.people.Length : Person.LocalDefault + 1;
+            int from = CoreTame.multiPlayer ? 0 : Person.LocalDefault;
+            int to = CoreTame.multiPlayer ? Person.people.Length : Person.LocalDefault + 1;
             Person person;
             if (r == null)
             {
@@ -535,7 +535,7 @@ namespace Tames
                     for (int i = from; i < to; i++)
                         if (!(t = tis[k]).exclusive)
                         {
-                            person = i == Person.LocalDefault ? MainScript.localPerson : Person.people[i];
+                            person = i == Person.LocalDefault ? CoreTame.localPerson : Person.people[i];
 
                             if (person != null)
                                 if (t.Inside(person.headPosition))
@@ -568,7 +568,7 @@ namespace Tames
             min = float.PositiveInfinity;
             for (int i = from; i < to; i++)
             {
-                person = i == Person.LocalDefault ? MainScript.localPerson : Person.people[i];
+                person = i == Person.LocalDefault ? CoreTame.localPerson : Person.people[i];
                 if (person != null)
                     for (int k = 0; k < tis.Count; k++)
                         for (int j = 0; j < 2; j++)

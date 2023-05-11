@@ -1,4 +1,4 @@
-using Assets.Script;
+
 using Multi;
 using RiptideNetworking;
 using System;
@@ -10,7 +10,7 @@ using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
-   public static Records.FrameShot[] frames = new Records.FrameShot[MainScript.people.Length];
+   public static Records.FrameShot[] frames = new Records.FrameShot[CoreTame.people.Length];
     public static ushort Id = (ushort)255;
     public static ushort index = (ushort)255;
     public static bool assigned = false;
@@ -23,9 +23,9 @@ public class Player : MonoBehaviour
 
     public static int Index(ushort id)
     {
-        for (int i = 0; i < MainScript.people.Length; i++)
-            if (MainScript.people[i] != null)
-                if (MainScript.people[i].id == id)
+        for (int i = 0; i < CoreTame.people.Length; i++)
+            if (CoreTame.people[i] != null)
+                if (CoreTame.people[i].id == id)
                     return i;
         return -1;
     }

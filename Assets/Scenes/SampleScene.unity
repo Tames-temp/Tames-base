@@ -998,7 +998,7 @@ GameObject:
   - component: {fileID: 694716100}
   - component: {fileID: 694716101}
   - component: {fileID: 694716103}
-  - component: {fileID: 694716102}
+  - component: {fileID: 694716104}
   m_Layer: 0
   m_Name: interactives
   m_TagString: Untagged
@@ -1037,29 +1037,6 @@ MonoBehaviour:
   eyeHeights: 1.6
   customManifests: 
   materialEmission: 
---- !u!114 &694716102
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 694716099}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70d7767c22c39394284194785087eaed, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  path: {fileID: 0}
-  start: {fileID: 0}
-  end: {fileID: 0}
-  middle: {fileID: 0}
-  axis: {fileID: 0}
-  pivot: {fileID: 0}
-  up: {fileID: 0}
-  tracker: {fileID: 0}
-  mover: {fileID: 0}
-  headTracker: {fileID: 0}
-  manifestLines: 
 --- !u!114 &694716103
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1073,6 +1050,31 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   origin: 0
+--- !u!114 &694716104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 694716099}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4df5ef66304def745a3049253b23db5d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  folder: 
+  time: 1
+  onlyIfChanged: 1
+  personIndex: 
+  headPosition: 1
+  lookDirection: 1
+  handPosition: 1
+  handRotation: 1
+  bothHands: 0
+  actionKeys: 1
+  actionMouse: 0
+  actionGamePad: 0
+  actionVRController: 0
 --- !u!1 &848606348
 GameObject:
   m_ObjectHideFlags: 0
@@ -1308,7 +1310,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1247307183}
   m_LocalRotation: {x: 0, y: 0.013089582, z: 0, w: 0.99991435}
-  m_LocalPosition: {x: 3.1, y: 6.72, z: -22.2}
+  m_LocalPosition: {x: -14.66, y: 6.72, z: -2.02}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1325,11 +1327,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1247307183}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a31228cd469c0234bb7c511316b1faff, type: 3}
+  m_Script: {fileID: 11500000, guid: 49228a110e2627149bcd0f7b55ea952f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   VRMode: 0
-  lastFrameIndex: -1
 --- !u!1001 &1460288051
 PrefabInstance:
   m_ObjectHideFlags: 0

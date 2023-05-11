@@ -27,7 +27,7 @@ namespace Markers
         {
             return all[i] == null ? null : all[i].transform;
         }
-        void Start()
+        public void Set()
         {
             all = new GameObject[10];
             all[0] = start;
@@ -41,11 +41,5 @@ namespace Markers
             all[8] = path;
             all[9] = headTracker;
         }
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
-
     }
 }

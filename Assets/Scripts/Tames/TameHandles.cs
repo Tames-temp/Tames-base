@@ -169,6 +169,7 @@ namespace Tames
         public static Transform[] ValidObject(GameObject g, out int followMode, out int type)
         {
             Markers.MarkerObject om = g.GetComponent<Markers.MarkerObject>();
+            if (om != null) om.Set();
             Transform m = GetTransform(g.transform, om, KeyMover, 7);
             followMode = 0;
             if (m == null)

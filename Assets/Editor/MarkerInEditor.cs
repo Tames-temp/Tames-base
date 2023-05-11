@@ -122,7 +122,7 @@ class MarkerSettingsEditor : Editor
         eyeHeights = serializedObject.FindProperty("eyeHeights");
         customManifests = serializedObject.FindProperty("customManifests");
         materialEmission = serializedObject.FindProperty("materialEmission");
-       }
+    }
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
@@ -130,8 +130,8 @@ class MarkerSettingsEditor : Editor
         EditorGUILayout.PropertyField(eyeHeights);
         EditorGUILayout.PropertyField(customManifests);
         EditorGUILayout.PropertyField(materialEmission);
-         Markers.MarkerSettings settings = (Markers.MarkerSettings)target;
-        if(GUILayout.Button("Freeze intensity"))
+        Markers.MarkerSettings settings = (Markers.MarkerSettings)target;
+        if (GUILayout.Button("Freeze intensity"))
         {
             settings.FreezeIntensity();
         }
@@ -143,6 +143,7 @@ class MarkerSettingsEditor : Editor
         {
             settings.Load();
         }
+        serializedObject.ApplyModifiedProperties();
     }
 }
 [CustomEditor(typeof(Markers.MarkerLink)), CanEditMultipleObjects]
@@ -311,6 +312,63 @@ public class MarkerFlickerEditor : Editor
         EditorGUILayout.PropertyField(maxFlicker);
         EditorGUILayout.PropertyField(flickerCount);
         EditorGUILayout.PropertyField(steadyPortion);
+        serializedObject.ApplyModifiedProperties();
+    }
+}
+[CustomEditor(typeof(Markers.ExportOption))]
+public class ExportOptionEditor : Editor
+{
+    SerializedProperty folder;
+    SerializedProperty time;
+    SerializedProperty onlyIfChanged;
+    SerializedProperty personIndex;
+    SerializedProperty headPosition;
+    SerializedProperty lookDirection;
+    SerializedProperty handPosition;
+    SerializedProperty handRotation;
+    SerializedProperty bothHands;
+    SerializedProperty actionKeys;
+    SerializedProperty actionMouse;
+    SerializedProperty actionGamePad;
+    SerializedProperty actionVRController;
+
+    void OnEnable()
+    {
+        folder = serializedObject.FindProperty("folder");
+        time = serializedObject.FindProperty("time");
+        onlyIfChanged = serializedObject.FindProperty("onlyIfChanged");
+        personIndex = serializedObject.FindProperty("personIndex");
+        headPosition = serializedObject.FindProperty("headPosition");
+        lookDirection = serializedObject.FindProperty("lookDirection");
+        handPosition = serializedObject.FindProperty("handPosition");
+        handRotation = serializedObject.FindProperty("handRotation");
+        bothHands = serializedObject.FindProperty("bothHands");
+        actionKeys = serializedObject.FindProperty("actionKeys");
+        actionMouse = serializedObject.FindProperty("actionMouse");
+        actionGamePad = serializedObject.FindProperty("actionGamePad");
+        actionVRController = serializedObject.FindProperty("actionVRController");
+    }
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
+        EditorGUILayout.PropertyField(folder);
+        EditorGUILayout.PropertyField(time);
+        EditorGUILayout.PropertyField(onlyIfChanged);
+        EditorGUILayout.PropertyField(personIndex);
+        EditorGUILayout.PropertyField(headPosition);
+        EditorGUILayout.PropertyField(lookDirection);
+        EditorGUILayout.PropertyField(handPosition);
+        EditorGUILayout.PropertyField(handRotation);
+        EditorGUILayout.PropertyField(bothHands);
+        EditorGUILayout.PropertyField(actionKeys);
+        EditorGUILayout.PropertyField(actionMouse);
+        EditorGUILayout.PropertyField(actionGamePad);
+        EditorGUILayout.PropertyField(actionVRController);
+        Markers.ExportOption option = (Markers.ExportOption)target;
+        if (GUILayout.Button("Export To CSV"))
+        {
+            option.Export();
+        }
         serializedObject.ApplyModifiedProperties();
     }
 }

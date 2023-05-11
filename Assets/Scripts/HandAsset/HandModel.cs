@@ -1,4 +1,4 @@
-﻿using Assets.Script;
+﻿
 using Tames;
 using System;
 using System.Collections.Generic;

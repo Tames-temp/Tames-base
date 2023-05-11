@@ -1,4 +1,4 @@
-﻿using Assets.Script;
+﻿
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -179,10 +179,10 @@ namespace Tames
             if (Mouse.current != null)
             {
                 float ms = Mouse.current.scroll.y.ReadValue();
-                MainScript.WheelDirection = ms > 0 ? 1 : (ms < 0 ? -1 : 0);
-                MainScript.MouseButton = 0;
-                if (Mouse.current.leftButton.isPressed) MainScript.MouseButton = -1;
-                if (Mouse.current.rightButton.isPressed) MainScript.MouseButton = 1;
+                CoreTame.WheelDirection = ms > 0 ? 1 : (ms < 0 ? -1 : 0);
+                CoreTame.MouseButton = 0;
+                if (Mouse.current.leftButton.isPressed) CoreTame.MouseButton = -1;
+                if (Mouse.current.rightButton.isPressed) CoreTame.MouseButton = 1;
             }
 
             SetMovingDirection();

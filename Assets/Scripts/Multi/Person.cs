@@ -18,8 +18,8 @@ namespace Multi
         public HandModel[] hand = new HandModel[2];
 
         public ushort id;
-        public Vector3 headPosition;
-        public Vector3 headLocalEuler;
+        public Vector3 headPosition, headForward;
+        public Quaternion headRotation;
         public Vector3[] position;
         public Vector3[] localEuler;
         public Vector3[] index;
@@ -59,7 +59,7 @@ namespace Multi
         public void EncodeLocal()
         {
             headPosition = head.transform.position;
-            headLocalEuler = head.transform.localEulerAngles;
+            headRotation = head.transform.rotation;
             for (int i = 0; i < 2; i++)
             {
                 position[i] = hand[i].wrist.transform.position;
@@ -90,10 +90,10 @@ namespace Multi
         /// <param name="fingerHeader"></param>
         public void CreateModel(string fingerHeader)
         {
-            head = GameObject.Instantiate(Assets.Script.MainScript.HeadObject);
+            head = GameObject.Instantiate(CoreTame.HeadObject);
             head.SetActive(true);
-            GameObject g0 = GameObject.Instantiate(Assets.Script.MainScript.localPerson.hand[0].wrist);
-            GameObject g1 = GameObject.Instantiate(Assets.Script.MainScript.localPerson.hand[1].wrist);
+            GameObject g0 = GameObject.Instantiate(CoreTame.localPerson.hand[0].wrist);
+            GameObject g1 = GameObject.Instantiate(CoreTame.localPerson.hand[1].wrist);
             hand[0] = new HandModel(null, g0, 0);
             hand[0].GetFingers(fingerHeader);
             hand[1] = new HandModel(null, g1, 1);
@@ -113,7 +113,8 @@ namespace Multi
                 hand[0].wrist.transform.rotation = frame.hrot[0];
                 hand[1].wrist.transform.rotation = frame.hrot[1];
                 headPosition = head.transform.position;
-                headLocalEuler = head.transform.localEulerAngles;
+                headRotation = head.transform.rotation;
+                headForward = head.transform.forward;
                 for (int i = 0; i < 2; i++)
                 {
                     position[i] = hand[i].wrist.transform.position;
@@ -136,7 +137,7 @@ namespace Multi
         public void UpdateHeadOnly()
         {
             headPosition = head.gameObject.transform.position;
-            headLocalEuler = head.gameObject.transform.localEulerAngles;
+            headRotation = head.gameObject.transform.rotation;
             switch (action)
             {
                 case ActionGrip: Grip(nextArea, Tames.TameCamera.cameraTransform); break;

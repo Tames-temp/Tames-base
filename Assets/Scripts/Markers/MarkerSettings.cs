@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEditor;
+using Records;
 namespace Markers
 {
     public class MarkerSettings : MonoBehaviour
@@ -266,6 +268,24 @@ namespace Markers
                             m.SetColor("_EmissiveColor", Color(sep[1]));
                     }
                 }
+        }
+        public void ExportToCSV()
+        {
+            bool success = false;
+            string path = EditorUtility.OpenFilePanel("Select file", "Assets", "");
+            if (path != "")
+            {
+                TameFullRecord.allRecords = new TameFullRecord(null);
+                success = TameFullRecord.allRecords.Load(path);
+            }
+            if (success)
+            {
+                path = EditorUtility.SaveFolderPanel("Select folde", "Assets", "");
+                if (path != "")
+                {
+   //                 TameFullRecord.allRecords.ExportToCSV(path, option);
+                }
+            }
         }
     }
 }

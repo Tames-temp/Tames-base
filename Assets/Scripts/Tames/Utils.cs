@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Tames;
-using Assets.Script;
+
 /// <summary>
 /// types of mainfest items. This roughly corresponds to the first word of a manifest line. This enum has several functions. It is used to define the subtypes in a <see cref="TameManager"/>. 
 /// Three of them (Update, Slide and Rotate) also indicate the effects of a <see cref="TameEffect"/>.

@@ -1,4 +1,4 @@
-﻿using Assets.Script;
+﻿
 using RiptideNetworking;
 using System.Collections.Generic;
 using UnityEngine;

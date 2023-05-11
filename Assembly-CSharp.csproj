@@ -75,6 +75,7 @@
     <Compile Include="Assets\Scripts\Tames\TameOrbit.cs" />
     <Compile Include="Assets\Scripts\Markers\MarkerManifest.cs" />
     <Compile Include="Assets\Scripts\Markers\MarkerSettings.cs" />
+    <Compile Include="Assets\Scripts\CoreTame.cs" />
     <Compile Include="Assets\Scripts\Multi\Player.cs" />
     <Compile Include="Assets\Scripts\Tames\TameObject.cs" />
     <Compile Include="Assets\Scripts\Markers\MarkerCorrespond.cs" />
@@ -91,7 +92,6 @@
     <Compile Include="Assets\Scripts\Tames\TameEffect.cs" />
     <Compile Include="Assets\Scripts\Markers\MarkerSpeed.cs" />
     <Compile Include="Assets\Scripts\Markers\MarkerWalk.cs" />
-    <Compile Include="Assets\Scripts\MainScript.cs" />
     <Compile Include="Assets\Scripts\Multi\ITameEffect.cs" />
     <Compile Include="Assets\Scripts\Multi\Multiplayer\MessageExtensions.cs" />
     <Compile Include="Assets\Scripts\Records\TameKeyMap.cs" />
@@ -104,6 +104,7 @@
     <Compile Include="Assets\Scripts\Tames\TameChanger.cs" />
     <Compile Include="Assets\Scripts\Tames\TameArea.cs" />
     <Compile Include="Assets\Scripts\Walking\WalkFace.cs" />
+    <Compile Include="Assets\Scripts\Markers\ExportOption.cs" />
     <Compile Include="Assets\Scripts\Markers\MarkerFlicker.cs" />
     <Compile Include="Assets\Scripts\Tames\TameFinder.cs" />
     <Compile Include="Assets\Scripts\Tames\Slerp.cs" />

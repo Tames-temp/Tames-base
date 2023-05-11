@@ -45,7 +45,7 @@ namespace Tames
             }
             return false;
         }
-        public static Records.FrameShot CheckKeys(int index = -1)
+        public static Records.TameKeyMap CheckKeys(int index = -1)
         {
             if (keyMap == null)
                 keyMap = new Records.TameKeyMap(checkedKeys.Count);
@@ -54,8 +54,10 @@ namespace Tames
             if (index >= 0)
                 keyMap = Records.TameFullRecord.allRecords.frame[index].keyMap;
             else
-              return keyMap.Capture();
-            //       for (int i = 0; i < keyStatus.Length; i++)
+            {
+                keyMap.Capture();
+                return keyMap;
+            } //       for (int i = 0; i < keyStatus.Length; i++)
             //           {
             //           keyStatus[i] = checkedKeys[i].isPressed;
             //       Debug.Log("custom key "+i+" "+keyStatus[i]+" "+checkedKeys[i].name);
@@ -108,7 +110,7 @@ namespace Tames
                         else
                         {
                             k = FindKey(list[0]);
-                    //        if (k >= 0) Debug.Log("MPM " + k);
+                            //        if (k >= 0) Debug.Log("MPM " + k);
                             if (k >= 0)
                                 return new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Key, keyValue = new int[] { k }, direction = InputDirections.Key };
                         }
@@ -168,8 +170,8 @@ namespace Tames
                     }
                     else if (list.Length >= 2)
                     {
-              //          Debug.Log("MANUL " + list[0]);
-                //        Debug.Log("MANUL " + list[1]);
+                        //          Debug.Log("MANUL " + list[0]);
+                        //        Debug.Log("MANUL " + list[1]);
                         int k1 = FindKey(list[0]);
                         if (k1 >= 0)
                         {
@@ -180,7 +182,7 @@ namespace Tames
                             else
                             {
                                 int k2 = FindKey(list[1]);
-                     //           Debug.Log("MANUL " + k1 + " , "+k2);
+                                //           Debug.Log("MANUL " + k1 + " , "+k2);
                                 if ((k2 != k1) && (k2 >= 0))
                                     return new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Key, keyValue = new int[] { k1, k2 }, direction = InputDirections.Key };
                             }
@@ -247,99 +249,99 @@ namespace Tames
         {
             float f;
             int k;
-                switch (control)
-                {
-                    case InputTypes.VRController:
-                        switch (hold)
-                        {
+            switch (control)
+            {
+                case InputTypes.VRController:
+                    switch (hold)
+                    {
 
-                            case InputHoldType.VRScrollLeft:
-                                f = keyMap.vrMap.thumb[0];
-                                if (Mathf.Abs(f) > Threshold) return f < 0 ? -1 : 1;
-                                break;
-                            case InputHoldType.VRScrollRight:
-                                f = keyMap.vrMap.thumb[1];
-                                if (Mathf.Abs(f) > Threshold) return f < 0 ? -1 : 1;
-                                break;
-                            case InputHoldType.VRTrigger:
-                                k = keyMap.vrMap.trigger[0] > keyMap.vrMap.trigger[1] ? 0 : 1;
-                                if (keyMap.vrMap.trigger[k] > Threshold) return k == 0 ? -1 : 1;
-                                break;
-                        }
-                        return 0;
-                    case InputTypes.GamePad:
-                        return InputBasis.GamePadButton(hold, 0.5f);
-                    default:
+                        case InputHoldType.VRScrollLeft:
+                            f = keyMap.vrMap.thumb[0];
+                            if (Mathf.Abs(f) > Threshold) return f < 0 ? -1 : 1;
+                            break;
+                        case InputHoldType.VRScrollRight:
+                            f = keyMap.vrMap.thumb[1];
+                            if (Mathf.Abs(f) > Threshold) return f < 0 ? -1 : 1;
+                            break;
+                        case InputHoldType.VRTrigger:
+                            k = keyMap.vrMap.trigger[0] > keyMap.vrMap.trigger[1] ? 0 : 1;
+                            if (keyMap.vrMap.trigger[k] > Threshold) return k == 0 ? -1 : 1;
+                            break;
+                    }
+                    return 0;
+                case InputTypes.GamePad:
+                    return InputBasis.GamePadButton(hold, 0.5f);
+                default:
+                    {
+                        if (keyValue == null)
                         {
-                            if (keyValue == null)
+                            if (hold == InputHoldType.Key)
+                                if (direction == InputDirections.MouseButton) return keyMap.mouse.hold[0] ? -1 : (keyMap.mouse.hold[1] ? 1 : 0);
+                        }
+                        else
+                        {
+                            if (keyValue.Length == 1)
                             {
-                                if (hold == InputHoldType.Key)
-                                    if (direction == InputDirections.MouseButton) return keyMap.mouse.hold[0] ? -1 : (keyMap.mouse.hold[1] ? 1 : 0);
+                                if (keyMap.hold[keyValue[0]])
+                                    if (direction == InputDirections.MouseButton) return keyMap.mouse.hold[0] ? -1 : (keyMap.hold[1] ? 1 : 0);
                             }
                             else
                             {
-                                if (keyValue.Length == 1)
-                                {
-                                    if (keyMap.hold[keyValue[0]])
-                                        if (direction == InputDirections.MouseButton) return keyMap.mouse.hold[0] ? -1 : (keyMap.hold[1] ? 1 : 0);
-                                }
-                                else
-                                {
-                                    //             Debug.Log(keyStatus.Length);
-                                    if (keyMap.hold[keyValue[0]]) return -1;
-                                    if (keyMap.hold[keyValue[1]]) return 1;
-                                }
+                                //             Debug.Log(keyStatus.Length);
+                                if (keyMap.hold[keyValue[0]]) return -1;
+                                if (keyMap.hold[keyValue[1]]) return 1;
                             }
-                            return 0;
                         }
-                }
-         }
+                        return 0;
+                    }
+            }
+        }
         public bool Pressed()
         {
             float f;
             int k;
-                switch (control)
-                {
-                    case InputTypes.VRController:
-                        switch (hold)
-                        {
+            switch (control)
+            {
+                case InputTypes.VRController:
+                    switch (hold)
+                    {
 
-                            case InputHoldType.VRScrollLeft:
-                                f = keyMap.vrMap.thumb[0];
-                                if (Mathf.Abs(f) > Threshold) return true;
-                                break;
-                            case InputHoldType.VRScrollRight:
-                                f = keyMap.vrMap.thumb[1];
-                                if (Mathf.Abs(f) > Threshold) return true;
-                                break;
-                            case InputHoldType.VRTrigger:
-                                k = keyMap.vrMap.trigger[0] > keyMap.vrMap.trigger[1] ? 0 : 1;
-                                if (keyMap.vrMap.trigger[k] > Threshold) return true;
-                                break;
+                        case InputHoldType.VRScrollLeft:
+                            f = keyMap.vrMap.thumb[0];
+                            if (Mathf.Abs(f) > Threshold) return true;
+                            break;
+                        case InputHoldType.VRScrollRight:
+                            f = keyMap.vrMap.thumb[1];
+                            if (Mathf.Abs(f) > Threshold) return true;
+                            break;
+                        case InputHoldType.VRTrigger:
+                            k = keyMap.vrMap.trigger[0] > keyMap.vrMap.trigger[1] ? 0 : 1;
+                            if (keyMap.vrMap.trigger[k] > Threshold) return true;
+                            break;
+                    }
+                    return false;
+                case InputTypes.GamePad:
+                    return InputBasis.GamePadButton(hold, 0.5f) != 0;
+                default:
+                    {
+                        if (keyValue == null)
+                        {
+                            if (hold == InputHoldType.Key)
+                                if (direction == InputDirections.MouseButton) return keyMap.mouse.pressed[0] || keyMap.mouse.pressed[1];
+                        }
+                        else
+                        {
+                            if (keyValue.Length == 1)
+                                if (keyMap.pressed[keyValue[0]])
+                                {
+                                    if (direction == InputDirections.MouseButton) return keyMap.mouse.pressed[0] || keyMap.mouse.pressed[1];
+
+                                    else return true;
+                                }
                         }
                         return false;
-                    case InputTypes.GamePad:
-                        return InputBasis.GamePadButton(hold, 0.5f) != 0;
-                    default:
-                        {
-                            if (keyValue == null)
-                            {
-                                if (hold == InputHoldType.Key)
-                                    if (direction == InputDirections.MouseButton) return keyMap.mouse.pressed[0] || keyMap.mouse.pressed[1];
-                            }
-                            else
-                            {
-                                if (keyValue.Length == 1)
-                                    if (keyMap.pressed[keyValue[0]])
-                                    {
-                                        if (direction == InputDirections.MouseButton) return keyMap.mouse.pressed[0] || keyMap.mouse.pressed[1];
-
-                                        else return true;
-                                    }
-                            }
-                            return false;
-                        }
-                }
-          }
+                    }
+            }
+        }
     }
 }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Assets.Script;
 using System.IO;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -87,18 +86,46 @@ namespace Records
         }
         public void Capture()
         {
-            trigger[0] = MainScript.localPerson.hand[0].data.trigger.Value;
-            trigger[1] = MainScript.localPerson.hand[1].data.trigger.Value;
-            grip[0] = MainScript.localPerson.hand[0].data.grip.Value;
-            grip[1] = MainScript.localPerson.hand[1].data.grip.Value;
-            stick[0] = MainScript.localPerson.hand[0].data.stick.Vector;
-            stick[1] = MainScript.localPerson.hand[1].data.stick.Vector;
-            thumb[0] = MainScript.localPerson.hand[0].data.thumb.Value;
-            thumb[1] = MainScript.localPerson.hand[1].data.thumb.Value;
-            A[0] = MainScript.localPerson.hand[0].data.A.Pressed;
-            A[1] = MainScript.localPerson.hand[1].data.A.Pressed;
-            B[0] = MainScript.localPerson.hand[0].data.B.Pressed;
-            B[1] = MainScript.localPerson.hand[1].data.B.Pressed;
+            trigger[0] = CoreTame.localPerson.hand[0].data.trigger.Value;
+            trigger[1] = CoreTame.localPerson.hand[1].data.trigger.Value;
+            grip[0] = CoreTame.localPerson.hand[0].data.grip.Value;
+            grip[1] = CoreTame.localPerson.hand[1].data.grip.Value;
+            stick[0] = CoreTame.localPerson.hand[0].data.stick.Vector;
+            stick[1] = CoreTame.localPerson.hand[1].data.stick.Vector;
+            thumb[0] = CoreTame.localPerson.hand[0].data.thumb.Value;
+            thumb[1] = CoreTame.localPerson.hand[1].data.thumb.Value;
+            A[0] = CoreTame.localPerson.hand[0].data.A.Pressed;
+            A[1] = CoreTame.localPerson.hand[1].data.A.Pressed;
+            B[0] = CoreTame.localPerson.hand[0].data.B.Pressed;
+            B[1] = CoreTame.localPerson.hand[1].data.B.Pressed;
+        }
+        public string Export()
+        {
+            string r = (trigger[0] > 0.5f ? "LT;" : "")
+                     + (trigger[1] > 0.5f ? "RT;" : "")
+                     + (grip[0] > 0.5f ? "LG;" : "")
+                     + (grip[1] > 0.5f ? "RG;" : "")
+                     + (stick[0].x > 0.5f ? "LSR;" : "")
+                     + (stick[0].x < -0.5f ? "LSL;" : "")
+                     + (stick[0].y > 0.5f ? "LSU;" : "")
+                     + (stick[0].y < -0.5f ? "LSD;" : "")
+                     + (stick[1].x > 0.5f ? "RSR;" : "")
+                     + (stick[1].x < -0.5f ? "RSL;" : "")
+                     + (stick[1].y > 0.5f ? "RSU;" : "")
+                     + (stick[1].y < -0.5f ? "RSD;" : "")
+                     + (thumb[0] > 0.5f ? "LTU;" : "")
+                     + (thumb[0] < -0.5f ? "LTD;" : "")
+                     + (thumb[1] > 0.5f ? "RTU;" : "")
+                     + (thumb[1] < -0.5f ? "RTD;" : "")
+                     + (A[0] ? "LA;" : "")
+                     + (A[1] ? "RA;" : "")
+                     + (B[0] ? "LB;" : "")
+                     + (B[1] ? "RB;" : "");
+            return r;
+        }
+        public bool ChangedFrom(VRMap vm)
+        {
+            return false;
         }
     }
     public class GPMap
@@ -210,6 +237,50 @@ namespace Records
                 shoulder[i] = bin.ReadSingle();
             }
         }
+        public string ExportStatus(bool[] status)
+        {
+            string r = status[0] ? "A;" : "";
+            r += status[1] ? "B;" : "";
+            r += status[2] ? "X;" : "";
+            r += status[3] ? "Y;" : "";
+            r += status[4] ? "LT;" : "";
+            r += status[5] ? "RT;" : "";
+            r += status[6] ? "LSh;" : "";
+            r += status[7] ? "RSh;" : "";
+            r += dpad.x < -0.5 ? "DL;" : "";
+            r += dpad.x > 0.5 ? "DR;" : "";
+            r += dpad.y < -0.5 ? "DD;" : "";
+            r += dpad.y > 0.5 ? "DU;" : "";
+            r += stick[0].x < -0.5 ? "LSL;" : "";
+            r += stick[0].x > 0.5 ? "LSR;" : "";
+            r += stick[0].y < -0.5 ? "LSD;" : "";
+            r += stick[0].y > 0.5 ? "LSU;" : "";
+            r += stick[1].x < -0.5 ? "RSL;" : "";
+            r += stick[1].x > 0.5 ? "RSR;" : "";
+            r += stick[1].y < -0.5 ? "RSD;" : "";
+            r += stick[1].y > 0.5 ? "RSU;" : "";
+            return r;
+        }
+        public string ExportValue()
+        {
+            string r = dpad.x < -0.5 ? "DL;" : "";
+            r += dpad.x > 0.5 ? "DR;" : "";
+            r += dpad.y < -0.5 ? "DD;" : "";
+            r += dpad.y > 0.5 ? "DU;" : "";
+            r += stick[0].x < -0.5 ? "LSL;" : "";
+            r += stick[0].x > 0.5 ? "LSR;" : "";
+            r += stick[0].y < -0.5 ? "LSD;" : "";
+            r += stick[0].y > 0.5 ? "LSU;" : "";
+            r += stick[1].x < -0.5 ? "RSL;" : "";
+            r += stick[1].x > 0.5 ? "RSR;" : "";
+            r += stick[1].y < -0.5 ? "RSD;" : "";
+            r += stick[1].y > 0.5 ? "RSU;" : "";
+            return r;
+        }
+        public bool ChangedFrom(GPMap vm)
+        {
+            return false;
+        }
     }
     public class MouseMap
     {
@@ -229,6 +300,12 @@ namespace Records
                 hold[0] = (value & 4) > 0;
                 hold[1] = (value & 8) > 0;
             }
+        }
+        public string Export(bool[] status)
+        {
+            string r = status[0] ? "Left;" : "";
+            return r + (status[1] ? "Right" : "");
+
         }
     }
     public class TameKeyMap
@@ -257,6 +334,13 @@ namespace Records
             gpMap = new GPMap();
             mouse = new MouseMap();
         }
+        public void WriteDescription(BinaryWriter bin)
+        {
+            string s = "";
+            for(int i = 0; i < keyCount; i++)
+                s += (i==0?"":",")+TameInputControl.checkedKeys[i].displayName;
+            bin.Write(s); 
+        }
         public FrameShot Capture()
         {
             if (Keyboard.current != null)
@@ -267,7 +351,7 @@ namespace Records
                 right = Keyboard.current.dKey.isPressed;
                 up = Keyboard.current.rKey.isPressed;
                 down = Keyboard.current.fKey.isPressed;
-                shift = Keyboard.current.leftShiftKey.isPressed;
+                shift = Keyboard.current.shiftKey.isPressed;
                 for (int i = 0; i < keyCount; i++)
                 {
                     pressed[i] = TameInputControl.checkedKeys[i].wasPressedThisFrame;
@@ -281,7 +365,7 @@ namespace Records
                 mouse.pressed[0] = Mouse.current.leftButton.wasPressedThisFrame;
                 mouse.pressed[1] = Mouse.current.rightButton.wasPressedThisFrame;
                 Vector2 mousePosition = new Vector2(Mouse.current.position.x.ReadValue(), Mouse.current.position.y.ReadValue());
-                mouse.y = (mousePosition.y - 0.5f * MainScript.screenSize.y) / (0.5f * MainScript.screenSize.y);
+                mouse.y = (mousePosition.y - 0.5f * CoreTame.screenSize.y) / (0.5f * CoreTame.screenSize.y);
             }
             vrMap.Capture();
             gpMap.Capture();
@@ -331,7 +415,7 @@ namespace Records
         }
         public void Write(BinaryWriter bin)
         {
-            bin.Write(keyCount);
+         //   bin.Write(keyCount);
             bin.Write(forward);
             bin.Write(back);
             bin.Write(left);
@@ -366,7 +450,7 @@ namespace Records
         }
         public FrameShot Aggregate(FrameShot[] fs, FrameShot local)
         {
-            if (MainScript.multiPlayer)
+            if (CoreTame.multiPlayer)
             {
                 FrameShot f = new FrameShot();
                 ulong ul = 0;
@@ -400,6 +484,15 @@ namespace Records
             }
             else
                 return local;
+        }
+        public string Export(bool[] status, string[] names)
+        {
+            string r = "";
+            int k = 0;
+            for (int i = 0; i < status.Length; i++)
+                if (status[i])
+                { r += k == 0 ? names[i] : ";" + names[i]; k++; }
+            return r;
         }
     }
 }

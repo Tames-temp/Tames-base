@@ -97,7 +97,7 @@ namespace Tames
             result.AddRange(lines);
             foreach (string imn in header.items)
             {
-                l = Assets.Script.Identifier.LoadLines(imn);
+                l = Identifier.LoadLines(imn);
                 Debug.Log("import " + l.Length);
                 result.AddRange(l);
             }
@@ -192,8 +192,9 @@ namespace Tames
 
             GameObject[] root = SceneManager.GetActiveScene().GetRootGameObjects();
             foreach (GameObject rootObj in root) if (rootObj.name.Equals("interactives")) { RootObject = rootObj; break; }
-           settings=RootObject.GetComponent<Markers.MarkerSettings>();
-            settings.ResetIntensity();  
+            settings = RootObject.GetComponent<Markers.MarkerSettings>();
+            settings.ResetIntensity();
+            CoreTame.exportOption = RootObject.GetComponent<Markers.ExportOption>();
             lines = GetLines(RootObject);
             SurveyCorrespondence();
             SurveyInteractives();
@@ -232,6 +233,7 @@ namespace Tames
                 }
             TameCamera.ReadCamera(tgos);
             SetLink();
+            Records.TameFullRecord.allRecords = new Records.TameFullRecord(CoreTame.people);
             // sort update time > find objects
         }
 
@@ -848,7 +850,7 @@ namespace Tames
                 if (te.markerFlicker != null)
                     if (te.manifest != null)
                     {
-                        Debug.Log("flicker " + te.name+ " "+ te.manifest.properties.Count);
+                        Debug.Log("flicker " + te.name + " " + te.manifest.properties.Count);
                         foreach (Markers.MarkerFlicker mf in te.markerFlicker)
                             foreach (TameChanger ch in te.manifest.properties)
                             {

@@ -61,7 +61,7 @@ public class NetworkManager : MonoBehaviour
             if (ip.Length > 4)
                 Client.Connect($"{ip}:{port}");
             else 
-                Assets.Script.MainScript.multiPlayer = false;
+                CoreTame.multiPlayer = false;
         }
         else
             Client.Connect($"{commandIP}:{port}");

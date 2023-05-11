@@ -66,7 +66,7 @@ namespace Tames
                     if (flickerParent != null)
                     {
                         flickering = flickerParent.flickering;
-                        Debug.Log("flicker mat " + tp + " " + flickering);
+                   //     Debug.Log("flicker mat " + tp + " " + flickering);
                     }
                     else
                     {
