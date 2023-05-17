@@ -345,7 +345,7 @@
       <HintPath>Library\PackageCache\com.unity.burst@1.8.2\Unity.Burst.CodeGen\Unity.Burst.Cecil.Rocks.dll</HintPath>
     </Reference>
     <Reference Include="RiptideNetworking">
-      <HintPath>Assets\Scripts\Multi\Multiplayer\RiptideNetworking.dll</HintPath>
+      <HintPath>Assets\Tames\Scripts\Multi\Multiplayer\RiptideNetworking.dll</HintPath>
     </Reference>
     <Reference Include="netstandard">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2021.3.20f1\Editor\Data\NetStandard\ref\2.1.0\netstandard.dll</HintPath>

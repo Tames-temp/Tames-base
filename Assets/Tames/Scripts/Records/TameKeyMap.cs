@@ -1,0 +1,578 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.IO;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using Tames;
+
+namespace Records
+{
+    public class VRMap
+    {
+        public float[] trigger;
+        public float[] grip;
+        public Vector2[] stick;
+        public float[] thumb;
+        public bool[] A;
+        public bool[] B;
+        private const uint u0 = 1, u1 = 2, u2 = 4, u3 = 8, u4 = 16, u5 = 32, u6 = 64, u7 = 128, u8 = 256, u9 = 512, u10 = 1024, u11 = 2048, u12 = 4096, u13 = 8192, u14 = 16384, u15 = 32768, u16 = 65536, u17 = 131072, u18 = 262144, u19 = 524288, u20 = 1048576, u21 = 2097152, u22 = 4194304, u23 = 8388608, u24 = 16777216, u25 = 33554432, u26 = 67108864, u27 = 134217728, u28 = 268435456, u29 = 536870912, u30 = 1073741824, u31 = 2147483648;
+
+        public VRMap()
+        {
+            trigger = new float[] { 0, 0 };
+            grip = new float[] { 0, 0 };
+            stick = new Vector2[] { Vector2.zero, Vector2.zero };
+            thumb = new float[] { 0, 0 };
+            A = new bool[] { false, false };
+            B = new bool[] { false, false };
+        }
+        public uint UPressed = 0;
+        public uint UHold
+        {
+            get
+            {
+                uint r = (trigger[0] > 0.5f ? u0 : 0u)
+                    + (trigger[1] > 0.5f ? u1 : 0u)
+                    + (grip[0] > 0.5f ? u2 : 0u)
+                    + (grip[1] > 0.5f ? u3 : 0u)
+                    + (stick[0].x > 0.5f ? u4 : 0u)
+                    + (stick[0].x < -0.5f ? u5 : 0u)
+                    + (stick[0].y > 0.5f ? u6 : 0u)
+                    + (stick[0].y < -0.5f ? u7 : 0u)
+                    + (stick[1].x > 0.5f ? u8 : 0u)
+                    + (stick[1].x < -0.5f ? u9 : 0u)
+                    + (stick[1].y > 0.5f ? u10 : 0u)
+                    + (stick[1].y < -0.5f ? u11 : 0u)
+                    + (thumb[0] > 0.5f ? u12 : 0u)
+                    + (thumb[0] < 0.5f ? u13 : 0u)
+                    + (thumb[1] > 0.5f ? u14 : 0u)
+                    + (thumb[1] < 0.5f ? u15 : 0u)
+                    + (A[0] ? u16 : 0u)
+                    + (A[1] ? u17 : 0u)
+                    + (B[0] ? u18 : 0u)
+                    + (B[1] ? u19 : 0u);
+                return r;
+            }
+            set
+            {
+                trigger[0] = (value & (u0)) > 0 ? 1 : 0;
+                trigger[1] = (value & (u1)) > 0 ? 1 : 0;
+                grip[0] = (value & (u2)) > 0 ? 1 : 0;
+                grip[1] = (value & (u3)) > 0 ? 1 : 0;
+                float x = (value & (u4)) > 0 ? 1 : 0;
+                x = (value & (u5)) > 0 ? -1 : x;
+                float y = (value & (u6)) > 0 ? 1 : 0;
+                y = (value & (u7)) > 0 ? -1 : y;
+                stick[0] = new Vector2(x, y);
+                x = (value & (u8)) > 0 ? 1 : 0;
+                x = (value & (u9)) > 0 ? -1 : x;
+                y = (value & (u9)) > 0 ? 1 : 0;
+                y = (value & (u11)) > 0 ? -1 : y;
+                stick[1] = new Vector2(x, y);
+                x = (value & (u12)) > 0 ? 1 : 0;
+                x = (value & (u13)) > 0 ? -1 : x;
+                thumb[0] = x;
+                x = (value & (u14)) > 0 ? 1 : 0;
+                x = (value & (u15)) > 0 ? -1 : x;
+                thumb[1] = x;
+                A[0] = (value & (u16)) > 0;
+                A[1] = (value & (u17)) > 0;
+                B[0] = (value & (u18)) > 0;
+                B[1] = (value & (u19)) > 0;
+            }
+        }
+        public void Capture()
+        {
+            trigger[0] = CoreTame.localPerson.hand[0].data.trigger.Value;
+            trigger[1] = CoreTame.localPerson.hand[1].data.trigger.Value;
+            grip[0] = CoreTame.localPerson.hand[0].data.grip.Value;
+            grip[1] = CoreTame.localPerson.hand[1].data.grip.Value;
+            stick[0] = CoreTame.localPerson.hand[0].data.stick.Vector;
+            stick[1] = CoreTame.localPerson.hand[1].data.stick.Vector;
+            thumb[0] = CoreTame.localPerson.hand[0].data.thumb.Value;
+            thumb[1] = CoreTame.localPerson.hand[1].data.thumb.Value;
+            A[0] = CoreTame.localPerson.hand[0].data.A.Pressed;
+            A[1] = CoreTame.localPerson.hand[1].data.A.Pressed;
+            B[0] = CoreTame.localPerson.hand[0].data.B.Pressed;
+            B[1] = CoreTame.localPerson.hand[1].data.B.Pressed;
+        }
+        public string Export()
+        {
+            string r = (trigger[0] > 0.5f ? "LT;" : "")
+                     + (trigger[1] > 0.5f ? "RT;" : "")
+                     + (grip[0] > 0.5f ? "LG;" : "")
+                     + (grip[1] > 0.5f ? "RG;" : "")
+                     + (stick[0].x > 0.5f ? "LSR;" : "")
+                     + (stick[0].x < -0.5f ? "LSL;" : "")
+                     + (stick[0].y > 0.5f ? "LSU;" : "")
+                     + (stick[0].y < -0.5f ? "LSD;" : "")
+                     + (stick[1].x > 0.5f ? "RSR;" : "")
+                     + (stick[1].x < -0.5f ? "RSL;" : "")
+                     + (stick[1].y > 0.5f ? "RSU;" : "")
+                     + (stick[1].y < -0.5f ? "RSD;" : "")
+                     + (thumb[0] > 0.5f ? "LTU;" : "")
+                     + (thumb[0] < -0.5f ? "LTD;" : "")
+                     + (thumb[1] > 0.5f ? "RTU;" : "")
+                     + (thumb[1] < -0.5f ? "RTD;" : "")
+                     + (A[0] ? "LA;" : "")
+                     + (A[1] ? "RA;" : "")
+                     + (B[0] ? "LB;" : "")
+                     + (B[1] ? "RB;" : "");
+            return r;
+        }
+        public bool ChangedFrom(VRMap vm)
+        {
+            return false;
+        }
+    }
+    public class GPMap
+    {
+        public bool[] pressed = new bool[9];
+        public bool[] hold = new bool[9];
+        public Vector2[] stick = new Vector2[] { Vector2.zero, Vector2.zero };
+        public Vector2 dpad = Vector2.zero;
+        public float[] trigger = new float[] { 0, 0 };
+        public float[] shoulder = new float[] { 0, 0 };
+        private const uint u0 = 1, u1 = 2, u2 = 4, u3 = 8, u4 = 16, u5 = 32, u6 = 64, u7 = 128, u8 = 256, u9 = 512, u10 = 1024, u11 = 2048, u12 = 4096, u13 = 8192, u14 = 16384, u15 = 32768, u16 = 65536, u17 = 131072, u18 = 262144, u19 = 524288, u20 = 1048576, u21 = 2097152, u22 = 4194304, u23 = 8388608, u24 = 16777216, u25 = 33554432, u26 = 67108864, u27 = 134217728, u28 = 268435456, u29 = 536870912, u30 = 1073741824, u31 = 2147483648;
+        public GPMap()
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                pressed[i] = false;
+                hold[i] = false;
+            }
+        }
+        public ulong UPressed
+        {
+            get
+            {
+                ulong r = 0;
+                for (int i = 0; i < pressed.Length; i++)
+                    r += pressed[i] ? 1u << i : 0;
+                return r;
+            }
+            set
+            {
+                for (int i = 0; i < pressed.Length; i++)
+                    pressed[i] = (value & (1u << i)) > 0;
+
+            }
+        }
+        public ulong UHold
+        {
+            get
+            {
+                ulong r = 0;
+                for (int i = 0; i < hold.Length; i++)
+                    r += hold[i] ? 1u << i : 0;
+                return r;
+            }
+            set
+            {
+                for (int i = 0; i < hold.Length; i++)
+                    hold[i] = (value & (1u << i)) > 0;
+
+            }
+        }
+        public void Capture()
+        {
+            Gamepad gp = Gamepad.current;
+            if (gp != null)
+            {
+                pressed[0] = gp.aButton.wasPressedThisFrame;
+                pressed[1] = gp.bButton.wasPressedThisFrame;
+                pressed[2] = gp.xButton.wasPressedThisFrame;
+                pressed[3] = gp.yButton.wasPressedThisFrame;
+                pressed[4] = gp.leftTrigger.wasPressedThisFrame;
+                pressed[5] = gp.rightTrigger.wasPressedThisFrame;
+                pressed[6] = gp.leftShoulder.wasPressedThisFrame;
+                pressed[7] = gp.rightShoulder.wasPressedThisFrame;
+                pressed[8] = gp.startButton.wasPressedThisFrame;
+                hold[0] = gp.aButton.isPressed;
+                hold[1] = gp.bButton.isPressed;
+                hold[2] = gp.xButton.isPressed;
+                hold[3] = gp.yButton.isPressed;
+                hold[4] = gp.leftTrigger.isPressed;
+                hold[5] = gp.rightTrigger.isPressed;
+                hold[6] = gp.leftShoulder.isPressed;
+                hold[7] = gp.rightShoulder.isPressed;
+                hold[8] = gp.startButton.isPressed;
+                dpad = gp.dpad.ReadValue();
+                stick[0] = gp.leftStick.ReadValue();
+                stick[1] = gp.rightStick.ReadValue();
+                trigger[0] = gp.leftTrigger.ReadValue();
+                trigger[1] = gp.rightTrigger.ReadValue();
+                shoulder[0] = gp.leftShoulder.ReadValue();
+                shoulder[1] = gp.rightShoulder.ReadValue();
+            }
+        }
+        public int ButtonHold(InputHoldType aux, InputHoldType h, float threshold)
+        {
+            if (Gamepad.current != null)
+            {
+                //     Debug.Log(Gamepad.current.rightTrigger.isPressed ? 1 : (Gamepad.current.leftTrigger.isPressed ? -1 : 0));
+                bool comb = true;
+                if (aux != InputHoldType.None)
+                    comb = aux switch
+                    {
+                        InputHoldType.GTL => hold[4] && (!hold[5]),
+                        InputHoldType.GTR => hold[5] && (!hold[4]),
+                        _ => hold[4] && hold[5]
+                    };
+                if (!comb) return 0;
+                switch (h)
+                {
+                    case InputHoldType.GDY: return Mathf.Abs(dpad.y) <= threshold ? 0 : (dpad.y < 0 ? -1 : 1);
+                    case InputHoldType.GDX: return Mathf.Abs(dpad.x) <= threshold ? 0 : (dpad.x < 0 ? -1 : 1);
+                    case InputHoldType.GS: return hold[6] ? -1 : (hold[7] ? 1 : 0);
+                    case InputHoldType.GXB: return hold[2] ? -1 : (hold[1] ? 1 : 0);
+                    case InputHoldType.GYA: return hold[3] ? -1 : (hold[0] ? 1 : 0);
+                }
+            }
+            return 0;
+        }
+        public bool ButtonPressed(InputHoldType aux, InputHoldType h, float threshold)
+        {
+             if (Gamepad.current != null)
+            {
+                bool comb = true;
+                if (aux != InputHoldType.None)
+                    comb = aux switch
+                    {
+                        InputHoldType.GTL => hold[4] && (!hold[5]),
+                        InputHoldType.GTR => hold[5] && (!hold[4]),
+                        _ => hold[4] && hold[5]
+                    };
+                if (!comb) return false;
+                switch (h)
+                {
+                    case InputHoldType.GDYD: return dpad.y <= -threshold;
+                    case InputHoldType.GDYU: return dpad.y >= threshold;
+                    case InputHoldType.GDXL: return dpad.x <= -threshold;
+                    case InputHoldType.GDXR: return dpad.x >= threshold;
+                    case InputHoldType.GSL: return pressed[6];
+                    case InputHoldType.GSR: return pressed[7];
+                    case InputHoldType.GA: return pressed[0];
+                    case InputHoldType.GB: return pressed[1];
+                    case InputHoldType.GX: return pressed[2];
+                    case InputHoldType.GY: return pressed[3];
+                }
+            }
+            return false;
+        }
+        public void Write(BinaryWriter bin)
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                bin.Write(pressed[i]);
+                bin.Write(hold[i]);
+            }
+            Utils.Write2(bin, dpad);
+            for (int i = 0; i < 2; i++)
+            {
+                Utils.Write2(bin, stick[i]);
+                bin.Write(trigger[i]);
+                bin.Write(shoulder[i]);
+            }
+        }
+        public void Read(BinaryReader bin)
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                pressed[i] = bin.ReadBoolean();
+                hold[i] = bin.ReadBoolean();
+            }
+            dpad = Utils.Read2(bin);
+            for (int i = 0; i < 2; i++)
+            {
+                stick[i] = Utils.Read2(bin);
+                trigger[i] = bin.ReadSingle();
+                shoulder[i] = bin.ReadSingle();
+            }
+        }
+        public string ExportStatus(bool[] status)
+        {
+            string r = status[0] ? "A;" : "";
+            r += status[1] ? "B;" : "";
+            r += status[2] ? "X;" : "";
+            r += status[3] ? "Y;" : "";
+            r += status[6] ? "LSh;" : "";
+            r += status[7] ? "RSh;" : "";
+            r += dpad.x < -0.5 ? "DL;" : "";
+            r += dpad.x > 0.5 ? "DR;" : "";
+            r += dpad.y < -0.5 ? "DD;" : "";
+            r += dpad.y > 0.5 ? "DU;" : "";
+            r += stick[0].x < -0.5 ? "LSL;" : "";
+            r += stick[0].x > 0.5 ? "LSR;" : "";
+            r += stick[0].y < -0.5 ? "LSD;" : "";
+            r += stick[0].y > 0.5 ? "LSU;" : "";
+            r += stick[1].x < -0.5 ? "RSL;" : "";
+            r += stick[1].x > 0.5 ? "RSR;" : "";
+            r += stick[1].y < -0.5 ? "RSD;" : "";
+            r += stick[1].y > 0.5 ? "RSU;" : "";
+            return r;
+        }
+        public string ExportValue()
+        {
+            string r = dpad.x < -0.5 ? "DL;" : "";
+            r += dpad.x > 0.5 ? "DR;" : "";
+            r += dpad.y < -0.5 ? "DD;" : "";
+            r += dpad.y > 0.5 ? "DU;" : "";
+            r += stick[0].x < -0.5 ? "LSL;" : "";
+            r += stick[0].x > 0.5 ? "LSR;" : "";
+            r += stick[0].y < -0.5 ? "LSD;" : "";
+            r += stick[0].y > 0.5 ? "LSU;" : "";
+            r += stick[1].x < -0.5 ? "RSL;" : "";
+            r += stick[1].x > 0.5 ? "RSR;" : "";
+            r += stick[1].y < -0.5 ? "RSD;" : "";
+            r += stick[1].y > 0.5 ? "RSU;" : "";
+            return r;
+        }
+        public string ExportAux()
+        {
+            return (hold[4] ? "l;" : "") + (hold[5] ? "r" : "");
+        }
+        public bool ChangedFrom(GPMap vm)
+        {
+            return false;
+        }
+    }
+    public class MouseMap
+    {
+        public bool[] pressed = new bool[] { false, false };
+        public bool[] hold = new bool[] { false, false };
+        public float y = 0;
+        public uint U
+        {
+            get
+            {
+                return (pressed[0] ? 1u : 0u) + (pressed[1] ? 2u : 0u) + (hold[0] ? 4u : 0u) + (hold[0] ? 8u : 0u);
+            }
+            set
+            {
+                pressed[0] = (value & 1) > 0;
+                pressed[1] = (value & 2) > 0;
+                hold[0] = (value & 4) > 0;
+                hold[1] = (value & 8) > 0;
+            }
+        }
+        public string Export(bool[] status)
+        {
+            string r = status[0] ? "Left;" : "";
+            return r + (status[1] ? "Right" : "");
+
+        }
+    }
+    public class TameKeyMap
+    {
+        public VRMap vrMap;
+        public GPMap gpMap;
+        public MouseMap mouse;
+        public int keyCount;
+        public bool[] pressed;
+        public bool[] hold;
+        public float[] values;
+        public bool forward = false;
+        public bool back = false;
+        public bool left = false;
+        public bool right = false;
+        public bool up = false;
+        public bool down = false;
+        public bool shift = false;
+        public bool ctrl = false;
+        public bool alt = false;
+        bool passed = false;
+        public TameKeyMap(int keyCount)
+        {
+            this.keyCount = keyCount;
+            pressed = new bool[keyCount];
+            hold = new bool[keyCount];
+            vrMap = new VRMap();
+            gpMap = new GPMap();
+            mouse = new MouseMap();
+        }
+        public void WriteDescription(BinaryWriter bin)
+        {
+            string s = "";
+            for (int i = 0; i < keyCount; i++)
+                s += (i == 0 ? "" : ",") + TameInputControl.checkedKeys[i].displayName;
+            bin.Write(s);
+        }
+        public FrameShot Capture()
+        {
+            if (Keyboard.current != null)
+            {
+                forward = Keyboard.current.wKey.isPressed;
+                back = Keyboard.current.sKey.isPressed;
+                left = Keyboard.current.aKey.isPressed;
+                right = Keyboard.current.dKey.isPressed;
+                up = Keyboard.current.rKey.isPressed;
+                down = Keyboard.current.fKey.isPressed;
+                shift = Keyboard.current.shiftKey.isPressed;
+                for (int i = 0; i < keyCount; i++)
+                {
+                    pressed[i] = TameInputControl.checkedKeys[i].wasPressedThisFrame;
+                    hold[i] = TameInputControl.checkedKeys[i].isPressed;
+                }
+            }
+            if (Mouse.current != null)
+            {
+                mouse.hold[0] = Mouse.current.leftButton.isPressed;
+                mouse.hold[1] = Mouse.current.rightButton.isPressed;
+                mouse.pressed[0] = Mouse.current.leftButton.wasPressedThisFrame;
+                mouse.pressed[1] = Mouse.current.rightButton.wasPressedThisFrame;
+                Vector2 mousePosition = new Vector2(Mouse.current.position.x.ReadValue(), Mouse.current.position.y.ReadValue());
+                mouse.y = (mousePosition.y - 0.5f * CoreTame.screenSize.y) / (0.5f * CoreTame.screenSize.y);
+            }
+            vrMap.Capture();
+            gpMap.Capture();
+            return ToFrameShot();
+        }
+        public ulong UPressed
+        {
+            get
+            {
+                ulong r = 0;
+                for (int i = 0; i < keyCount; i++)
+                    r += (pressed[i] ? 1u << i : 0);
+                return r;
+            }
+            set
+            {
+                for (int i = 0; i < keyCount; i++)
+                    pressed[i] = (value & (1u << i)) != 0;
+            }
+        }
+        public ulong UHold
+        {
+            get
+            {
+                ulong r = 0;
+                for (int i = 0; i < keyCount; i++)
+                    r += (hold[i] ? 1u << i : 0);
+                return r;
+            }
+            set
+            {
+                for (int i = 0; i < keyCount; i++)
+                    hold[i] = (value & (1u << i)) != 0;
+            }
+        }
+        public bool AuxHold(InputHoldType aux)
+        {
+            return aux switch
+            {
+                InputHoldType.Shift => shift,
+                InputHoldType.Ctrl => ctrl,
+                InputHoldType.Alt => alt,
+                _ => true,
+            };
+        }
+        FrameShot ToFrameShot()
+        {
+            FrameShot f = new FrameShot();
+            f.KBPressed = UPressed;
+            f.KBHold = UHold;
+            f.GPPressed = gpMap.UPressed;
+            f.GPHold = gpMap.UHold;
+            f.VRPressed = vrMap.UPressed;
+            f.VRHold = vrMap.UHold;
+            f.mouse = mouse.U;
+            return f;
+        }
+        public void Write(BinaryWriter bin)
+        {
+            //   bin.Write(keyCount);
+            bin.Write(forward);
+            bin.Write(back);
+            bin.Write(left);
+            bin.Write(right);
+            bin.Write(up);
+            bin.Write(down);
+            bin.Write(shift);
+            bin.Write(ctrl);
+            bin.Write(alt);
+            bin.Write(mouse.y);
+            bin.Write(UPressed);
+            bin.Write(UHold);
+            bin.Write(mouse.U);
+            bin.Write(gpMap.UPressed);
+            bin.Write(gpMap.UHold);
+            bin.Write(vrMap.UPressed);
+            bin.Write(vrMap.UHold);
+        }
+        public void Read(BinaryReader bin)
+        {
+            forward = bin.ReadBoolean();
+            back = bin.ReadBoolean();
+            left = bin.ReadBoolean();
+            right = bin.ReadBoolean();
+            up = bin.ReadBoolean();
+            down = bin.ReadBoolean();
+            shift = bin.ReadBoolean();
+            ctrl = bin.ReadBoolean();
+            alt = bin.ReadBoolean();
+            mouse.y = bin.ReadSingle();
+            UPressed = bin.ReadUInt64();
+            UHold = bin.ReadUInt64();
+            mouse.U = bin.ReadUInt32();
+            gpMap.UPressed = bin.ReadUInt64();
+            gpMap.UHold = bin.ReadUInt64();
+            vrMap.UPressed = bin.ReadUInt32();
+            vrMap.UHold = bin.ReadUInt32();
+        }
+        public FrameShot Aggregate(FrameShot[] fs, FrameShot local)
+        {
+            if (CoreTame.multiPlayer)
+            {
+                FrameShot f = new FrameShot();
+                ulong ul = 0;
+                uint ui = 0;
+                for (int i = 0; i < fs.Length; i++)
+                    ul |= fs[i].KBPressed;
+                f.KBPressed = ul;
+                ul = 0;
+                for (int i = 0; i < fs.Length; i++)
+                    ul |= fs[i].KBHold;
+                f.KBHold = ul;
+                for (int i = 0; i < fs.Length; i++)
+                    ui |= fs[i].mouse;
+                f.mouse = ui;
+                ul = 0;
+                for (int i = 0; i < fs.Length; i++)
+                    ul |= fs[i].GPPressed;
+                f.GPPressed = ul;
+                ul = 0;
+                for (int i = 0; i < fs.Length; i++)
+                    ul |= fs[i].GPHold;
+                f.GPHold = ul;
+                ui = 0;
+                for (int i = 0; i < fs.Length; i++)
+                    ui |= fs[i].VRPressed;
+                f.VRPressed = ui;
+                for (int i = 0; i < fs.Length; i++)
+                    ui |= fs[i].VRHold;
+                f.VRHold = ui;
+                return f;
+            }
+            else
+                return local;
+        }
+        public string Export(bool[] status, string[] names)
+        {
+            string r = "";
+            int k = 0;
+            for (int i = 0; i < status.Length; i++)
+                if (status[i])
+                { r += k == 0 ? names[i] : ";" + names[i]; k++; }
+            return r;
+        }
+        public string ExportAux()
+        {
+            return (shift ? "s;" : "") + (ctrl ? "c;" : "") + (alt ? "a;" : "");
+        }
+    }
+}

@@ -1,4 +1,0 @@
-﻿//object _wavedefault
-	//duration 10
-// object _wave
-	// follow _wavedefault

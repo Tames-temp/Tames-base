@@ -347,7 +347,7 @@
       <HintPath>Library\PackageCache\com.unity.burst@1.8.2\Unity.Burst.CodeGen\Unity.Burst.Cecil.Rocks.dll</HintPath>
     </Reference>
     <Reference Include="RiptideNetworking">
-      <HintPath>Assets\Scripts\Multi\Multiplayer\RiptideNetworking.dll</HintPath>
+      <HintPath>Assets\Tames\Scripts\Multi\Multiplayer\RiptideNetworking.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>Library\PackageCache\com.unity.ext.nunit@1.0.6\net35\unity-custom\nunit.framework.dll</HintPath>

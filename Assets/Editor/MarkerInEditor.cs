@@ -5,7 +5,7 @@ using UnityEditor;
 
 
 
-[CustomEditor(typeof(Markers.MarkerArea))]
+[CustomEditor(typeof(Markers.MarkerArea)), CanEditMultipleObjects]
 public class MarkerGeometry : Editor
 {
     //    SerializedProperty thisIsArea;
@@ -14,6 +14,7 @@ public class MarkerGeometry : Editor
     SerializedProperty update;
     SerializedProperty mode;
     SerializedProperty appliesTo;
+    SerializedProperty autoPosition;
 
     void OnEnable()
     {
@@ -23,6 +24,7 @@ public class MarkerGeometry : Editor
         update = serializedObject.FindProperty("update");
         mode = serializedObject.FindProperty("mode");
         appliesTo = serializedObject.FindProperty("appliesTo");
+        autoPosition = serializedObject.FindProperty("autoPosition");
     }
 
     public override void OnInspectorGUI()
@@ -34,6 +36,7 @@ public class MarkerGeometry : Editor
         EditorGUILayout.PropertyField(update);
         EditorGUILayout.PropertyField(mode);
         EditorGUILayout.PropertyField(appliesTo);
+        EditorGUILayout.PropertyField(autoPosition);
 
         serializedObject.ApplyModifiedProperties();
     }
@@ -62,6 +65,7 @@ public class MarkerChangerEditor : Editor
     SerializedProperty mode;
     SerializedProperty switchValue;
     SerializedProperty steps;
+    SerializedProperty factor;
 
     void OnEnable()
     {
@@ -69,6 +73,7 @@ public class MarkerChangerEditor : Editor
         mode = serializedObject.FindProperty("mode");
         switchValue = serializedObject.FindProperty("switchValue");
         steps = serializedObject.FindProperty("steps");
+        factor = serializedObject.FindProperty("factor");
     }
 
     public override void OnInspectorGUI()
@@ -78,46 +83,23 @@ public class MarkerChangerEditor : Editor
         EditorGUILayout.PropertyField(mode);
         EditorGUILayout.PropertyField(switchValue);
         EditorGUILayout.PropertyField(steps);
+        EditorGUILayout.PropertyField(factor);
 
         serializedObject.ApplyModifiedProperties();
     }
 }
-[CustomEditor(typeof(Markers.MarkerEnvironment)), CanEditMultipleObjects]
-public class MarkerEnvironmentEditor : Editor
-{
-    SerializedProperty property;
-    SerializedProperty mode;
-    SerializedProperty switchValue;
-    SerializedProperty steps;
 
-    void OnEnable()
-    {
-        property = serializedObject.FindProperty("property");
-        mode = serializedObject.FindProperty("mode");
-        switchValue = serializedObject.FindProperty("switchValue");
-        steps = serializedObject.FindProperty("steps");
-    }
-
-    public override void OnInspectorGUI()
-    {
-        serializedObject.Update();
-        EditorGUILayout.PropertyField(property);
-        EditorGUILayout.PropertyField(mode);
-        EditorGUILayout.PropertyField(switchValue);
-        EditorGUILayout.PropertyField(steps);
-
-        serializedObject.ApplyModifiedProperties();
-    }
-}
 [CustomEditor(typeof(Markers.MarkerSettings))]
 class MarkerSettingsEditor : Editor
 {
+    SerializedProperty torch;
     SerializedProperty eyeHeights;
     SerializedProperty customManifests;
     SerializedProperty materialEmission;
     SerializedProperty replay;
     void OnEnable()
     {
+        torch = serializedObject.FindProperty("torch");
         replay = serializedObject.FindProperty("replay");
         eyeHeights = serializedObject.FindProperty("eyeHeights");
         customManifests = serializedObject.FindProperty("customManifests");
@@ -126,14 +108,19 @@ class MarkerSettingsEditor : Editor
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
+        EditorGUILayout.PropertyField(torch);
         EditorGUILayout.PropertyField(replay);
         EditorGUILayout.PropertyField(eyeHeights);
         EditorGUILayout.PropertyField(customManifests);
         EditorGUILayout.PropertyField(materialEmission);
         Markers.MarkerSettings settings = (Markers.MarkerSettings)target;
-        if (GUILayout.Button("Freeze intensity"))
+        if (GUILayout.Button("Save intensity"))
         {
             settings.FreezeIntensity();
+        }
+        if (GUILayout.Button("Reset intensity"))
+        {
+            settings.ResetIntensity();
         }
         if (GUILayout.Button("Save"))
         {
@@ -143,7 +130,7 @@ class MarkerSettingsEditor : Editor
         {
             settings.Load();
         }
-        serializedObject.ApplyModifiedProperties();
+       serializedObject.ApplyModifiedProperties();
     }
 }
 [CustomEditor(typeof(Markers.MarkerLink)), CanEditMultipleObjects]
