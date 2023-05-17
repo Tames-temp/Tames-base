@@ -236,6 +236,7 @@ namespace Tames
                 {
                     name = owner.name,
                     owner = owner,
+                    mover = owner,
                     light = owner.GetComponent<Light>(),
                     index = (ushort)tes.Count,
                     markerProgress = owner.GetComponent<MarkerProgress>(),
@@ -268,6 +269,7 @@ namespace Tames
                 {
                     name = mc.name,
                     owner = owner,
+                    mover = owner,
                     index = (ushort)tes.Count,
                     markerProgress = owner.GetComponent<MarkerProgress>(),
                     markerSpeed = owner.GetComponent<MarkerSpeed>()
@@ -295,12 +297,13 @@ namespace Tames
                     {
                         name = mc.name,
                         owner = owner,
+                        mover = owner,
                         index = (ushort)tes.Count,
                         markerProgress = owner.GetComponent<MarkerProgress>(),
                         markerSpeed = owner.GetComponent<MarkerSpeed>()
                     };
-                    tc.GetAreas(-1,true);
-                    tc.owner.SetActive(true);   
+                    tc.GetAreas(-1, true);
+                    tc.owner.SetActive(true);
                     tc.parents.Add(new TameEffect()
                     {
                         type = parentElement.tameType == TameKeys.Time ? TrackBasis.Time : TrackBasis.Tame,
