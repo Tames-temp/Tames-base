@@ -69,12 +69,12 @@ namespace Tames
         /// <summary>
         /// the speed of changing progress (per second). Changing the speed would change the duration (= 1 / speed)
         /// </summary>
-        public float Speed { get { return speed; } set { speed = value; duration = 1 / speed; } }
+        public float Speed { get { return speed; } set { speed = value; if (speed != 0) duration = 1 / speed; else duration = 0; } }
         private float speed = -1;
         /// <summary>
         /// the duration of completing 0 to 1 of the progress, per second. Changing the duration would change the speed (= 1 / duration)
         /// </summary>
-        public float Duration { get { return duration; } set { duration = value; speed = 1 / duration; } }
+        public float Duration { get { return duration; } set { duration = value; if (duration != 0) speed = 1 / duration; else speed = 0; } }
         private float duration = -1;
         public void Refresh()
         {
@@ -252,27 +252,30 @@ namespace Tames
             //   float[] passed = pass == PassTypes.Progress ? parentProg : parentTotal;
             if (trigger == null)
             {
-                if (pass == PassTypes.Progress)
-                {
-                    dif = parentProg[1] - parentProg[0];
-                    if (Mathf.Abs(dif) < 0.0001) dif = 0;
-                    parentSpeed = dif / deltaTime;
-                    if (parentSpeed == 0) { Retain(deltaTime); return; }
-                    //       dp = (speed < 0 ? 1 : speed / Mathf.Abs(parentSpeed)) * (parentProg[1] - parentProg[0]);
-                    dp = manager.Speed < 0 ? parentProg[1] - parentProg[0] : (manager.Speed / parentSpeed) * (parentProg[1] - parentProg[0]);
-                }
+                if (manager.Speed == 0)
+                    SetProgress(pass == PassTypes.Total ? parentTotal[1] : parentProg[1], false);
                 else
                 {
-                    dif = parentTotal[1] - parentTotal[0];
-                    if (Mathf.Abs(dif) < 0.0001) dif = 0;
-                    if (element.name == "window.001") Debug.Log(":: " + dif + " " + progress + " " + tick + " " + TameElement.Tick);
-                    parentSpeed = dif / deltaTime;
-                    if (parentSpeed == 0) { Retain(deltaTime); return; }
-                    //     dp = (speed < 0 ? 1 : speed / Mathf.Abs(parentSpeed)) * (parentTotal[1] - parentTotal[0]);
-                    dp = manager.Speed < 0 ? parentTotal[1] - parentTotal[0] : (manager.Speed / parentSpeed) * (parentTotal[1] - parentTotal[0]);
+                    if (pass == PassTypes.Progress)
+                    {
+                        dif = parentProg[1] - parentProg[0];
+                        if (Mathf.Abs(dif) < 0.0001) dif = 0;
+                        parentSpeed = dif / deltaTime;
+                        if (parentSpeed == 0) { Retain(deltaTime); return; }
+                        //       dp = (speed < 0 ? 1 : speed / Mathf.Abs(parentSpeed)) * (parentProg[1] - parentProg[0]);
+                        dp = manager.Speed < 0 ? parentProg[1] - parentProg[0] : (manager.Speed / parentSpeed) * (parentProg[1] - parentProg[0]);
+                    }
+                    else
+                    {
+                        dif = parentTotal[1] - parentTotal[0];
+                        if (Mathf.Abs(dif) < 0.0001) dif = 0;
+                        if (element.name == "window.001") Debug.Log(":: " + dif + " " + progress + " " + tick + " " + TameElement.Tick);
+                        parentSpeed = dif / deltaTime;
+                        if (parentSpeed == 0) { Retain(deltaTime); return; }
+                        dp = manager.Speed < 0 ? parentTotal[1] - parentTotal[0] : (manager.Speed / parentSpeed) * (parentTotal[1] - parentTotal[0]);
+                    }
+                    SetProgress(totalProgress + dp * interactDirection, false);
                 }
-                SetProgress(totalProgress + dp * interactDirection, false);
-                if (element.name == "areacheck 0") Debug.Log("switch: > " + progress + " " + dp +" "+manager.Speed+" "+ parentProg[1]+ " "+element.parents[0].parent.name);
             }
             else
             {
