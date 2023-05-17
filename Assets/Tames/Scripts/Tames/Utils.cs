@@ -624,10 +624,12 @@ public class Utils
     }
     public static float Angle(Vector3 p, Vector3 pivot, Vector3 start, Vector3 axis, bool signed)
     {
-        Vector3 pn = (p - pivot).normalized;
-        Vector3 sn = (start - pivot).normalized;
+        Vector3 pn = On(p, pivot, axis) - pivot;
+        Vector3 sn = On(start, pivot, axis) - pivot;
+         pn.Normalize();
+        sn.Normalize();
         Vector3 axn = axis.normalized;
-        PO.transform.rotation = Quaternion.identity;
+        PO.transform.position =Vector3.zero;
         float angle = Vector3.Angle(pn, sn);
         PO.transform.LookAt(sn, axn);
         CO.transform.position = PO.transform.forward;

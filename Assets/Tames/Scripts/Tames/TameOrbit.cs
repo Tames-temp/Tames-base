@@ -102,7 +102,7 @@ namespace Tames
         }
         override public Vector3 Position(float m)
         {
-            return Utils.Rotate(start, pivot, span > 0 ? -axis : axis, m * span);
+            return Utils.Rotate(start, pivot,  axis, m * span);
         }
         override public Quaternion Rotation(float m)
         {

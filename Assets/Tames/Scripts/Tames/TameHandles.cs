@@ -330,7 +330,7 @@ namespace Tames
                     span = 360;
                 else
                 {
-                    span = Utils.Angle(end, pivot, start, axis, true);
+                    span = Utils.Angle(end, pivot, start, axis = hinge-pivot, true);
                     if (middle.x != float.NegativeInfinity)
                     {
                         float ma = Utils.Angle(middle, pivot, start, axis, true);
