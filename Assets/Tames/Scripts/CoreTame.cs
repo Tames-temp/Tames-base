@@ -13,6 +13,7 @@ using Multi;
 using System;
 using Tames;
 using Records;
+using System.IO;
 
 public class CoreTame : MonoBehaviour
 {
@@ -51,14 +52,19 @@ public class CoreTame : MonoBehaviour
     private float gripSpeed = 1;
     public static string fingerHeader = "finger";
     public static bool replayMode = false;
-    private Camera rendCam;
     public static GameObject torch;
+    private GameObject camObject;
+    public RenderTexture renderTexture;
     void Start()
     {
         Utils.SetPipelineLogics();
         Utils.SetPOCO();
         //   panel.SetActive(false);
         mainCamera = Camera.main;
+        camObject = new GameObject("camera object");
+        renderTexture = new RenderTexture(Screen.width * 3, Screen.height * 3, 24);
+     //   rendCam.targetTexture = renderTexure;
+     //   rendCam.enabled = false;
         Transform t = mainCamera.transform;
         while (t != null)
         {
@@ -71,7 +77,7 @@ public class CoreTame : MonoBehaviour
         TameCamera.ZKey = TameInputControl.FindKey("z", false);
         TameCamera.XKey = TameInputControl.FindKey("x", false);
         TameCamera.CKey = TameInputControl.FindKey("c", false);
-        Debug.Log(TameCamera.ZKey + " " + TameCamera.XKey + " " + TameCamera.CKey);
+     //   Debug.Log(TameCamera.ZKey + " " + TameCamera.XKey + " " + TameCamera.CKey);
         TameInputControl.FindKey("n-");
         TameInputControl.FindKey("n+");
 
@@ -81,11 +87,7 @@ public class CoreTame : MonoBehaviour
             people[i] = null;
         // audioFolder = "Audio/";
 
-        Camera[] allCam = Camera.allCameras;
-        foreach (Camera c in allCam)
-            if (c != mainCamera)
-                rendCam = c;
-        counter = -1;
+          counter = -1;
         averageFPS = 0;
         ManifestKeys.SetKeywords();
         manager = new TameManager();
@@ -182,8 +184,7 @@ public class CoreTame : MonoBehaviour
 
 
             UpdateSolo();
-            if (rendCam != null)
-                rendCam.transform.rotation = mainCamera.transform.rotation;
+            
         }
         else
             UpdateReplay();
@@ -292,19 +293,46 @@ public class CoreTame : MonoBehaviour
         }
     }
     // Update is called once per frame
+    IEnumerator SavePNG()
+    {
+        // We should only read the screen buffer after rendering is complete
+        yield return new WaitForEndOfFrame();
 
+        RenderTexture.active = renderTexture;
+        // Create a texture the size of the screen, RGB24 format
+        int width = renderTexture.width;
+        int height = renderTexture.height;
+        Texture2D tex = new Texture2D(width, height, TextureFormat.RGB24, false);
 
-    private int msgIndex = 0;
+        // Read screen contents into the texture
+        tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+        tex.Apply();
+
+        // Encode texture into PNG
+        byte[] bytes = tex.EncodeToPNG();
+        Destroy(tex);
+
+        // For testing purposes, also write to a file in the project folder
+        File.WriteAllBytes("E:\\" + DateTime.Now.ToString("yyyy.MM.dd HH.mm.ss") + ".png", bytes);
+        TameElement.isPaused = false;   
+
+    }
     private FrameShot CheckInput(int index = -1)
     {
         TameKeyMap km = TameInputControl.CheckKeys(index);
         FrameShot fa = TameInputControl.keyMap.Aggregate(Player.frames, km.Capture());
+        if (Keyboard.current.tabKey.wasPressedThisFrame)
+        {
+            TameElement.isPaused = true;
+            mainCamera.targetTexture = renderTexture;
+            mainCamera.Render();
+            StartCoroutine(SavePNG());
+            mainCamera.targetTexture = null;
+        }
         TameFullRecord.allRecords.Capture(TameElement.ActiveTime, index < 0 ? null : km);
         if (Keyboard.current.escapeKey.isPressed)
         {
-            DateTime now = DateTime.Now;
-            //     TameFullRecord.allRecords.Save("c:\\Work\\" + now.ToString("yyyy.MM.dd HH.mm.ss") + ".tfr");
-            Application.Quit();
+             Application.Quit();
         }
         string path;
         if (Keyboard.current.ctrlKey.isPressed && Keyboard.current.sKey.wasPressedThisFrame)
@@ -406,7 +434,7 @@ public class CoreTame : MonoBehaviour
             {
                 if (GripInputActive())
                 {
-                    closestGrip = TameArea.ClosestGrip(tes, TameCamera.cameraTransform, 2.1f, out TameObject to);
+                    closestGrip = TameArea.ClosestGrip(tes, TameCamera.cameraTransform, 2.1f, 70, out TameObject to);
                     if (closestGrip != null)
                     {
                         Debug.Log("grip: " + closestGrip.element.name);

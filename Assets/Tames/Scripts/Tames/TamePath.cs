@@ -20,6 +20,7 @@ namespace Tames
         public FacingLogic facing = FacingLogic.Free;
         public TameElement element;
         public bool valid = false;
+        public bool freeRotator = false;
         public virtual float GetM(Vector3 global)
         {
             return 0;

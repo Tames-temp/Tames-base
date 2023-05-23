@@ -20,7 +20,7 @@ namespace Tames
         public MarkerProgress markerProgress = null;
         public MarkerPerson marketEnvironment = null;
         public MarkerSpeed markerSpeed = null;
-        public MarkerFlicker[] markerFlicker = null;
+        //    public MarkerFlicker[] markerFlicker = null;
         public static bool isPaused = false;
         public static float FrameValue = -1;
         public static float deltaTime;
@@ -135,6 +135,7 @@ namespace Tames
                 if ((tci = TameInputControl.ByStringDuo(list[i])) != null)
                     control.Add(tci);
             manual = control.Count > 0;
+         //   if (name == "path") Debug.Log("inputs: " + s + " " + manual);
             if (control.Count > 0)
                 progress = new TameProgress(this);
         }
@@ -204,7 +205,7 @@ namespace Tames
                     closestPosition = TameManager.peoploids[tat.head].transform.position;
                     min = Vector3.Distance(closestPosition, mover.transform.position);
                     tbas = TrackBasis.Head;
-                }               
+                }
                 if (TrackBasis.IsObject(basis))
                     if (parents.Count > 0)
                         for (int i = 0; i < parents.Count; i++)
@@ -250,7 +251,6 @@ namespace Tames
             Person pe;
             if (manual) return null;
             TameObject to;
-            //      if (name == "Quad") Debug.Log("dist " + name + " " + directProgress+" "+areas[0].directProgress+" "+progress.progress);
             if (isGrippable)
             {
                 r = TameArea.Grip(areas);
@@ -304,6 +304,8 @@ namespace Tames
                         directProgress = d;
                     else
                         changingDirection = d < 0 ? -1 : (d > 0 ? 1 : 0);
+                    //     if (name == "colorplay.037") Debug.Log("dist " + name + " " + directProgress );
+                    //    if (name == "colorplay") Debug.Log("dist " + name + " " + directProgress + " " + d);
                 }
                 return r;
             }
@@ -314,7 +316,7 @@ namespace Tames
                 TameAreaTrack tat = areas.Count > 0 ? TameArea.TrackWithAreas(areas, mover.transform.position) : TameArea.Track(mover.transform.position);
                 byte tp = 0;
                 changingDirection = tat.direction;
-                if (changingDirection != 0)
+                if ((changingDirection != 0) || (areas.Count == 0))
                 {
                     if (tat.realPerson)
                     {
@@ -331,6 +333,7 @@ namespace Tames
                         r.direction = tat.direction;
                         r.child = this;
                     }
+
                 }
             }
             else
@@ -929,7 +932,7 @@ namespace Tames
             List<GameObject> io = new List<GameObject>();
             TameArea ir;
             io.AddRange(custom ? MarkerArea.FindAreasForCustom(owner) : MarkerArea.FindAreas(owner));
-            if (name == "Quad") Debug.Log("q2 : " + io.Count);
+        //    if (name == "rotar") Debug.Log("rotar : " + io.Count);
 
             for (int i = 0; i < cc; i++)
                 if (TameArea.HasAreaKeyword(owner.transform.GetChild(i).name))

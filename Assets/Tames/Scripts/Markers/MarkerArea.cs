@@ -13,6 +13,7 @@ namespace Markers
     public class MarkerArea : MonoBehaviour
     {
         //  public bool thisIsArea;
+        public bool applyToSelf = false;
         public GameObject appliesTo;
         public InteractionGeometry geometry;
         public string input;
@@ -34,7 +35,8 @@ namespace Markers
                 input,
                 update.ToString(),
                 mode.ToString(),
-                autoPosition?"1":"0"
+                autoPosition?"1":"0",
+               applyToSelf?"1":"0"
             };
         }
         public static int FromLines(string[] line, int index, int version)
@@ -52,7 +54,8 @@ namespace Markers
                         ma.update = Up(line[index + 4]);
                         ma.mode = Mod(line[index + 5]);
                         ma.autoPosition = line[index + 6] == "1";
-                        return index + 6;
+                        ma.applyToSelf = line[index + 7] == "1";
+                        return index + 7;
                 }
             return index;
         }
@@ -140,8 +143,10 @@ namespace Markers
                     r.Add(allAreas[i].gameObject);
                 else if ((allAreas[i].appliesTo == null) && (allAreas[i].gameObject.transform.parent.gameObject == g))
                     r.Add(g);
+                else if ((allAreas[i].applyToSelf) && (allAreas[i].gameObject == g))
+                    r.Add(g);
+                if (allAreas[i].name == "rotar") Debug.Log("l area "+g.name + (g==allAreas[i].gameObject));
             }
-            if (g.name == "_speed") Debug.Log("found " + r.Count);
             return r;
         }
         public static List<GameObject> FindAreasForCustom(GameObject g)

@@ -124,7 +124,7 @@ namespace Tames
             float[] glowColor = new float[] { 0, 0, 0 };
             float intensity = 0;
             bool glowSet = false;
-            //  if (name == "barrier sign") Debug.Log("UP: " + name + progress.trigger.value[0] + " " + parents.Count);
+             if (name == "colorplay 37") Debug.Log("37: " + progress.progress + " "+parents[0].parent.progress.progress);
             //      Debug.Log("UP: " + name + " " + parents.Count);
             //   Debug.Log("changer before " + name);
             if (progress != null)

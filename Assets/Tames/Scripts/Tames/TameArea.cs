@@ -88,6 +88,7 @@ namespace Tames
         /// </summary>
         public int forcedSwitchThisFrame = -1;
         public float[] range = null;
+        public int[] rangeGuide = null;
         public bool autoPosition = false;
         /// <summary>
         /// the name of objects in the interactor's manifest that are attached to the instances of this interactor. The objects are names of game objects with naming patterns explained in <see cref="TameFinder.Relations"/> though not accepting the rotation operator. This lise is based on the list of objects in the manifest line with subkey of "update" (see <see cref="ManifestHeader.subKey"/> with names separated by commas:
@@ -107,6 +108,13 @@ namespace Tames
         public string keyString = "";
         public bool directProgress = false;
         public Vector3 scale;
+        private static int[] GetRangeGuide(float[] range)
+        {
+            int[] rs = new int[range.Length - 1];
+            int k = 1;
+            for (int i = 0; i < range.Length - 1; i++) { rs[i] = range[i] < range[i + 1] ? k : -k; k *= -1; }
+            return rs;
+        }
         private static float[] GetRange(string input)
         {
             string s = "";
@@ -373,8 +381,20 @@ namespace Tames
             if (forced)
                 forcedSwitchThisFrame = TameElement.Tick;
         }
+        private float FromD(int d)
+        {
+            switch (mode)
+            {
+                case InteractionMode.Inside: return d == 1 ? 1 : 0;
+                case InteractionMode.Outside: return d == -1 ? 1 : 0;
+                case InteractionMode.Positive: return d;
+                case InteractionMode.Negative: return -d;
+                default: return d;
+            }
+        }
         public float TrackDistance()
         {
+            if (element.name == "rotar") Debug.Log("area " + update);
             TameAreaTrack tat = Track(relative.transform.position);
             Person p;
             float d;
@@ -387,7 +407,7 @@ namespace Tames
                 d = Vector3.Distance(TameManager.peoploids[tat.head].transform.position, relative.transform.position);
             switch (range.Length)
             {
-                case 1: Debug.Log(d + " " + (d < range[0] ? 1 : -1)); return d < range[0] ? 1 : -1;
+                case 1: return d < range[0] ? FromD(1) : FromD(-1);
                 case 2:
                     if (range[0] > range[1])
                     {
@@ -402,18 +422,13 @@ namespace Tames
                         return (d - range[0]) / (range[1] - range[0]);
                     }
                 default:
-                    if (range[2] > range[0])
-                    {
-                        if (d < range[0]) return 0;
-                        if (d > range[2]) return 0;
-                        if (d > range[1]) return 1; else return -1;
-                    }
-                    else
-                    {
-                        if (d > range[0]) return 0;
-                        if (d < range[2]) return 0;
-                        if (d > range[1]) return -1; else return 1;
-                    }
+                    if ((d < range[0]) && (range[0] < range[1])) return 0;
+                    if ((d > range[0]) && (range[0] > range[1])) return 0;
+                    if ((d < range[^1]) && (range[^1] < range[^2])) return 0;
+                    if ((d > range[^1]) && (range[^1] > range[^2])) return 0;
+                    for (int i = 0; i < range.Length - 1; i++)
+                        if (((d <= range[i]) && (d >= range[i + 1])) || ((d >= range[i]) && (d <= range[i + 1]))) return rangeGuide[i];
+                    return 0;
             }
         }
         public static TameAreaTrack Track(Vector3 p)
@@ -432,7 +447,6 @@ namespace Tames
 
                 if (pers != null)
                 {
-                    //      Debug.Log("raw: " + pers.headPosition.ToString("0.00"));
                     if ((d = Vector3.Distance(p, pers.headPosition)) < minHead)
                     {
                         minHead = d;
@@ -457,6 +471,90 @@ namespace Tames
 
             return new TameAreaTrack() { head = pIndex, hand = hIndex, person = oIndex, direction = 1, realPerson = realPerson };
         }
+        public static float[] Track(TameArea a, Vector3 p, float minHead, float minHand, Vector3 head, Vector3[] hand, bool aPersonInside, out bool inside, out int hi)
+        {
+            float[] r = new float[] { -1, -1 };
+            inside = a.Inside(head);
+            hi = 0;
+            float d = Vector3.Distance(p, head);
+            {
+                if (inside)
+                {
+                    if ((d < minHead) || (!aPersonInside))
+                        r[0] = d;
+                }
+                else
+                {
+                    if ((d < minHead) && (!aPersonInside))
+                        r[0] = d;
+                }
+            }
+            if (hand != null)
+                for (int j = 0; j < 2; j++)
+                    if ((d = Vector3.Distance(p, hand[j])) < minHand)
+                    {
+                        minHand = d;
+                        r[1] = d;
+                        hi = j;
+                    }
+            return r;
+        }
+        public static TameAreaTrack TrackWithAreasN(List<TameArea> tis, Vector3 p)
+        {
+            int from = CoreTame.multiPlayer ? 0 : Person.LocalDefault;
+            int to = CoreTame.multiPlayer ? Person.people.Length : Person.LocalDefault + 1;
+            float d, minHead = float.PositiveInfinity, minHand = float.PositiveInfinity;
+            Person person;
+            int pIndex = -1;
+            int oIndex = -1;
+            int hIndex = -1;
+            int headarea = 0, handarea = 0;
+            bool inside, aPersonInside = false;
+            float[] mins;
+            string s = "";
+            int dir = tis[0].OutsideDirection;
+            bool realPerson = true;
+            pIndex = from;
+            int hi;
+            for (int i = from; i < to; i++)
+                for (int a = 0; a < tis.Count; a++)
+                {
+                    person = i == Person.LocalDefault ? CoreTame.localPerson : Person.people[i];
+                    if (person != null)
+                    {
+                        mins = Track(tis[a], p, minHead, minHand, person.headPosition, person.position, aPersonInside, out inside, out hi);
+                        if (mins[0] >= 0)
+                        {
+                            minHead = mins[0];
+                            pIndex = i;
+                            headarea = a;
+                            dir = inside ? tis[a].InsideDirection : tis[a].InsideDirection;
+                        }
+                        if (mins[1] >= 0)
+                        {
+                            minHand = mins[1];
+                            oIndex = i;
+                            hIndex = hi;
+                            if (inside) handarea = a;
+                        }
+                    }
+                }
+            //     if (tis[0].element.name == "door3")                Debug.Log("owner " + dir + s);
+            for (int i = 0; i < TameManager.peoploids.Count; i++)
+                for (int a = 0; a < tis.Count; a++)
+                {
+                    mins = Track(tis[a], p, minHead, minHand, TameManager.peoploids[i].transform.position, null, aPersonInside, out inside, out hi);
+                    if (mins[0] >= 0)
+                    {
+                        realPerson = false;
+                        minHead = mins[0];
+                        pIndex = i;
+                        headarea = a;
+                        dir = inside ? tis[a].InsideDirection : tis[a].InsideDirection;
+                    }
+                }
+            return new TameAreaTrack() { head = pIndex, hand = hIndex, person = oIndex, direction = dir, headArea = headarea, handArea = handarea, realPerson = realPerson };
+        }
         public static TameAreaTrack TrackWithAreas(List<TameArea> tis, Vector3 p)
         {
             int from = CoreTame.multiPlayer ? 0 : Person.LocalDefault;
@@ -468,7 +566,6 @@ namespace Tames
             int hIndex = -1;
             int headarea = 0, handarea = 0;
             bool inside, aPersonInside = false;
-            string s = "";
             int dir = tis[0].OutsideDirection;
             bool realPerson = true;
             for (int i = from; i < to; i++)
@@ -479,7 +576,6 @@ namespace Tames
                     if (person != null)
                     {
                         inside = tis[a].Inside(person.headPosition);
-                        s += " " + inside + (inside ? tis[a].InsideDirection + "" : "-");
                         if (pIndex == -1)
                             pIndex = i;
                         d = Vector3.Distance(p, person.headPosition);
@@ -520,11 +616,38 @@ namespace Tames
             }
             //     if (tis[0].element.name == "door3")                Debug.Log("owner " + dir + s);
             for (int i = 0; i < TameManager.peoploids.Count; i++)
-                if ((d = Vector3.Distance(p, TameManager.peoploids[i].transform.position)) < minHead)
+                for (int a = 0; a < tis.Count; a++)
                 {
-                    realPerson = false;
-                    minHead = d;
-                    pIndex = i;
+                    inside = tis[a].Inside(TameManager.peoploids[i].transform.position);
+                  //  if (tis[a].element.name == "rotar") Debug.Log("rotai: " + inside+ tis[i].scale.ToString());
+                    if (pIndex == -1)
+                        pIndex = i;
+                    d = Vector3.Distance(p, TameManager.peoploids[i].transform.position);
+                    {
+                        if (inside)
+                        {
+                            if ((d < minHead) || (!aPersonInside))
+                            {
+                                realPerson = false;
+                                minHead = d;
+                                pIndex = i;
+                                headarea = a;
+                                dir = tis[a].InsideDirection;
+                            }
+                            aPersonInside = true;
+                        }
+                        else
+                        {
+                            if ((d < minHead) && (!aPersonInside))
+                            {
+                                realPerson = false;
+                                minHead = d;
+                                pIndex = i;
+                                headarea = a;
+                                dir = tis[a].OutsideDirection;
+                            }
+                        }
+                    }
                 }
             return new TameAreaTrack() { head = pIndex, hand = hIndex, person = oIndex, direction = dir, headArea = headarea, handArea = handarea, realPerson = realPerson };
         }
@@ -727,6 +850,7 @@ namespace Tames
             MarkerArea ma = g.GetComponent<MarkerArea>();
             if (ma != null)
             {
+      //          if (to.name == "rotar") Debug.Log("rotar : ");
                 r = new TameArea()
                 {
                     geometry = ma.geometry,
@@ -736,7 +860,6 @@ namespace Tames
                     element = to,
                     autoPosition = ma.autoPosition,
                 };
-                if (to.name == "Quad") Debug.Log("q3 : " + ma.geometry);
                 if (r.geometry == InteractionGeometry.Remote)
                 {
                     r.key = TameInputControl.FindKey(ma.input);
@@ -747,6 +870,7 @@ namespace Tames
                     r.range = GetRange(ma.input);
                     if (r.range != null)
                     {
+                        r.rangeGuide = GetRangeGuide(r.range);
                         if (r.range.Length == 2)
                             r.directProgress = true;
                     }
@@ -757,7 +881,7 @@ namespace Tames
                     if (r.geometry == InteractionGeometry.Cylinder)
                         r.upAxis = Utils.DetectCylinderVector(g);
                     r.SetUpdate(to, g);
-                    g.SetActive(false);
+                    if (g != r.element.owner) g.SetActive(false);
                 }
             }
             else
@@ -829,13 +953,16 @@ namespace Tames
                 }
             }
             if (r != null)
+            {
+           //     if (to.name == "rotar") Debug.Log("rotar : " + r.mode + " " + r.update);
+
                 switch (r.mode)
                 {
                     case InteractionMode.Switch1: r.switchDirection = 0; break;
                     case InteractionMode.Switch2: r.switchDirection = -1; break;
                     case InteractionMode.Switch3: r.switchDirection = 0; break;
                 }
-            //        if (r != null) if (r.mode == InteractionMode.Switch2) Debug.Log("initial: " + r.element.name + " " + r.mode + " " + r.switchDirection);
+            }//        if (r != null) if (r.mode == InteractionMode.Switch2) Debug.Log("initial: " + r.element.name + " " + r.mode + " " + r.switchDirection);
 
             return r;
         }
@@ -887,28 +1014,27 @@ namespace Tames
         /// <param name="maxDist">maximum distance allowed for hand's reach</param>
         /// <param name="grippableObject">outputs the the grippable objects</param>
         /// <returns>return the area aound the grippable objects. It returns null if no object is found</returns>
-        public static TameArea ClosestGrip(List<TameElement> tes, Transform camera, float maxDist, out TameObject grippableObject)
+        public static TameArea ClosestGrip(List<TameElement> tes, Transform camera, float maxDist, float maxAngle, out TameObject grippableObject)
         {
             grippableObject = null;
             TameObject to;
-            float d, min = maxDist + 0.01f;
+            float a, d, min = 1;
             TameArea r = null;
             foreach (TameElement te in tes)
                 if (te.tameType == TameKeys.Object)
                 {
                     to = (TameObject)te;
-                    //  Debug.Log("area looking: " + te.name);
                     if (to.isGrippable)
                     {
-                        Debug.Log("area grippable: " + te.name);
                         foreach (TameArea area in to.areas)
-                            if ((d = Vector3.Distance(area.relative.transform.position, camera.position)) < min)
-                                if (Vector3.Angle(camera.forward, area.relative.transform.position - camera.position) < 90)
-                                {
-                                    r = area;
-                                    min = d;
-                                    grippableObject = to;
-                                }
+                            if ((d = Vector3.Distance(area.relative.transform.position, camera.position)) < maxDist)
+                                if ((a = Vector3.Angle(camera.forward, area.relative.transform.position - camera.position)) < maxAngle)
+                                    if (d / maxDist * a / maxAngle < min)
+                                    {
+                                        r = area;
+                                        min = d / maxDist * a / maxAngle;
+                                        grippableObject = to;
+                                    }
                     }
                 }
             return r;

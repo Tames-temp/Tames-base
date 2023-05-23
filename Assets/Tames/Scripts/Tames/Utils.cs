@@ -599,18 +599,7 @@ public class Utils
     /// <param name="u">rotation axis</param>
     /// <param name="degrees">angle in degrees</param>
     /// <returns></returns>
-    public static Vector3 Rot(Vector3 p, Vector3 o, Vector3 u, float degrees)
-    {
-        float angle = degrees * Mathf.Deg2Rad;
-        Vector3 q = On(o, p, u);
-        Vector3 pq = p - q;
-        if (pq.magnitude == 0)
-            return p;
-        Vector3 v = pq.normalized;
-        Vector3 w = Vector3.Cross(u.normalized, v);
-        Vector2 r = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * pq.magnitude;
-        return q + r.x * v + r.y * w;
-    }
+   
     public static Vector3 Rotate(Vector3 p, Vector3 o, Vector3 u, float degrees)
     {
         Vector3 op = p - o;
@@ -622,8 +611,26 @@ public class Utils
         Vector3 q = CO.transform.position;
         return q * opm + o;
     }
+    public static Vector3 AxisOf(Vector3 from, Vector3 mid, Vector3 to, float ang)
+    {
+        if (ang == 180) { to = mid; ang = Vector3.Angle(from, mid); }
+        Vector3 u = Vector3.Cross(from, mid);
+        Vector3 p = Rotate(from, Vector3.zero, u, ang);
+        Vector3 q = Rotate(from, Vector3.zero, u, -ang);
+        if (Vector3.Distance(p, to) > Vector3.Distance(q, to)) u = -u;
+        return u;
+    }
+    public static Vector3 AxisOf(Vector3 from, Vector3 to, float ang)
+    {
+       Vector3 u = Vector3.Cross(from, to);
+        Vector3 p = Rotate(from, Vector3.zero, u, ang);
+        Vector3 q = Rotate(from, Vector3.zero, u, -ang);
+        if (Vector3.Distance(p, to) > Vector3.Distance(q, to)) u = -u;
+        return u;
+    }
     public static float Angle(Vector3 p, Vector3 pivot, Vector3 start, Vector3 axis, bool signed)
     {
+        
         Vector3 pn = On(p, pivot, axis) - pivot;
         Vector3 sn = On(start, pivot, axis) - pivot;
          pn.Normalize();
@@ -927,7 +934,7 @@ public class Utils
             Vector3 g;
             for (int i = 0; i < v.Length; i++)
             {
-                //   g = t.TransformPoint(v[i]);
+              //  g = t.TransformPoint(v[i]);
                 g = v[i];
                 if (g.x < min.x) min.x = g.x;
                 if (g.y < min.y) min.y = g.y;
@@ -936,7 +943,10 @@ public class Utils
                 if (g.y > max.y) max.y = g.y;
                 if (g.z > max.z) max.z = g.z;
             }
-            return max - min;
+            float x = Vector3.Distance(t.TransformPoint(max.x, 0, 0), t.TransformPoint(min.x, 0, 0));
+            float y = Vector3.Distance(t.TransformPoint(0,max.y,  0), t.TransformPoint(0,min.y, 0));
+            float z = Vector3.Distance(t.TransformPoint(0,0,max.z), t.TransformPoint(0,0,min.z));
+            return new Vector3(x,y,z);
         }
     }
     /// <summary>

@@ -244,7 +244,7 @@ namespace Tames
                 };
                 MarkerFlicker[] mf = owner.GetComponents<MarkerFlicker>();
                 if (mf.Length == 0) mf = null;
-                tl.markerFlicker = mf;
+        //        tl.markerFlicker = mf;
                 tl.GetAreas(software);
                 tl.parents.Add(new TameEffect()
                 {
@@ -340,7 +340,8 @@ namespace Tames
                 local[i] = null;
                 gi = owner.transform.GetChild(i).gameObject;
                 //    Debug.Log("check: " + owner.name + " ?");
-                if (!TameHandles.HandleKey(gi.name))
+            //    if (gi.name == "path") Debug.Log("path ");
+                if (!TameHandles.HandleKey(gi.name.ToLower()))
                 {
                     tg = null;
                     obj = Create(gi);

@@ -17,10 +17,13 @@ namespace Markers
         {
             Stepped, Gradual, Switch
         }
+        public GameObject byElement = null;
         public EditorChangeStep mode;
         public float switchValue;
         public string steps;
+        public Color[] colorSteps;
         public float factor = 0;
+        public Flicker flicker;
         public MaterialProperty GetProperty()
         {
             return property switch
@@ -68,9 +71,28 @@ namespace Markers
 
             };
         }
+        private string ColorToString()
+        {
+            string s = "";
+            for (int i = 0; i < colorSteps.Length; i++)
+                s += (i != 0 ? "," : "") + colorSteps[i].r + ";" + colorSteps[i].g + ";" + colorSteps[i].b + ";" + colorSteps[i].a;
+            return s;
+        }
+        private static Color[] StringToColor(string line)
+        {
+            string[] colors = line.Split(',');
+            Color[] r = new Color[colors.Length];
+            string[] rgba;
+            for (int i = 0; i < colors.Length; i++)
+            {
+                rgba = colors[i].Split(';');
+                r[i] = new Color(float.Parse(rgba[0]), float.Parse(rgba[1]), float.Parse(rgba[2]), float.Parse(rgba[3]));
+            }
+            return r;
+        }
         public string[] ToLines()
         {
-            return new string[]
+            List<string> lines = new List<string>()
             {
                 ":changer",
                 MarkerSettings.ObjectToLine(gameObject),
@@ -78,8 +100,12 @@ namespace Markers
                 mode.ToString() ,
                 switchValue+"",
                 steps,
-                factor+""
-            };
+                factor+"",
+                MarkerSettings.ObjectToLine(byElement),
+                ColorToString()
+         };
+            lines.AddRange(flicker.ToLines());
+            return lines.ToArray();
         }
         public static int FromLines(string[] lines, int index, int version)
         {
@@ -102,10 +128,46 @@ namespace Markers
                         ma.mode = TT(lines[index + 2]);
                         ma.switchValue = float.Parse(lines[index + 3]);
                         ma.steps = lines[index + 4];
-                        if (version == 2) ma.factor = float.Parse(lines[index + 5]);
-                        return index + 5 + (version == 2 ? 1 : 0);
+                        if (version == 2)
+                        {
+                            ma.factor = float.Parse(lines[index + 5]);
+                            ma.byElement = MarkerSettings.LineToObject(lines[index + 6]);
+                            ma.colorSteps = StringToColor(lines[index + 7]);
+                            ma.flicker.active = lines[index + 8] == "1";
+                            ma.flicker.byMaterial = MarkerSettings.FindMaterial(lines[index + 9]);
+                            ma.flicker.byLight = MarkerSettings.LineToObject(lines[index + 10]);
+                            ma.flicker.minFlicker = float.Parse(lines[index + 11]);
+                            ma.flicker.maxFlicker = float.Parse(lines[index + 12]);
+                            ma.flicker.flickerCount = int.Parse(lines[index + 13]);
+                            ma.flicker.steadyPortion = lines[index + 14] == "1";
+                        }
+                        return index + 4 + (version == 2 ? 10 : 0);
                 }
             return index;
+        }
+    }
+    [System.Serializable]
+    public class Flicker
+    {
+        public bool active = false;
+        public Material byMaterial = null;
+        public GameObject byLight = null;
+        public float minFlicker = 0.1f;
+        public float maxFlicker = 0.2f;
+        public int flickerCount = 3;
+        public bool steadyPortion = false;
+        public string[] ToLines()
+        {
+            return new string[]
+            {
+                active?"1":"0",
+                MarkerSettings.FindMaterial(byMaterial),
+                MarkerSettings.ObjectToLine(byLight),
+                minFlicker+"",
+                maxFlicker+"",
+                flickerCount+"",
+                steadyPortion?"1":"0",
+            };
         }
     }
 }

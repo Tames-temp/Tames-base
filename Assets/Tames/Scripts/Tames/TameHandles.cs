@@ -133,12 +133,8 @@ namespace Tames
         private const string KeyUp = "_up";
         private const string KeyMover = "_mov";
         private const string KeyTracker = "_fol";
-        private const string KeyFace = "_face";
-        private const string KeyProgCycle = "_cyc";
-        private const string KeyProgBounce = "_rev";
-        private const string KeyProgStop = "_stop";
         private const string KeyHeadTracker = "_head";
-        private const string All = KeyFrom + "/" + KeyTo + "/" + KeyPivot + "/" + KeyAxis + "/" + KeyStart + "/" + KeyEnd + "/" + KeyMiddle + "/" + KeyPath + "/" + KeyUp + "/";
+        private static string[] All = new string[] { KeyFrom, KeyTo, KeyPivot, KeyAxis, KeyStart, KeyEnd, KeyMiddle, KeyPath, KeyUp, KeyAreaBox, KeyAreaCube, KeyAreaCylinder, KeyAreaSphere };
         /// <summary>
         /// checks whether the name matches criteria for being a handle object. Handle objects are objects with certain naming patern in the 3D model (as the immediate children of a potential interactive element. For mechanical keys, objects with names starting with keys will be considered as handles. Please note that while all objects with the keys are considered as handles, only the last one of each is included. The keys and their corresponding handle point are listed below: 
         /// _from : <see cref="start"/>
@@ -159,7 +155,9 @@ namespace Tames
         /// <returns>if the name contains handle keys</returns>
         public static bool HandleKey(string name)
         {
-            return (All.IndexOf(name + "/") >= 0) || (name.IndexOf(KeyArea) == 0);
+            for (int i = 0; i < All.Length; i++)
+                if (name.StartsWith(All[i])) return true;
+            return false;
         }
         /// <summary>
         /// creates a <see cref="TameHandles"/> for a game object (the handle key object should be immediate children of the game object, see <see cref="HandleKey"/>).
@@ -213,7 +211,8 @@ namespace Tames
         {
             int p, q;
             TameHandles r = null;
-            if (HandleKey(g.name))
+    //        if (g.name == "path") Debug.Log("path ");
+            if (HandleKey(g.name.ToLower()))
                 return null;
             //      Debug.Log(g.name + " is not handle");
             Transform[] ts = ValidObject(g, out int followMode, out int type);
@@ -265,6 +264,7 @@ namespace Tames
                         r.trackBasis = TrackBasis.Mover;
                     if (followMode == 2)
                         r.trackBasis = TrackBasis.Head;
+                    //        Debug.Log("transform " + g.name + " " + r.trackBasis);
                 }
                 r.transforms = ts;
             }
@@ -311,38 +311,61 @@ namespace Tames
         {
             if ((pivot.x != float.NegativeInfinity) && (start.x != float.NegativeInfinity))
             {
-                TameOrbit orbit;
-                path = orbit = new TameOrbit()
+                if (hinge.x != float.NegativeInfinity)
                 {
-                    parent = mover.transform.parent,
-                    self = mover.transform.parent,
-                    axis = hinge - pivot,
-                    pivot = pivot,
-                    mover = mover.transform
-                };
-                orbit.start = Utils.On(start, pivot, orbit.axis);
-                if (hinge.x == float.NegativeInfinity)
-                    rotType = MovingTypes.Facer;
-                else
-                    rotType = MovingTypes.Rotator;
-                facing = FacingLogic.Free;
-                if (end.x == float.NegativeInfinity)
-                    span = 360;
-                else
-                {
-                    span = Utils.Angle(end, pivot, start, axis = hinge-pivot, true);
-                    if (middle.x != float.NegativeInfinity)
+                    TameOrbit orbit;
+                    path = orbit = new TameOrbit()
                     {
-                        float ma = Utils.Angle(middle, pivot, start, axis, true);
-                        if ((span < 0) && (ma > 0))
-                            span = 360 + span;
-                        if ((span > 0) && (ma < 0))
-                            span -= 360;
+                        parent = mover.transform.parent,
+                        self = mover.transform.parent,
+                        axis = hinge - pivot,
+                        pivot = pivot,
+                        mover = mover.transform
+                    };
+                    orbit.start = Utils.On(start, pivot, orbit.axis);
+                    facing = FacingLogic.Free;
+                    if (end.x == float.NegativeInfinity)
+                        span = 360;
+                    else
+                    {
+                        span = Utils.Angle(end, pivot, start, axis = hinge - pivot, true);
+                        if (middle.x != float.NegativeInfinity)
+                        {
+                            float ma = Utils.Angle(middle, pivot, start, axis, true);
+                            if ((span < 0) && (ma > 0))
+                                span = 360 + span;
+                            if ((span > 0) && (ma < 0))
+                                span -= 360;
+                        }
                     }
+                    orbit.span = span;
+                    //     Debug.Log("sapn " + mover.transform.parent.name + " " + span);
+                    //       Debug.Log("pre v  " + mover.transform.parent.name + " " + (path == null));
                 }
-                orbit.span = span;
-                //     Debug.Log("sapn " + mover.transform.parent.name + " " + span);
-                //       Debug.Log("pre v  " + mover.transform.parent.name + " " + (path == null));
+
+                else
+                {
+                    TameFreeRotator tfr;
+                    path = tfr = new TameFreeRotator()
+                    {
+                        parent = mover.transform.parent,
+                        self = mover.transform.parent,
+                        pivot = pivot,
+                        mover = mover.transform,
+                        start = start
+                    };
+                    facing = FacingLogic.Free;
+                    if (end.x == float.NegativeInfinity)
+                        span = 90;
+                    else
+                    {
+                        span = Vector3.Angle(end - pivot, start - pivot);
+                        if (span > 90)
+                            span = 90;
+                    }
+           //         Debug.Log("rot span " + span);
+                    tfr.span = span;
+                }
             }
         }
         public void SetMover()
@@ -383,6 +406,7 @@ namespace Tames
         }
         public void AlignQueued(float start, int count, float interval, int uv)
         {
+            if (path.freeRotator) return;
             float m = start;
             int n = count > 0 ? count : (int)((1 - m) / interval) + 1;
             float d = count <= 0 ? interval : (1 - m) / (count - 1);
@@ -411,8 +435,9 @@ namespace Tames
         /// <param name="lk">the type of linking</param>
         /// <param name="linkage">not used</param>
         /// <param name="list"></param>
-        public void AlignLinked(LinkedKeys lk, GameObject linjage, List<TameGameObject> list)
+        public void AlignLinked(LinkedKeys lk, GameObject linkage, List<TameGameObject> list)
         {
+            if (path.freeRotator) return;
             Quaternion[] qu;
             Quaternion[] quat = new Quaternion[list.Count];
             linkedType = lk;
@@ -457,6 +482,7 @@ namespace Tames
         public float Move(float next, float current)
         {
             float m = current;
+            if (path.freeRotator) return m;
             m = next;
             switch (linkedType)
             {
@@ -466,7 +492,7 @@ namespace Tames
                 case LinkedKeys.Cycle: MoveCycle(m, false); break;
                 case LinkedKeys.Stack: MoveStacked(m, true); break;
             }
-            path.MoveLinked(m);
+            //   path.MoveLinked(m);
             return m;
         }
         /// <summary>
@@ -488,13 +514,12 @@ namespace Tames
                 case LinkedKeys.Stack: m = MoveLinked(pGlobal, current, speed, dT, true); break;
                 case LinkedKeys.Local: MoveLinked(pGlobal, current, speed, dT, false); break;
             }
-            path.MoveLinked(m);
+            //     path.MoveLinked(m);
             return m;
         }
 
         private float MoveLinked(Vector3 pGlobal, float current, float speed, float time, bool relative)
         {
-            Vector3 p = mover.transform.parent.InverseTransformPoint(pGlobal);
             float m = path.GetM(pGlobal);
             if (Mathf.Abs(m - current) > speed * time)
             {
@@ -573,16 +598,23 @@ namespace Tames
         /// <returns>the new progress value</returns>
         private float MoveSelf(Vector3 pGlobal, float current, float speed, float time)
         {
-            Vector3 p = mover.transform.parent.InverseTransformPoint(pGlobal);
-            float m = current;
-            m = path.GetM(pGlobal);
-            if (m < 0) m = 0;
-            if (m > 1) m = 1;
-            if (Mathf.Abs(m - current) > speed * time)
+             float m = current;
+            if (path.freeRotator)
             {
-                if (m > current) m = current + speed * time; else m = current - speed * time;
+                TameFreeRotator tfr = (TameFreeRotator)path;                
+                m = tfr.Move(pGlobal);
             }
-            path.Move(0, m);
+            else
+            {
+                m = path.GetM(pGlobal);
+                if (m < 0) m = 0;
+                if (m > 1) m = 1;
+                if (Mathf.Abs(m - current) > speed * time)
+                {
+                    if (m > current) m = current + speed * time; else m = current - speed * time;
+                }
+                path.Move(0, m);
+            }
             return m;
         }
         public bool Interactive(GameObject g)

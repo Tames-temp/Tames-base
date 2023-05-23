@@ -48,6 +48,8 @@ namespace Tames
         /// count of the values in each stop (1: float, 3: color)
         /// </summary>
         public int count;
+        public TameElement parent = null;
+        public Markers.MarkerChanger marker;
         /// <summary>
         /// returns the value(s) that the property should have on the progress = p 
         /// </summary>
@@ -58,7 +60,12 @@ namespace Tames
             int index, sc = steps.Count;
             float k, d;
             int dc;
-            if (p >= 1) return steps[steps.Count - 1].value;
+            if (parent != null)
+            {
+                p = parent.progress.progress;
+                tp = parent.progress.totalProgress;
+            }
+            if (p >= 1) return steps[^1].value;
             if (p <= 0) return steps[0].value;
             switch (toggleType)
             {
@@ -185,17 +192,18 @@ namespace Tames
                 //       Debug.Log("flicker " + i + " > " + r);
             }
         }
-        public void SetFlickerPlan(Markers.MarkerFlicker mf)
+        public void SetFlickerPlan()
         {
+            Markers.Flicker mf = marker.flicker;
             if ((mf.byLight != null) || (mf.byMaterial != null)) return;
             flickerPlan = new bool[FlickPlanCount * 100];
+        //     Debug.Log("flicker " + marker.gameObject.name+" "+property);
             //   float f0 = mf.minFlicker, f2 = mf.maxFlicker;
             float df;
             float[] fs = new float[mf.flickerCount];
             float left = (1 - mf.flickerCount * mf.minFlicker) / 2;
             float spare = left;
             float max = Mathf.Min(mf.maxFlicker - mf.minFlicker, left);
-            //   Debug.Log("flicker " + max);
             for (int i = 0; i < mf.flickerCount; i++)
             {
                 df = UnityEngine.Random.Range(0, max);
@@ -242,6 +250,18 @@ namespace Tames
             steps = tch.steps;
             toggle = tch.toggle;
             toggleType = tch.toggleType;
+            marker = tch.marker;
+            parent = tch.parent;
+        }
+        public void FindParent(List<TameElement> tes)
+        {
+            if (marker.byElement != null)
+                foreach (TameElement te in tes)
+                    if (te.owner == marker.byElement)
+                    {
+                        parent = te;
+                        break;
+                    }
         }
     }
 }

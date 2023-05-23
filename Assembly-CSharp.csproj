@@ -121,6 +121,7 @@
     <Compile Include="Assets\Tames\Scripts\Tames\TameMaterialAlternative.cs" />
     <Compile Include="Assets\Tames\Scripts\Records\FrameShot.cs" />
     <Compile Include="Assets\Tames\Scripts\Identifier.cs" />
+    <Compile Include="Assets\Tames\Scripts\Tames\TameFreeRotator.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TamePath.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerAlterMaterial.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameInputControl.cs" />

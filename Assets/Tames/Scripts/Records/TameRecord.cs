@@ -219,7 +219,7 @@ namespace Records
             }
             return false;
         }
-        public void ExportToCSV(string folder, ExportOption eo)
+          public void ExportToCSV(string folder, ExportOption eo)
         {
              //  bool allPeople = false;
             List<string> lines = new();

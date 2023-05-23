@@ -133,28 +133,38 @@ namespace Tames
                         case MaterialProperty.LightY:
                         case MaterialProperty.MapX:
                         case MaterialProperty.LightX:
-                            tch = TameChanger.ReadStepsOnly(ch.steps, ch.GetToggle(), ch.switchValue, 1);
+                         if((   tch = TameChanger.ReadStepsOnly(ch.steps, ch.GetToggle(), ch.switchValue, 1))!=null)
                             tch.property = mp;
                             break;
                         default:
-                            tch = tco = TameColor.ReadStepsOnly(ch.steps, ch.GetToggle(), ch.switchValue, mp == MaterialProperty.Glow);
-                            tco.property = mp;
-                            if (mp == MaterialProperty.Glow)
-                                tco.factor = ch.factor;
+                            if (ch.colorSteps.Length > 0)
+                                tch = tco = TameColor.ReadStepsOnly(ch.colorSteps, ch.GetToggle(), ch.switchValue, mp == MaterialProperty.Glow);
+                            else
+                                tch = tco = TameColor.ReadStepsOnly(ch.steps, ch.GetToggle(), ch.switchValue, mp == MaterialProperty.Glow);
+                            if (tch != null)
+                            {
+                                tco.property = mp;
+                                if (mp == MaterialProperty.Glow)
+                                    tco.factor = ch.factor;
+                            }
                             break;
                     }
-                    found = false;
-                    for (int i = 0; i < pcount; i++)
-                        if (mp == properties[i].property)
-                        {
-                            if (tch.count == 1)
-                                properties[i].From(tch);
-                            else
-                                ((TameColor)properties[i]).From((TameColor)tch);
-                            found = true;
-                        }
-                    if (!found)
-                        properties.Add(tch);
+                    if (tch != null)
+                    {
+                        tch.marker = ch;
+                        found = false;
+                        for (int i = 0; i < pcount; i++)
+                            if (mp == properties[i].property)
+                            {
+                                if (tch.count == 1)
+                                    properties[i].From(tch);
+                                else
+                                    ((TameColor)properties[i]).From((TameColor)tch);
+                                found = true;
+                            }
+                        if (!found)
+                            properties.Add(tch);
+                    }
                 }
         }
     }

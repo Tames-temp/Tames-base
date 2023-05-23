@@ -261,7 +261,6 @@ namespace Tames
         }
         public static TameColor ReadStepsOnly(string line, ToggleType st, float sv, bool spectrum)
         {
-            //      Debug.Log("color " + mh.items.Count);
             string clean = Utils.Clean(line);
 
             List<string> si, s = Utils.Split(clean, " ");
@@ -269,22 +268,14 @@ namespace Tames
             List<TameNumericStep> stops = new List<TameNumericStep>();
             Color c;
             float a;
-            //    Debug.Log("chorr:: " + mh.items.Count);
             for (int i = 0; i < s.Count; i++)
             {
                 if (spectrum)
                 {
-                    // Debug.Log("chor: " + mh.items[i]);
                     if ((a = GetGlow(s[i], out c)) >= 0)
-                    {
                         stops.Add(new TameNumericStep() { value = new float[] { c.r, c.g, c.b, a } });
-                    }
                     else
-                    {
-                        //              Debug.Log("glw:: " + mh.items[i] + " " + a);
-                        //      Debug.Log("chor: bad " + mh.items[i]);
                         return null;
-                    }
                 }
                 else
                 {
@@ -294,9 +285,27 @@ namespace Tames
                         return null;
                 }
             }
-            //        Debug.Log("color return " + stops.Count);
-            //        for (int i = 0; i < stops.Count; i++)
-            //         Debug.Log("mix: " + stops[i].value[0] + ", " + stops[i].value[1] + ", " + stops[i].value[2]);
+            return new TameColor()
+            {
+                steps = stops,
+                toggleType = st,
+                toggle = sv,
+                count = 4,
+                property = MaterialProperty.Color
+            };
+        }
+        public static TameColor ReadStepsOnly(Color[] line, ToggleType st, float sv, bool spectrum)
+        {
+            List<TameNumericStep> stops = new List<TameNumericStep>();
+            Color c;
+            for (int i = 0; i < line.Length; i++)
+            {
+                c = line[i];
+                if (spectrum)
+                    stops.Add(new TameNumericStep() { value = new float[] { c.r, c.g, c.b, 1 } });
+                else
+                    stops.Add(new TameNumericStep() { value = new float[] { c.r, c.g, c.b, c.a } });
+            }
             return new TameColor()
             {
                 steps = stops,

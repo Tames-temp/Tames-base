@@ -14,6 +14,7 @@ public class MarkerGeometry : Editor
     SerializedProperty update;
     SerializedProperty mode;
     SerializedProperty appliesTo;
+    SerializedProperty applyToSelf;
     SerializedProperty autoPosition;
 
     void OnEnable()
@@ -23,6 +24,7 @@ public class MarkerGeometry : Editor
         input = serializedObject.FindProperty("input");
         update = serializedObject.FindProperty("update");
         mode = serializedObject.FindProperty("mode");
+        applyToSelf = serializedObject.FindProperty("applyToSelf");
         appliesTo = serializedObject.FindProperty("appliesTo");
         autoPosition = serializedObject.FindProperty("autoPosition");
     }
@@ -35,6 +37,7 @@ public class MarkerGeometry : Editor
         EditorGUILayout.PropertyField(input);
         EditorGUILayout.PropertyField(update);
         EditorGUILayout.PropertyField(mode);
+        EditorGUILayout.PropertyField(applyToSelf);
         EditorGUILayout.PropertyField(appliesTo);
         EditorGUILayout.PropertyField(autoPosition);
 
@@ -61,29 +64,38 @@ public class OriginInEditor : Editor
 [CustomEditor(typeof(Markers.MarkerChanger)), CanEditMultipleObjects]
 public class MarkerChangerEditor : Editor
 {
+    SerializedProperty byElement;
     SerializedProperty property;
     SerializedProperty mode;
     SerializedProperty switchValue;
     SerializedProperty steps;
     SerializedProperty factor;
+    SerializedProperty colorSteps;
+    SerializedProperty flicker;
 
     void OnEnable()
     {
+        byElement = serializedObject.FindProperty("byElement");
         property = serializedObject.FindProperty("property");
         mode = serializedObject.FindProperty("mode");
         switchValue = serializedObject.FindProperty("switchValue");
         steps = serializedObject.FindProperty("steps");
         factor = serializedObject.FindProperty("factor");
+        colorSteps = serializedObject.FindProperty("colorSteps");
+        flicker = serializedObject.FindProperty("flicker");
     }
 
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
+        EditorGUILayout.PropertyField(byElement);
         EditorGUILayout.PropertyField(property);
         EditorGUILayout.PropertyField(mode);
         EditorGUILayout.PropertyField(switchValue);
         EditorGUILayout.PropertyField(steps);
         EditorGUILayout.PropertyField(factor);
+        EditorGUILayout.PropertyField(colorSteps);
+        EditorGUILayout.PropertyField(flicker);
 
         serializedObject.ApplyModifiedProperties();
     }
@@ -130,7 +142,7 @@ class MarkerSettingsEditor : Editor
         {
             settings.Load();
         }
-       serializedObject.ApplyModifiedProperties();
+        serializedObject.ApplyModifiedProperties();
     }
 }
 [CustomEditor(typeof(Markers.MarkerLink)), CanEditMultipleObjects]

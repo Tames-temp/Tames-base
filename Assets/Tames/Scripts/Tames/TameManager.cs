@@ -70,7 +70,7 @@ namespace Tames
         /// The list of material markers used to distinguish dynamic materials
         /// </summary>
         public List<Markers.MarkerMaterial> materialMarkers = new List<Markers.MarkerMaterial>();
-        public static List<GameObject> peoploids = new ();
+        public static List<GameObject> peoploids = new();
         //    public List<Markers.MarkerMaterial> lightMarkers = new List<Markers.MarkerMaterial>();
         //       public static Walking.MoveGesture moveGesture;
         /// <summary>
@@ -245,6 +245,7 @@ namespace Tames
                 }
             TameCamera.ReadCamera(tgos);
             SetLink();
+            SetChangerParents();
 
             Records.TameFullRecord.allRecords = new Records.TameFullRecord(CoreTame.people);
             Markers.MarkerPerson mp;
@@ -275,7 +276,10 @@ namespace Tames
             GameObject[] root = SceneManager.GetActiveScene().GetRootGameObjects();
             Markers.MarkerArea.PopulateAll(RootObjects.ToArray());
             foreach (GameObject go in RootObjects)
-                tgos.AddRange(TameObject.CreateInteractive(TameTime.RootTame, go, tes, Blender));
+            {
+         //       Debug.Log("root " + go.name);
+                tgos.AddRange(TameObject.CreateInteractive(TameTime.RootTame, go, tes, Blender)); 
+            }
             Markers.MarkerCustom mc;
             for (int i = 0; i < tgos.Count; i++)
                 if ((mc = tgos[i].gameObject.GetComponent<Markers.MarkerCustom>()) != null)
@@ -300,12 +304,17 @@ namespace Tames
 
         void CheckManualEligibility()
         {
+          //  Debug.Log("checking manual");
             foreach (TameElement te in tes)
+            {
+            //    if (te.name =="path") Debug.Log("checking: ");
                 if (te.markerProgress != null)
                     if (te.markerProgress.manual)
                     {
+              //          if (te.name == "path") Debug.Log("inputs: " + te.markerProgress.update);
                         te.ReadInput(te.markerProgress.update);
                     }
+            }
         }
         void AssignMatches()
         {
@@ -410,14 +419,13 @@ namespace Tames
                             markerProgress = mp,
                             markerSpeed = ms,
                             cloned = true,
-                            markerFlicker = mfs
+                            //         markerFlicker = mfs
                         };
                         k++;
                         ((ManifestMaterial)tmb).ExternalChanger(mcs);
                         tm.CheckEmission();
                         tm.basis = tgo.tameParent.tameType == TameKeys.Time ? TrackBasis.Time : TrackBasis.Tame;
                         tm.SetProvisionalUpdate(tgo.tameParent);
-                        Debug.Log(tm.name + " " + tgo.gameObject.name + " " + tgo.tameParent.name);
                         tm.updatedUnique = true;
                         tes.Add(tm);
                         tmb.elements.Add(tm);
@@ -434,7 +442,7 @@ namespace Tames
                     index = (ushort)tes.Count,
                     markerProgress = mp,
                     markerSpeed = ms,
-                    markerFlicker = mfs
+                    //           markerFlicker = mfs
                 };
                 ((ManifestMaterial)tmb).ExternalChanger(mcs);
                 //      if (original.name == "barrier sign") Debug.Log("UP: not uniq");
@@ -860,49 +868,45 @@ namespace Tames
         {
             TameChanger firstFlicker;
             List<TameChanger> list = new List<TameChanger>();
-            List<Markers.MarkerFlicker> mfs = new();
-            Markers.MarkerFlicker fmf = null;
             foreach (TameElement te in tes)
             {
                 //        Debug.Log("flicker null " + (te.markerFlicker == null));
 
-                if (te.markerFlicker != null)
-                    if (te.manifest != null)
-                    {
-                        list.Clear();
-                        mfs.Clear();
-                        firstFlicker = null;
-                        //       Debug.Log("flicker " + te.name + " " + te.manifest.properties.Count);
-                        foreach (Markers.MarkerFlicker mf in te.markerFlicker)
-                            foreach (TameChanger ch in te.manifest.properties)
-                            {
-                                //       Debug.Log("flicker checking " + te.name + " " + ch.property);
-                                if (mf.GetProperty() == ch.property)
-                                {
-                                    ch.toggleType = ToggleType.Flicker;
-                                    list.Add(ch);
-                                    mfs.Add(mf);
-                                    break;
-                                }
-                            }
-                        for (int i = 0; i < list.Count; i++)
-                            if ((firstFlicker = GetFlickerParent(mfs[i])) != null)
-                                break;
-                        for (int i = 0; i < list.Count; i++)
-                            if (firstFlicker != null)
-                                list[i].flickerParent = firstFlicker;
-                            else
-                            {
-                                firstFlicker = list[i]; list[i].SetFlickerPlan(mfs[i]);
-                            }
-                    }
+                if (te.manifest != null)
+                {
+                    list.Clear();
+                    firstFlicker = null;
+                    //       Debug.Log("flicker " + te.name + " " + te.manifest.properties.Count);
+                    foreach (TameChanger ch in te.manifest.properties)
+                        if (ch.marker.flicker.active)
+                        {
+                 //           Debug.Log("flicker checking " + te.name + " " + ch.property);
+                            ch.toggleType = ToggleType.Flicker;
+                            list.Add(ch);
+                            break;
+                        }
+                    for (int i = 0; i < list.Count; i++)
+                        if ((firstFlicker = GetFlickerParent(list[i].marker)) != null)
+                            break;
+                //    Debug.Log("flicker parent " + (firstFlicker == null) + " " + list.Count);
+                    for (int i = 0; i < list.Count; i++)
+                        if (firstFlicker != null)
+                            list[i].flickerParent = firstFlicker;
+                        else
+                        {
+                            firstFlicker = list[i];
+                            list[i].SetFlickerPlan();
+                        }
+
+
+                }
             }
         }
-        TameChanger GetFlickerParent(Markers.MarkerFlicker mf)
+        TameChanger GetFlickerParent(Markers.MarkerChanger mf)
         {
-            if (mf.byMaterial != null)
+            if (mf.flicker.byMaterial != null)
             {
-                TameMaterial tm = TameMaterial.Find(mf.byMaterial, tes);
+                TameMaterial tm = TameMaterial.Find(mf.flicker.byMaterial, tes);
                 if (tm != null)
                     if (tm.manifest != null)
                     {
@@ -911,11 +915,11 @@ namespace Tames
                                 return ch;
                     }
             }
-            if (mf.byLight != null)
+            if (mf.flicker.byLight != null)
             {
                 foreach (TameElement te in tes)
                     if (te.tameType == TameKeys.Light)
-                        if (te.owner == mf.byLight)
+                        if (te.owner == mf.flicker.byLight)
                             if (te.manifest != null)
                             {
                                 foreach (TameChanger ch in te.manifest.properties)
@@ -924,6 +928,14 @@ namespace Tames
                             }
             }
             return null;
+        }
+        void SetChangerParents()
+        {
+            foreach (TameElement te in tes)
+                if ((te.tameType == TameKeys.Light) || (te.tameType == TameKeys.Material))
+                    if (te.manifest != null)
+                        foreach (TameChanger ch in te.manifest.properties)
+                            ch.FindParent(tes);
         }
         void SetMaster()
         {
