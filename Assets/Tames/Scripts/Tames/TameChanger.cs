@@ -111,8 +111,8 @@ namespace Tames
         }
         public void UpdateMarker()
         {
-            TameChanger ch = null;
-            TameColor cc = null;
+            TameChanger ch;
+            TameColor cc;
             if (count > 1 && marker.colorSteps.Length > 0)
             {
                 cc = TameColor.ReadStepsOnly(marker.colorSteps, toggleType, toggle, true);
@@ -124,8 +124,8 @@ namespace Tames
                 if (ch != null)
                     steps = ch.steps;
             }
-            toggle = ch.toggle;
-            toggleType = ch.toggleType;
+            toggle = marker.switchValue;
+            toggleType = marker.GetToggle();
         }
 
         public static TameChanger ReadStepsOnly(string line, ToggleType st, float sv, int n)
