@@ -48,7 +48,8 @@ namespace Tames
         /// <summary>
         /// the initial position of the interactor when it is constructed
         /// </summary>
-        public Vector3 localGripVector;
+        public Vector3 lastGripCenter;
+        public bool autoGripped = false;
         public float displacement = 0;
         /// <summary>
         /// the difference between the center of grip and the center of this area at the moment grip began.
@@ -272,6 +273,10 @@ namespace Tames
             r.update = update;
             return r;
         }
+        public void Grip(Vector3 gripCenter)
+        {
+            lastGripCenter = relative.transform.InverseTransformPoint(gripCenter);
+        }
         /// <summary>
         /// checks if an area is already occupied for a person
         /// </summary>
@@ -283,7 +288,7 @@ namespace Tames
         /// </summary>
         /// <param name="tis">list of the area of an element</param>
         /// <returns>a <see cref="TameEffect"/> object containing the person's index and the index of the gripping hand</returns>
-        public static TameEffect Grip(List<TameArea> tis)
+        public static TameEffect CheckGrip(List<TameArea> tis)
         {
             int from = CoreTame.multiPlayer ? 0 : Person.LocalDefault;
             int to = CoreTame.multiPlayer ? Person.people.Length : Person.LocalDefault + 1;
@@ -298,6 +303,8 @@ namespace Tames
                         //       Debug.Log("grip : " + person.grip[j]);
                         if (person.grip[j] > HandAsset.HandModel.GripThreshold)
                             for (int t = 0; t < tis.Count; t++)
+                            {
+                                if (j == 0) Debug.Log("dis " + Vector3.Distance(person.hand[j].lastGripCenter, tis[t].relative.transform.position));
                                 if (tis[t].Inside(person.hand[j].gripCenter))
                                 {
                                     return new TameEffect()
@@ -309,6 +316,7 @@ namespace Tames
                                         position = person.hand[j].gripCenter,
                                     };
                                 }
+                            }
                     }
             }
             return null;
@@ -619,7 +627,7 @@ namespace Tames
                 for (int a = 0; a < tis.Count; a++)
                 {
                     inside = tis[a].Inside(TameManager.peoploids[i].transform.position);
-                  //  if (tis[a].element.name == "rotar") Debug.Log("rotai: " + inside+ tis[i].scale.ToString());
+                    //  if (tis[a].element.name == "rotar") Debug.Log("rotai: " + inside+ tis[i].scale.ToString());
                     if (pIndex == -1)
                         pIndex = i;
                     d = Vector3.Distance(p, TameManager.peoploids[i].transform.position);
@@ -850,7 +858,7 @@ namespace Tames
             MarkerArea ma = g.GetComponent<MarkerArea>();
             if (ma != null)
             {
-      //          if (to.name == "rotar") Debug.Log("rotar : ");
+                //          if (to.name == "rotar") Debug.Log("rotar : ");
                 r = new TameArea()
                 {
                     geometry = ma.geometry,
@@ -954,7 +962,7 @@ namespace Tames
             }
             if (r != null)
             {
-           //     if (to.name == "rotar") Debug.Log("rotar : " + r.mode + " " + r.update);
+                //     if (to.name == "rotar") Debug.Log("rotar : " + r.mode + " " + r.update);
 
                 switch (r.mode)
                 {
@@ -1004,6 +1012,36 @@ namespace Tames
                 }
             }
             return r;
+        }
+        public float GripDelta(float dt)
+        {
+            if (element.tameType == TameKeys.Object)
+            {
+                float min = scale.x < scale.y ? (scale.x < scale.z ? scale.x : scale.z) : (scale.y < scale.z ? scale.y : scale.z);
+                min *= 0.4f;
+                TameObject to = (TameObject)element;
+                float factor;
+                Vector3 p, u;
+                if (to.handle.isSlider)
+                {
+                    factor = to.handle.path.length;
+                }
+                else
+                {
+                    TameOrbit tor = (TameOrbit)to.handle.path;
+                    p = tor.parent.TransformPoint(tor.pivot);
+                    u = tor.parent.TransformPoint(tor.pivot + tor.axis) - p;
+                    Vector3 r = Utils.On(relative.transform.position, p, u);
+                    factor = Vector3.Distance(p, r) * tor.length;
+                }
+                float maxDelta = min / factor;
+                float maxDt = dt / maxDelta;
+                if (maxDt < 3)
+                    maxDelta = dt / 3;
+                return maxDelta;
+            }
+            else
+                return 0;
         }
 
         /// <summary>
@@ -1084,7 +1122,7 @@ namespace Tames
             area.update = update;
             area.upAxis = upAxis;
             area.key = key;
-            area.localGripVector = localGripVector;
+            area.lastGripCenter = lastGripCenter;
             area.displacement = displacement;
             area.mode = mode;
             area.range = range;

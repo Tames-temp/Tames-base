@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine;
+using UnityEngine.InputSystem.XR;
+
 namespace Tames
 {
     public enum InputTypes
@@ -13,7 +15,8 @@ namespace Tames
         VRController,
         GamePad,
         KeyboardMouse,
-        None
+        None,
+        Error
     }
     public enum InputDirections
     {
@@ -21,13 +24,18 @@ namespace Tames
         MouseWheel = 2,
         Key = 0
     }
+    public enum InputControlHold
+    {
+        Ctrl, Shift, Alt,
+        GTL, GTR, GTBoth,
+        VRTL, VRTR, VRTBoth,
+        None
+    }
     public enum InputHoldType
     {
         // none
         None, Error,
         // control
-        Ctrl, Shift, Alt,
-        GTL, GTR, GTBoth,
         // single
         Key, GDXL, GDXR, GDYU, GDYD, GA, GB, GX, GY, GSL, GSR,
         // dual
@@ -39,9 +47,10 @@ namespace Tames
         VRScrollLeft,
         VRScrollRight,
         VRTrigger,
-      }
+    }
     public static class InputBasis
     {
+        public static TrackedPoseDriver driver;
         public const int Mouse = 1;
         public const int Button = 2;
         public const int VR = 3;
@@ -71,6 +80,13 @@ namespace Tames
             turn = toggles[current * 3 + 1];
             move = toggles[current * 3 + 2];
             Debug.Log(current + " > " + tilt + ", " + turn + ", " + move);
+            if (driver != null)
+            {
+                driver.enabled = move == VR || turn == VR;
+                if (move == VR && turn == VR)
+                    driver.trackingType = TrackedPoseDriver.TrackingType.RotationAndPosition;
+                else if (turn == VR) driver.trackingType = TrackedPoseDriver.TrackingType.RotationOnly;
+            }
         }
 
     }
@@ -81,7 +97,8 @@ namespace Tames
         //   public static bool[] keyStatus = null;
         public static List<ButtonControl> checkedKeys = new List<ButtonControl>();
         public InputTypes control;
-        public InputHoldType hold, aux;
+        public InputHoldType hold;
+        public InputControlHold aux;
         public InputDirections direction;
         public bool mono;
         public int[] keyValue;
@@ -130,36 +147,88 @@ namespace Tames
             //        }
             return null;
         }
-        public static InputHoldType GetHolder(string s, out InputTypes it)
+        public static InputControlHold GetHolder(string s, out InputTypes it)
         {
-            it = InputTypes.None;
             switch (s)
             {
-                case "shift": it = InputTypes.KeyboardMouse; return InputHoldType.Shift;
-                case "ctrl": it = InputTypes.KeyboardMouse; return InputHoldType.Ctrl;
-                case "alt": it = InputTypes.KeyboardMouse; return InputHoldType.Alt;
-                case "gtl": it = InputTypes.GamePad; return InputHoldType.GTL;
-                case "gtr": it = InputTypes.GamePad; return InputHoldType.GTR;
+                case "shift": it = InputTypes.KeyboardMouse; return InputControlHold.Shift;
+                case "ctrl": it = InputTypes.KeyboardMouse; return InputControlHold.Ctrl;
+                case "alt": it = InputTypes.KeyboardMouse; return InputControlHold.Alt;
+                case "gtl": it = InputTypes.GamePad; return InputControlHold.GTL;
+                case "gtr": it = InputTypes.GamePad; return InputControlHold.GTR;
             }
-            return InputHoldType.Error;
+            it = InputTypes.Error;
+            return InputControlHold.None;
+        }
+        public static InputControlHold StringToHold(string s)
+        {
+            return s switch
+            {
+                "Ctrl" => InputControlHold.Ctrl,
+                "Shift" => InputControlHold.Shift,
+                "Alt" => InputControlHold.Alt,
+                "GTL" => InputControlHold.GTL,
+                "GTR" => InputControlHold.GTR,
+                "GTBoth" => InputControlHold.GTBoth,
+                "VRTL" => InputControlHold.VRTL,
+                "VRTR" => InputControlHold.VRTR,
+                "VRTBoth" => InputControlHold.VRTBoth,
+                _ => InputControlHold.None,
+            };
+        }
+        public static TameInputControl[] ByStringTwoMonos(string S)
+        {
+            string s = S.ToLower();
+            TameInputControl pair = ByStringDuo(s);
+            if (pair != null)
+            {
+                TameInputControl[] r = new TameInputControl[2];
+                switch (pair.control)
+                {
+                    case InputTypes.KeyboardMouse:
+                        if (pair.hold == InputHoldType.Button)
+                            return null;
+                        else
+                        {
+                            r[0] = new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Key, keyValue = new int[] { pair.keyValue[0] }, aux = pair.aux };
+                            r[1] = new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Key, keyValue = new int[] { pair.keyValue[1] }, aux = pair.aux };
+                            return r;
+                        }
+                    case InputTypes.GamePad:
+                        r[0] = new TameInputControl() { control = InputTypes.GamePad, aux = pair.aux };
+                        r[1] = new TameInputControl() { control = InputTypes.GamePad, aux = pair.aux };
+                        switch (pair.hold)
+                        {
+                            case InputHoldType.GYA: r[0].hold = InputHoldType.GY; r[1].hold = InputHoldType.GA; break;
+                            case InputHoldType.GXB: r[0].hold = InputHoldType.GX; r[1].hold = InputHoldType.GB; break;
+                            case InputHoldType.GS: r[0].hold = InputHoldType.GSL; r[1].hold = InputHoldType.GSR; break;
+                            case InputHoldType.GDX: r[0].hold = InputHoldType.GDXL; r[1].hold = InputHoldType.GDXR; break;
+                            case InputHoldType.GDY: r[0].hold = InputHoldType.GDYD; r[1].hold = InputHoldType.GDYU; break;
+                            default: return null;
+                        }
+                        return r;
+                }
+            }
+            return null;
         }
         public static TameInputControl ByStringMono(string S)
         {
             int k;
             string s = S.ToLower();
             string[] plus = s.Split('+');
-            InputHoldType holder = InputHoldType.None;
+            InputControlHold holder = InputControlHold.Shift;
             InputTypes it = InputTypes.None;
             if (plus.Length == 2) holder = GetHolder(plus[0], out it);
             s = plus.Length == 2 ? plus[1] : s;
-            if ((holder == InputHoldType.None) || (it == InputTypes.KeyboardMouse))
-            {
-                //    if ((s == "mouse") || (s == "button")) return new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Button, aux = holder };
-                k = FindKey(s);
-                if (k >= 0) return new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Key, keyValue = new int[] { k }, aux = holder };
+            if (it != InputTypes.Error)
+                if ((holder == InputControlHold.None) || (it == InputTypes.KeyboardMouse))
+                {
+                    //    if ((s == "mouse") || (s == "button")) return new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Button, aux = holder };
+                    k = FindKey(s);
+                    if (k >= 0) return new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Key, keyValue = new int[] { k }, aux = holder };
 
-            }
-            if ((holder == InputHoldType.None) || (it == InputTypes.GamePad))
+                }
+            if ((holder == InputControlHold.None) || (it == InputTypes.GamePad))
             {
                 switch (s)
                 {
@@ -182,18 +251,18 @@ namespace Tames
 
             return null;
         }
-      
+
         public static TameInputControl ByStringDuo(string S)
         {
             int a = -1, b = -1;
             string s = S.ToLower();
             string[] comma = s.Split(',');
             string[] plus = comma.Length == 1 ? s.Split('+') : comma[0].Split('+');
-            InputHoldType holder = InputHoldType.None;
+            InputControlHold holder = InputControlHold.None;
             InputTypes it = InputTypes.None;
             if (plus.Length == 2) holder = GetHolder(plus[0], out it);
             s = plus.Length == 2 ? plus[1] : comma[0];
-            if ((holder == InputHoldType.None) || (it == InputTypes.KeyboardMouse))
+            if ((holder == InputControlHold.None) || (it == InputTypes.KeyboardMouse))
             {
                 if (comma.Length == 2)
                 {
@@ -213,7 +282,7 @@ namespace Tames
                         return new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Button, aux = holder };
                 }
             }
-            if ((holder == InputHoldType.None) || (it == InputTypes.GamePad))
+            if ((holder == InputControlHold.None) || (it == InputTypes.GamePad))
             {
                 switch (s)
                 {
@@ -230,18 +299,18 @@ namespace Tames
 
         public static int FindKey(string key, bool byUser = true)
         {
-            if(!byUser)
+            if (!byUser)
             {
                 switch (key)
                 {
                     case "c": return AddKey(Keyboard.current.cKey);
                     case "x": return AddKey(Keyboard.current.xKey);
                     case "z": return AddKey(Keyboard.current.zKey);
-                }                
+                }
             }
-                switch (key)
+            switch (key)
             {
-                 case "1": return AddKey(Keyboard.current.digit1Key);
+                case "1": return AddKey(Keyboard.current.digit1Key);
                 case "2": return AddKey(Keyboard.current.digit2Key);
                 case "3": return AddKey(Keyboard.current.digit3Key);
                 case "4": return AddKey(Keyboard.current.digit4Key);

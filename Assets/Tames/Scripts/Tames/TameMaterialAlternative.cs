@@ -93,14 +93,18 @@ namespace Tames
         /// </summary>
         /// <param name="keys">a string representing the inputs</param>
         /// <param name="backOrFoth">whether the input set is <see cref="back"/>(true) or <see cref="forth"/> (false).</param>
-        public void SetKeys(string keys, bool backOrFoth)
+        public void SetKeys(string keys)
         {
-            List<TameInputControl> tcs = backOrFoth ? back : forth;
+            TameInputControl[] tcis;
             string[] ks = keys.Split(' ');
             for (int i = 0; i < ks.Length; i++)
             {
-                TameInputControl tc = TameInputControl.ByStringMono(ks[i]);
-                if (tc != null) tcs.Add(tc);
+                TameInputControl[] tcs = TameInputControl.ByStringTwoMonos(ks[i]);
+                if (tcs != null)
+                {
+                    back.Add(tcs[0]);
+                    forth.Add(tcs[1]);
+                }
             }
         }
         /// <summary>
@@ -117,8 +121,7 @@ namespace Tames
                 if ((mam = tgos[i].gameObject.GetComponent<MarkerAlterMaterial>()) != null)
                 {
                     tma = new();
-                    tma.SetKeys(mam.back, true);
-                    tma.SetKeys(mam.forward, false);
+                    tma.SetKeys(mam.control.pair);
                     tma.alternatives = mam.alternatives;
                     tma.target = mam.applyTo;
                     if (mam.initial == null)

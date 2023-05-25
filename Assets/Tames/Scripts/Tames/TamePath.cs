@@ -12,7 +12,7 @@ namespace Tames
         public Transform parent;
         public Transform self;
         public Transform mover;
-        public Transform moverBase;
+        public Transform virtualMover;
         public Transform[] bases;
         public Transform[] attached;
         public Transform[] linked = null;
@@ -21,10 +21,13 @@ namespace Tames
         public TameElement element;
         public bool valid = false;
         public bool freeRotator = false;
+        public float length;
         public virtual float GetM(Vector3 global)
         {
             return 0;
         }
+        public virtual Vector3 Normal(float m) { return Vector3.up; }
+        public virtual void MoveVirtual(float m) { }
         public virtual Vector3 Position(float m) { return Vector3.zero; }
         public virtual Quaternion Rotation(float m) { return Quaternion.identity; }
         public virtual void Move(int index, float m) { }

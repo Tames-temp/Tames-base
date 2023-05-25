@@ -49,7 +49,6 @@ public class CoreTame : MonoBehaviour
     private bool savingTexture = false;
     private TameArea closestGrip;
     private TameObject grippedObject = null;
-    private float gripSpeed = 1;
     public static string fingerHeader = "finger";
     public static bool replayMode = false;
     public static GameObject torch;
@@ -63,8 +62,8 @@ public class CoreTame : MonoBehaviour
         mainCamera = Camera.main;
         camObject = new GameObject("camera object");
         renderTexture = new RenderTexture(Screen.width * 3, Screen.height * 3, 24);
-     //   rendCam.targetTexture = renderTexure;
-     //   rendCam.enabled = false;
+        //   rendCam.targetTexture = renderTexure;
+        //   rendCam.enabled = false;
         Transform t = mainCamera.transform;
         while (t != null)
         {
@@ -77,7 +76,7 @@ public class CoreTame : MonoBehaviour
         TameCamera.ZKey = TameInputControl.FindKey("z", false);
         TameCamera.XKey = TameInputControl.FindKey("x", false);
         TameCamera.CKey = TameInputControl.FindKey("c", false);
-     //   Debug.Log(TameCamera.ZKey + " " + TameCamera.XKey + " " + TameCamera.CKey);
+        //   Debug.Log(TameCamera.ZKey + " " + TameCamera.XKey + " " + TameCamera.CKey);
         TameInputControl.FindKey("n-");
         TameInputControl.FindKey("n+");
 
@@ -87,7 +86,7 @@ public class CoreTame : MonoBehaviour
             people[i] = null;
         // audioFolder = "Audio/";
 
-          counter = -1;
+        counter = -1;
         averageFPS = 0;
         ManifestKeys.SetKeywords();
         manager = new TameManager();
@@ -124,30 +123,30 @@ public class CoreTame : MonoBehaviour
 
     void PrepareLoadScene()
     {
-        Identifier.rig = TameCamera.cameraTransform.gameObject;
+        Utils.rig = TameCamera.cameraTransform.gameObject;
         XRController xrcl = null, xrcr = null;
-        XRController[] all = Identifier.rig.GetComponentsInChildren<XRController>();
+        XRController[] all = Utils.rig.GetComponentsInChildren<XRController>();
         if (all.Length > 0)
             for (int i = 0; i < all.Length; i++)
                 if (all[i].controllerNode == XRNode.LeftHand) xrcl = all[i];
                 else if (all[i].controllerNode == XRNode.RightHand) xrcr = all[i];
         GameObject go = (GameObject)Resources.Load("Tames models\\leftHand");
-        Identifier.left = GameObject.Instantiate(go);
+        Utils.left = GameObject.Instantiate(go);
         go = (GameObject)Resources.Load("Tames models\\rightHand");
-        Identifier.right = GameObject.Instantiate(go);
+        Utils.right = GameObject.Instantiate(go);
         if (xrcl == null)
         {
-            xrcl = Identifier.left.AddComponent<XRController>();
+            xrcl = Utils.left.AddComponent<XRController>();
             xrcl.controllerNode = XRNode.LeftHand;
         }
         if (xrcr == null)
         {
-            xrcr = Identifier.right.AddComponent<XRController>();
+            xrcr = Utils.right.AddComponent<XRController>();
             xrcr.controllerNode = XRNode.RightHand;
         }
         go = (GameObject)Resources.Load("Tames models\\external head");
-        HeadObject = Identifier.head = GameObject.Instantiate(go);
-        hand = Identifier.Inputs(xrcl, xrcr, fingerHeader);
+        HeadObject = Utils.head = GameObject.Instantiate(go);
+        hand = Utils.Inputs(xrcl, xrcr, fingerHeader);
     }
     void GetFPS()
     {
@@ -184,7 +183,7 @@ public class CoreTame : MonoBehaviour
 
 
             UpdateSolo();
-            
+
         }
         else
             UpdateReplay();
@@ -314,7 +313,7 @@ public class CoreTame : MonoBehaviour
 
         // For testing purposes, also write to a file in the project folder
         File.WriteAllBytes("E:\\" + DateTime.Now.ToString("yyyy.MM.dd HH.mm.ss") + ".png", bytes);
-        TameElement.isPaused = false;   
+        TameElement.isPaused = false;
 
     }
     private FrameShot CheckInput(int index = -1)
@@ -332,7 +331,7 @@ public class CoreTame : MonoBehaviour
         TameFullRecord.allRecords.Capture(TameElement.ActiveTime, index < 0 ? null : km);
         if (Keyboard.current.escapeKey.isPressed)
         {
-             Application.Quit();
+            Application.Quit();
         }
         string path;
         if (Keyboard.current.ctrlKey.isPressed && Keyboard.current.sKey.wasPressedThisFrame)
@@ -405,11 +404,10 @@ public class CoreTame : MonoBehaviour
         {
             if (GripInputActive())
             {
-                if ((gmd = GripMoveDirection()) != 0)
-                {
-                    grippedObject.Grip(TameElement.deltaTime * gmd * gripSpeed);
-                    localPerson.action = Person.ActionUpdateGrip;
-                }
+                gmd = GripMoveDirection();
+                if ((gmd > 0 && grippedObject.progress.progress < 1f) || ((gmd < 0 && grippedObject.progress.progress > 0f)))
+                    localPerson.UpdateGrip(grippedObject, localPerson.nextArea.GripDelta(TameElement.deltaTime) * gmd);
+                localPerson.action = Person.ActionUpdateGrip;
             }
             else
             {

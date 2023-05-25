@@ -24,6 +24,20 @@ namespace Markers
         public Color[] colorSteps;
         public float factor = 0;
         public Flicker flicker;
+        public Tames.TameChanger changer= null;
+        private bool changed = false;
+        public void ChangedThisFrame(bool shouldChange)
+        {
+            changed = shouldChange;
+        }
+        private void LateUpdate()
+        {
+            if (changed)
+            {
+                changed = false;
+                changer.UpdateMarker();
+            }
+        }
         public MaterialProperty GetProperty()
         {
             return property switch

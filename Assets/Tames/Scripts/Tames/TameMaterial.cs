@@ -120,7 +120,6 @@ namespace Tames
         {
          //   if (name == "light 1") Debug.Log(parents[0].parent.tameType + " " + progress.progress);
             float[] f;
-            ManifestMaterial m = (ManifestMaterial)manifest;
             float[] glowColor = new float[] { 0, 0, 0 };
             float intensity = 0;
             bool glowSet = false;
@@ -131,7 +130,7 @@ namespace Tames
             {
                 if (hasIntensity) intensity = intensityChanger.On(progress.slerpProgress, progress.totalProgress, progress.continuity)[0];
           //      if (name == "light 1") Debug.Log(progress.progress);
-                foreach (TameChanger tc in m.properties)
+                foreach (TameChanger tc in properties)
                 {
                     f = tc.On(progress.slerpProgress, progress.totalProgress, progress.continuity);
                     switch (tc.property)
@@ -184,7 +183,7 @@ namespace Tames
         {
             parents.Clear();
             basis = TrackBasis.Tame;
-            parents.Add(new TameEffect(ManifestKeys.Update, te)
+            parents.Add(new TameEffect( te)
             {
                 child = this
             });
@@ -247,85 +246,25 @@ namespace Tames
         /// <param name="man">the <see cref="TameManager"/> manifest</param>
         /// <param name="tgos">list of all children and descendants of the interactive root, created by <see cref="TameManager.SurveyInteractives(GameObject[])"/></param>
         /// <returns>a list of <see cref="TameElement"/> that includes <see cref="TameMaterial"/> objects made by each material found</returns>
-        public static List<TameElement> FindMaterials(TameManager man, List<TameGameObject> tgos)
+     
+        public void OrderChanger()
         {
-            /*
-             * first we find all unique materials in tgos and store them in materials list. Then for each material in the list, we check if the name matches one on the manifest material headers and create TameMaterials by them 
-             */
-            List<Material> materials = new List<Material>();
-            Material[] sm;
-            bool f;
-            foreach (TameGameObject go in tgos)
-            {
-                Renderer ren = go.gameObject.GetComponent<Renderer>();
-                if (ren != null)
+            TameChanger c = null;
+            for (int i = 0; i < properties.Count; i++)
+                if (properties[i].property == MaterialProperty.Bright)
                 {
-                    sm = ren.sharedMaterials;
-                    for (int i = 0; i < sm.Length; i++)
-                    {
-                        f = false;
-                        for (int j = 0; j < materials.Count; j++)
-                            if (materials[j] == sm[i])
-                            {
-                                f = true;
-                                break;
-                            }
-                        if (!f)
-                            materials.Add(sm[i]);
-                    }
+                    c = properties[i];
+                    properties.RemoveAt(i);
+                    break;
                 }
-            }
-            List<TameElement> r = new List<TameElement>();
-            List<Material> mit = new List<Material>();
-            for (int mi = 0; mi < man.manifests.Count; mi++)
-                if (man.manifests[mi].header.key == TameKeys.Material)
-                {
-                    mit.Clear();
-                    foreach (string name in man.manifests[mi].header.items)
-                    {
-                        bool pstart = name[name.Length - 1] == '*';
-                        string nameL = pstart ? name.Substring(0, name.Length - 1) : name;
-                        nameL = nameL.ToLower();
-                        f = false;
-                        foreach (Material m in materials)
-                        {
-                            if (pstart)
-                            {
-                                if (m.name.ToLower().StartsWith(nameL))
-                                    mit.Add(m);
-                            }
-                            else
-                            if (m.name.ToLower().Equals(nameL))
-                                mit.Add(m);
-                        }
-                    }
-                    foreach (Material m in mit)
-                    {
-                        f = false;
-                        foreach (TameMaterial tm in r)
-                        {
-                            if (tm.original == m)
-                            {
-                                tm.manifest = man.manifests[mi];
-                                f = true;
-                            }
-                        }
-                        if (!f)
-                        {
-                            r.Add(new TameMaterial() { name = m.name, manifest = man.manifests[mi], original = m });
-                            ((TameMaterial)r[r.Count - 1]).SetProperties();
-                        }
-                    }
-                }
-            return r;
-        }
-        /// <summary>
-        /// checks if the material has an emission property and if it does enables the keyword
-        /// </summary>
+            if (c != null)
+                properties.Add(c);
+        }  /// <summary>
+           /// checks if the material has an emission property and if it does enables the keyword
+           /// </summary>
         public void CheckEmission()
         {
-            ManifestMaterial tmm = (ManifestMaterial)manifest;
-            foreach (TameChanger tc in tmm.properties)
+             foreach (TameChanger tc in properties)
                 if ((tc.property == MaterialProperty.Glow) || (tc.property == MaterialProperty.LightX) || (tc.property == MaterialProperty.LightY) || (tc.property == MaterialProperty.Bright))
                 {
                     if (!original.IsKeywordEnabled("_EmissiveColor"))
@@ -337,6 +276,60 @@ namespace Tames
                     }
                 }
             GetInitial();
+        }
+        public static List<TameChanger> ExternalChanger(Markers.MarkerChanger[] chs)
+        {
+            TameChanger tch;
+            TameColor tco;
+            bool found;
+            MaterialProperty mp;
+            List<TameChanger> properties = new();
+            int pcount = properties.Count;
+            if (chs != null)
+                foreach (Markers.MarkerChanger ch in chs)
+                {
+                    mp = ch.GetProperty();
+                    switch (mp)
+                    {
+                        case MaterialProperty.Bright:
+                        case MaterialProperty.MapY:
+                        case MaterialProperty.LightY:
+                        case MaterialProperty.MapX:
+                        case MaterialProperty.LightX:
+                            if ((tch = TameChanger.ReadStepsOnly(ch.steps, ch.GetToggle(), ch.switchValue, 1)) != null)
+                                tch.property = mp;
+                            break;
+                        default:
+                            if (ch.colorSteps.Length > 0)
+                                tch = tco = TameColor.ReadStepsOnly(ch.colorSteps, ch.GetToggle(), ch.switchValue, mp == MaterialProperty.Glow);
+                            else
+                                tch = tco = TameColor.ReadStepsOnly(ch.steps, ch.GetToggle(), ch.switchValue, mp == MaterialProperty.Glow);
+                            if (tch != null)
+                            {
+                                tco.property = mp;
+                                if (mp == MaterialProperty.Glow)
+                                    tco.factor = ch.factor;
+                            }
+                            break;
+                    }
+                    if (tch != null)
+                    {
+                        tch.marker = ch;
+                        found = false;
+                        for (int i = 0; i < pcount; i++)
+                            if (mp == properties[i].property)
+                            {
+                                if (tch.count == 1)
+                                    properties[i].From(tch);
+                                else
+                                    ((TameColor)properties[i]).From((TameColor)tch);
+                                found = true;
+                            }
+                        if (!found)
+                            properties.Add(tch);
+                    }
+                }
+            return properties;
         }
         public static List<Material> LocalizeMaterials(List<GameObject> gos, List<float> initial)
         {

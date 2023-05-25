@@ -209,17 +209,17 @@ namespace Records
                 shoulder[1] = gp.rightShoulder.ReadValue();
             }
         }
-        public int ButtonHold(InputHoldType aux, InputHoldType h, float threshold)
+        public int ButtonHold(InputControlHold aux, InputHoldType h, float threshold)
         {
             if (Gamepad.current != null)
             {
                 //     Debug.Log(Gamepad.current.rightTrigger.isPressed ? 1 : (Gamepad.current.leftTrigger.isPressed ? -1 : 0));
                 bool comb = true;
-                if (aux != InputHoldType.None)
+                if (aux != InputControlHold.None)
                     comb = aux switch
                     {
-                        InputHoldType.GTL => hold[4] && (!hold[5]),
-                        InputHoldType.GTR => hold[5] && (!hold[4]),
+                        InputControlHold.GTL => hold[4] && (!hold[5]),
+                        InputControlHold.GTR => hold[5] && (!hold[4]),
                         _ => hold[4] && hold[5]
                     };
                 if (!comb) return 0;
@@ -234,16 +234,16 @@ namespace Records
             }
             return 0;
         }
-        public bool ButtonPressed(InputHoldType aux, InputHoldType h, float threshold)
+        public bool ButtonPressed(InputControlHold aux, InputHoldType h, float threshold)
         {
              if (Gamepad.current != null)
             {
                 bool comb = true;
-                if (aux != InputHoldType.None)
+                if (aux != InputControlHold.None)
                     comb = aux switch
                     {
-                        InputHoldType.GTL => hold[4] && (!hold[5]),
-                        InputHoldType.GTR => hold[5] && (!hold[4]),
+                        InputControlHold.GTL => hold[4] && (!hold[5]),
+                        InputControlHold.GTR => hold[5] && (!hold[4]),
                         _ => hold[4] && hold[5]
                     };
                 if (!comb) return false;
@@ -461,13 +461,13 @@ namespace Records
                     hold[i] = (value & (1u << i)) != 0;
             }
         }
-        public bool AuxHold(InputHoldType aux)
+        public bool AuxHold(InputControlHold aux)
         {
             return aux switch
             {
-                InputHoldType.Shift => shift,
-                InputHoldType.Ctrl => ctrl,
-                InputHoldType.Alt => alt,
+                InputControlHold.Shift => shift,
+                InputControlHold.Ctrl => ctrl,
+                InputControlHold.Alt => alt,
                 _ => true,
             };
         }

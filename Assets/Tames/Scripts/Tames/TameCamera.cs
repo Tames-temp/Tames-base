@@ -102,6 +102,20 @@ namespace Tames
 
             return index;
         }
+        public static bool CheckDistanceAndAngle(GameObject owner, float activeDistance, float activeAngle)
+        {
+            bool possible = true;
+            if (activeDistance > 0)
+            {
+                if (activeAngle > 0)
+                    possible = (Vector3.Distance(owner.transform.position, cameraTransform.position) <= activeDistance) && (activeAngle > Vector3.Angle(owner.transform.position - cameraTransform.position, cameraTransform.forward));
+                else
+                    possible = Vector3.Distance(owner.transform.position, cameraTransform.position) <= activeDistance;
+            }
+            else if (activeAngle > 0)
+                possible = activeAngle < Vector3.Angle(owner.transform.position - cameraTransform.position, cameraTransform.forward);
+            return possible;
+        }
         public static void SetFirstFace(Walking.WalkFace f)
         {
             currentFace = f;

@@ -59,7 +59,7 @@ namespace Tames
         /// </summary>
         /// <param name="e">the effect</param>
         /// <param name="te">the source of the effect</param>
-        public TameEffect(int e, TameElement te)
+        public TameEffect(TameElement te)
         {
             parent = te;
             type = TrackBasis.Tame;
@@ -70,7 +70,7 @@ namespace Tames
         /// </summary>
         /// <param name="e">the effect</param>
         /// <param name="g">the source object containing the game object</param>
-        public TameEffect(int e, TameGameObject g)
+        public TameEffect(TameGameObject g)
         {
             gameObject = g;
             type = TrackBasis.Object;

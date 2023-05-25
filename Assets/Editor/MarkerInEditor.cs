@@ -98,6 +98,8 @@ public class MarkerChangerEditor : Editor
         EditorGUILayout.PropertyField(flicker);
 
         serializedObject.ApplyModifiedProperties();
+        Markers.MarkerChanger changer = (Markers.MarkerChanger)target;
+        changer.ChangedThisFrame(true);
     }
 }
 
@@ -235,12 +237,14 @@ public class MarkerProgressEditor : Editor
     SerializedProperty trigger;
     SerializedProperty byElement;
     SerializedProperty byMaterial;
-    SerializedProperty manual;
+    SerializedProperty manualControl;
     SerializedProperty update;
-    SerializedProperty showBy;
+   // SerializedProperty showBy;
     SerializedProperty active;
-    SerializedProperty activateBy;
-
+    SerializedProperty activationControl;
+    SerializedProperty visibilityControl;
+  //  SerializedProperty activateBy;
+  Markers.MarkerProgress progress;
 
     void OnEnable()
     {
@@ -252,11 +256,13 @@ public class MarkerProgressEditor : Editor
         trigger = serializedObject.FindProperty("trigger");
         byElement = serializedObject.FindProperty("byElement");
         byMaterial = serializedObject.FindProperty("byMaterial");
-        manual = serializedObject.FindProperty("manual");
+        manualControl = serializedObject.FindProperty("manualControl");
         update = serializedObject.FindProperty("update");
-        showBy = serializedObject.FindProperty("showBy");
+  //      showBy = serializedObject.FindProperty("showBy");
         active = serializedObject.FindProperty("active");
-        activateBy = serializedObject.FindProperty("activateBy");
+        activationControl = serializedObject.FindProperty("activationControl");
+        visibilityControl = serializedObject.FindProperty("visibilityControl");
+    //    activateBy = serializedObject.FindProperty("activateBy");
     }
 
     public override void OnInspectorGUI()
@@ -270,13 +276,17 @@ public class MarkerProgressEditor : Editor
         EditorGUILayout.PropertyField(trigger);
         EditorGUILayout.PropertyField(byElement);
         EditorGUILayout.PropertyField(byMaterial);
-        EditorGUILayout.PropertyField(manual);
+        EditorGUILayout.PropertyField(manualControl);
         EditorGUILayout.PropertyField(update);
-        EditorGUILayout.PropertyField(showBy);
+     //   EditorGUILayout.PropertyField(showBy);
         EditorGUILayout.PropertyField(active);
-        EditorGUILayout.PropertyField(activateBy);
+        EditorGUILayout.PropertyField(activationControl);
+        EditorGUILayout.PropertyField(visibilityControl);
+    //    EditorGUILayout.PropertyField(activateBy);
 
         serializedObject.ApplyModifiedProperties();
+        progress = (Markers.MarkerProgress)target;
+        progress.ChangedThisFrame(true);
     }
 }
 [CustomEditor(typeof(Markers.MarkerFlicker)), CanEditMultipleObjects]

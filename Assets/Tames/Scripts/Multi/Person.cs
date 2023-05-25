@@ -34,7 +34,6 @@ namespace Multi
         private int gripSign;
         private int gripUp;
         public Vector3 switchPosition = Vector3.negativeInfinity;
-        private int tick;
         public int switchCount = 0;
         public Tames.TameArea nextArea = null;
         public int action = 0;
@@ -42,7 +41,7 @@ namespace Multi
         public const int ActionUpdateGrip = 2;
         public const int ActionSwitch = 3;
         public const int ActionUpdateSwitch = 4;
-
+        public Records.TameKeyMap keyMap;
         public Person(ushort id)
         {
             this.id = id;
@@ -82,8 +81,6 @@ namespace Multi
                         people[i].Update(frames[i]);
                     }
         }
-
-
         /// <summary>
         /// creates the hand model based on the bones in the prefab
         /// </summary>
@@ -106,8 +103,7 @@ namespace Multi
             {
                 hand[0].Grip(15, frame.grip[0]);
                 hand[1].Grip(15, frame.grip[1]);
-                head.transform.position = frame.cpos;
-                head.transform.rotation = frame.crot;
+                head.transform.SetPositionAndRotation(frame.cpos, frame.crot);
                 hand[0].wrist.transform.position = frame.hpos[0];
                 hand[1].wrist.transform.position = frame.hpos[1];
                 hand[0].wrist.transform.rotation = frame.hrot[0];
@@ -136,12 +132,12 @@ namespace Multi
         /// </summary>
         public void UpdateHeadOnly()
         {
-            headPosition = head.gameObject.transform.position;
-            headRotation = head.gameObject.transform.rotation;
+            headPosition = head.transform.position;
+            headRotation = head.transform.rotation;
             switch (action)
             {
                 case ActionGrip: Grip(nextArea, Tames.TameCamera.cameraTransform); break;
-                case ActionUpdateGrip: UpdateGrip(nextArea); break;
+                case ActionUpdateGrip: break;// UpdateGrip(nextArea); break;
                 case ActionSwitch: Switch(nextArea, Tames.TameCamera.cameraTransform); break;
                 case ActionUpdateSwitch: UpdateSwitch(); break;
                 default: Ungrip(); nextArea = null; break;
@@ -161,7 +157,7 @@ namespace Multi
                 gripIndex[2] == 0 ? t.right : (gripIndex[2] == 1 ? t.up : t.forward)
              };
         }
-      
+
         /// <summary>
         /// finds the forward and up vector indexes for the hand that fits the grip geometry
         /// </summary>
@@ -198,10 +194,11 @@ namespace Multi
             hand[0].data.grip.Update(1);
             hand[0].Grip(15, 1);
             hand[0].AfterGrip(true);
-
-            Vector3 v = hand[0].wrist.transform.forward * 0.07f + hand[0].wrist.transform.up * 0.02f;
+            grip[0] = 1;
+            Vector3 v = hand[0].wrist.transform.position - hand[0].gripCenter;
             hand[0].wrist.transform.position = area.relative.transform.position + v;
-            hand[0].AfterGrip(true);   
+            hand[0].AfterGrip(true);
+            hand[0].lastGripCenter = hand[0].gripCenter;
         }
         /// <summary>
         ///  updates the hand position and rotation based on the changed transform of the grip area
@@ -215,7 +212,16 @@ namespace Multi
             Vector3 v = hand[0].wrist.transform.forward * 0.07f + hand[0].wrist.transform.up * 0.02f;
             hand[0].wrist.transform.position = area.relative.transform.position + v;
             hand[0].AfterGrip(true);
-         }
+        }   /// <summary>
+            ///  updates the hand position and rotation based on the changed transform of the grip area
+            /// </summary>
+            /// <param name="area"></param>
+        public void UpdateGrip(Tames.TameObject to, float delta)
+        {
+            to.handle.SimulateGrip(to.progress.progress, delta, hand[0].wrist.transform);
+            hand[0].AfterGrip(true);
+            //    Debug.Log("being simulated " + hand[0].lastGripCenter.ToString("0.000") + hand[0].gripCenter.ToString("0.000"));
+        }
         /// <summary>
         /// detaches the hand from the grip area
         /// </summary>
@@ -223,8 +229,9 @@ namespace Multi
         {
             hand[0].wrist.SetActive(false);
             hand[0].wrist.transform.parent = null;
-             hand[0].data.grip.Update(0);
+            hand[0].data.grip.Update(0);
             hand[0].Grip(15, 0);
+            grip[0] = 0;
             hand[0].AfterGrip(true);
             hand[0].wrist.transform.position = head.transform.position - head.transform.up * 0.7f - head.transform.right * 0.3f;
         }
@@ -263,6 +270,6 @@ namespace Multi
             }
             return true;
         }
-        
+
     }
 }

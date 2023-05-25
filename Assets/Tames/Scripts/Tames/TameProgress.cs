@@ -190,12 +190,12 @@ namespace Tames
         }
         private float Reverse(float value)
         {
-            if ((value <= 1) && (value >= 0))
+            if ((value <= 1f) && (value >= 0f))
                 return value;
             else
             {
                 float v = value > 1 ? value : -value;
-                return 1 - Mathf.Abs(1 - (v % 2));
+                return 1f - Mathf.Abs(1f - (v % 2f));
             }
         }
         /// <summary>
@@ -205,10 +205,10 @@ namespace Tames
         /// <returns>the value of the would-be-progress</returns>
         private float Cycle(float value)
         {
-            if ((value <= 1) && (value >= 0))
+            if ((value <= 1f) && (value >= 0f))
                 return value;
-            else if (value > 1)
-                return value % 1;
+            else if (value > 1f)
+                return value % 1f;
             else
                 return 1 - (-value) % 1;
         }
@@ -350,10 +350,10 @@ namespace Tames
                 else
                 {
                     pt = deltaTime * interactDirection / duration;
-                    if (progress + pt < 0)
-                        SetProgress(0, false);
-                    else if (progress + pt > 1)
-                        SetProgress(1, false);
+                    if (progress + pt < 0f)
+                        SetProgress(0f, false);
+                    else if (progress + pt > 1f)
+                        SetProgress(1f, false);
                     else
                         SetProgress(pt + progress, false);
                 }
@@ -372,8 +372,8 @@ namespace Tames
                     switch (continuity)
                     {
                         case ContinuityMode.Stop:
-                            if (pt < 0) pt = 0;
-                            if (pt > 1) pt = 1;
+                            if (pt < 0f) pt = 0f;
+                            if (pt > 1f) pt = 1f;
                             break;
                         case ContinuityMode.Reverse:
                             pt = Reverse(pt);
@@ -420,7 +420,7 @@ namespace Tames
             {
                 case ContinuityMode.Stop:
                     if (value < 0) value = 0;
-                    if (value > 1) value = 1;
+                    if (value > 1f) value = 1f;
                     lastProgress = lastTotal = progress;
                     progress = totalProgress = value;
                     break;
@@ -454,7 +454,7 @@ namespace Tames
             {
                 case ContinuityMode.Stop:
                     if (value < 0) value = 0;
-                    if (value > 1) value = 1;
+                    if (value > 1f) value = 1f;
                     Pe = value;
                     Pa = Va = Ve = (Pe - progress) / dt;
                     Ae = (Ve - lastSpeed) / dt;

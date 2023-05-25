@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Tames;
-
+using HandAsset;
+using UnityEngine.XR.Interaction.Toolkit;
+using Multi;
 /// <summary>
 /// types of mainfest items. This roughly corresponds to the first word of a manifest line. This enum has several functions. It is used to define the subtypes in a <see cref="TameManager"/>. 
 /// Three of them (Update, Slide and Rotate) also indicate the effects of a <see cref="TameEffect"/>.
@@ -462,6 +464,38 @@ public class Utils
     private static GameObject PO, CO;
     public static bool HDActive = false;
     public static string[] ProperyKeywords;
+    public static GameObject left, right, head, rig;
+
+    public static HandModel[] Inputs(XRController lx, XRController rx, string fingerHeader)
+    {
+
+        HandModel[] r = new HandModel[2];
+        GameObject[] hs = new GameObject[2];
+        r[0] = new HandModel(lx.gameObject, left, 0);
+        r[0].GetFingers(fingerHeader);
+        r[1] = new HandModel(rx.gameObject, right, 1);
+        r[1].GetFingers(fingerHeader);
+        r[1].gripDirection = -1;
+        //    Debug.Log("ID: " + r[0] + " / " + r[1]);
+        return r;
+    }
+
+
+
+    public static GameObject DescendentStartsWith(GameObject a, string name)
+    {
+        GameObject g;
+        for (int i = 0; i < a.transform.childCount; i++)
+            if (a.transform.GetChild(i).gameObject.name.StartsWith(name))
+                return a.transform.GetChild(i).gameObject;
+            else
+            {
+                g = DescendentStartsWith(a.transform.GetChild(i).gameObject, name);
+                if (g != null)
+                    return g;
+            }
+        return null;
+    }
     public static void SetPOCO()
     {
         PO = new GameObject("PO");

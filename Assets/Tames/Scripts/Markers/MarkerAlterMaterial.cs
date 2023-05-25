@@ -9,8 +9,7 @@ namespace Markers
     public class MarkerAlterMaterial : MonoBehaviour
     {
         public Material applyTo = null;
-        public string back = "";
-        public string forward = "";
+        public CoupledInput control;
         public Material initial = null;
         public Material[] alternatives;
         public string[] ToLines()
@@ -19,12 +18,11 @@ namespace Markers
             r[0] = ":matalt";
             r[1] = MarkerSettings.ObjectToLine(gameObject);
             r[2] = MarkerSettings.FindMaterial(applyTo);
-            r[3] = back;
-            r[4] = forward;
-            r[5] = MarkerSettings.FindMaterial(initial);
-            r[6] = alternatives.Length + "";
+            r[3] = control.pair;
+            r[4] = MarkerSettings.FindMaterial(initial);
+            r[5] = alternatives.Length + "";
             for (int i = 0; i < alternatives.Length; i++)
-                r[i + 7] = MarkerSettings.FindMaterial(alternatives[i]);
+                r[i + 6] = MarkerSettings.FindMaterial(alternatives[i]);
             return r;
         }
         public static int FromLines(string[] line, int index, int version)
@@ -37,14 +35,13 @@ namespace Markers
                     case 1:
                         if ((ma = go.AddComponent<MarkerAlterMaterial>()) == null) ma = go.AddComponent<MarkerAlterMaterial>();
                         ma.applyTo = MarkerSettings.FindMaterial(line[index + 1]);
-                        ma.back = line[index + 2];
-                        ma.forward = line[index + 3];
-                        ma.initial = MarkerSettings.FindMaterial(line[index + 4]);
-                        int l = int.Parse(line[index + 5]);
+                        ma.control =new CoupledInput() { pair = line[index + 2] };
+                        ma.initial = MarkerSettings.FindMaterial(line[index + 3]);
+                        int l = int.Parse(line[index + 4]);
                         ma.alternatives = new Material[l];
                         for (int i = 0; i < l; i++)
-                            ma.alternatives[i] = MarkerSettings.FindMaterial(line[index + i + 6]);
-                        return index + 6 + l;
+                            ma.alternatives[i] = MarkerSettings.FindMaterial(line[index + i + 5]);
+                        return index + 5 + l;
                 }
             return index;
         }

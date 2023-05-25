@@ -211,7 +211,7 @@ namespace Tames
         {
             int p, q;
             TameHandles r = null;
-    //        if (g.name == "path") Debug.Log("path ");
+            //        if (g.name == "path") Debug.Log("path ");
             if (HandleKey(g.name.ToLower()))
                 return null;
             //      Debug.Log(g.name + " is not handle");
@@ -363,7 +363,7 @@ namespace Tames
                         if (span > 90)
                             span = 90;
                     }
-           //         Debug.Log("rot span " + span);
+                    //         Debug.Log("rot span " + span);
                     tfr.span = span;
                 }
             }
@@ -400,10 +400,7 @@ namespace Tames
                 facing = FacingLogic.Free;
         }
 
-        public void AlignQueued(ManifestBase tmb)
-        {
-            AlignQueued(tmb.queueStart, tmb.queueCount, tmb.queueInterval, tmb.queueUV);
-        }
+      
         public void AlignQueued(float start, int count, float interval, int uv)
         {
             if (path.freeRotator) return;
@@ -424,7 +421,7 @@ namespace Tames
                     Utils.RandomizeUV(go, i, uv);
                 child[i] = new TameLinked() { initial = m };
                 m += d;
-                if (m > 1) m = 1;
+                if (m > 1) m = 1f;
 
             }
             mover.SetActive(false);
@@ -598,17 +595,17 @@ namespace Tames
         /// <returns>the new progress value</returns>
         private float MoveSelf(Vector3 pGlobal, float current, float speed, float time)
         {
-             float m = current;
+            float m = current;
             if (path.freeRotator)
             {
-                TameFreeRotator tfr = (TameFreeRotator)path;                
+                TameFreeRotator tfr = (TameFreeRotator)path;
                 m = tfr.Move(pGlobal);
             }
             else
             {
                 m = path.GetM(pGlobal);
                 if (m < 0) m = 0;
-                if (m > 1) m = 1;
+                if (m > 1) m = 1f;
                 if (Mathf.Abs(m - current) > speed * time)
                 {
                     if (m > current) m = current + speed * time; else m = current - speed * time;
@@ -648,6 +645,58 @@ namespace Tames
             for (int i = 0; i < child.Length; i++)
                 th.child[i] = new TameLinked() { gameObject = path.attached[i].gameObject, initial = child[i].initial };
             return th;
+        }
+        public void SimulateGrip(float current, float delta, Transform wrist)
+        {
+            //  path.MoveVirtual(delta);
+            //    Debug.Log("by delta >" + path.virtualMover.position.ToString("0.0000"));
+
+            Transform t = wrist.parent;
+            Vector3 p = wrist.position;
+            Quaternion q = wrist.rotation;
+
+            TameOrbit to = (TameOrbit)path;
+            //       Debug.Log(to.self.TransformPoint(to.axis + to.pivot) - to.self.TransformPoint(to.pivot));
+            path.MoveVirtual(current);
+
+            wrist.parent = path.virtualMover;
+            wrist.SetPositionAndRotation(p, q);
+            float m = current + delta;
+            if (m < 0f) m = 0f;
+            if (m > 1f) m = 1f;
+            if (m != current)
+                path.MoveVirtual(m);
+            p = wrist.position;
+            q = wrist.rotation;
+            wrist.parent = t;
+            wrist.SetPositionAndRotation(p, q);
+            Debug.Log("m is " + m + " >" + current);
+        }
+        public float CalculateGripProgress(float current, Vector3 p, Vector3 dv)
+        {
+            path.MoveVirtual(current);
+            Vector3 v, w;
+            float m = 0;
+            if (dv.magnitude == 0) return current;
+            if (isSlider)
+            {
+
+            }
+            else
+            {
+                Vector3 pivot = path.parent.TransformPoint(this.pivot);
+                Vector3 axis = path.parent.TransformPoint(hinge) - pivot;
+                Vector3 p0 = Utils.On(p, pivot, axis);
+                p += dv;
+                p = Utils.On(p, pivot, axis);
+                float dif = Utils.Angle(p, pivot, p0, axis, true);
+                float ang = dif + current * ((TameOrbit)path).span;
+                m = ang / span;
+                Debug.Log(m + " " + dv.ToString("0.000") + " " + dif + pivot.ToString() + axis.ToString() + p0.ToString("0.000") + p.ToString("0.000"));
+                if (m < 0f) m = 0f;
+                if (m > 1f) m = 1f;
+            }
+            return m;
         }
     }
 }

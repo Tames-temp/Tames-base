@@ -74,13 +74,13 @@ namespace HandAsset
         {
             if (wrist == null) return;
             float d;
-            palmObject = Identifier.DescendentStartsWith(wrist, "palm");
+            palmObject = Utils.DescendentStartsWith(wrist, "palm");
             for (int f = 0; f < 5; f++)
             {
                 for (int j = 0; j < 3; j++)
                 {
                     if (j == 0)
-                        joint[f, j] = Identifier.DescendentStartsWith(wrist, fingerHeader + (f + 1));
+                        joint[f, j] = Utils.DescendentStartsWith(wrist, fingerHeader + (f + 1));
                     else
                         joint[f, j] = joint[f, j - 1] != null ? joint[f, j - 1].transform.GetChild(0).gameObject : null;
                     initialAngle[f, j] = joint[f, j] != null ? joint[f, j].transform.localEulerAngles[gripAxis] : 0;

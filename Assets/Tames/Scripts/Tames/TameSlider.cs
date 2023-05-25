@@ -97,7 +97,7 @@ namespace Tames
         private int division = 128;
         private float delta;
         //     private Transform auxParent, auxChild;
-         public Mesh mesh;
+        public Mesh mesh;
         public TameSlider(Transform mover, Vector3 from, Vector3 to)
         {
             this.mover = mover;
@@ -116,6 +116,7 @@ namespace Tames
             point[1] = b;
             Vector3 u = Utils.Perp(vector[0]).normalized;
             toEdge = new Vector3[] { u, u };
+            length = (mover.parent.TransformPoint(from) - mover.parent.TransformPoint(to)).magnitude;
         }
         /// <summary>
         /// creates a path from a game object.
@@ -177,8 +178,12 @@ namespace Tames
                     index = ni;
                     Order(segments, index, to);
                     CreateSteps();
-           
-                         valid = true;
+
+                    valid = true;
+                    length = 0;
+
+                    for (int i = 0; i < point.Length; i++)
+                        length += (closed || (i < point.Length - 1)) ? Vector3.Distance(self.TransformPoint(point[i]), self.TransformPoint(point[(i + 1) % point.Length])) : 0;
                 }
             }
             catch (Exception)
@@ -190,18 +195,19 @@ namespace Tames
         {
             IndexDelta id = Closest(p);
             Vector3 v = Vector(id);
-             return v.normalized;
+            return v.normalized;
         }
         override public void AssignMovers(GameObject[] g, bool def = false)
         {
             bases = new Transform[g.Length];
             attached = new Transform[g.Length];
+            IndexDelta id;
             for (int i = 0; i < g.Length; i++)
             {
                 attached[i] = g[i].transform;
                 bases[i] = new GameObject(gameObject.name + "-" + i).transform;
                 bases[i].parent = gameObject.transform;
-                IndexDelta id = def ? IndexDelta.Zero : Closest(g[i].transform.position);
+                id = def ? IndexDelta.Zero : Closest(g[i].transform.position);
                 bases[i].localPosition = Position(id);
                 bases[i].localRotation = facing == FacingLogic.Free ? Rotation(id) : Quaternion.identity;
                 Vector3 p = g[i].transform.position;
@@ -210,19 +216,23 @@ namespace Tames
                 g[i].transform.position = p;
                 g[i].transform.rotation = q;
             }
+            virtualMover = new GameObject(mover.parent.name + "-base").transform;
+            virtualMover.parent = mover.parent;
+            virtualMover.localPosition = Position(IndexDelta.Zero);
+            virtualMover.localRotation = facing == FacingLogic.Free ? Rotation(IndexDelta.Zero) : Quaternion.identity;
         }
 
         override public void AssignMoverBasis(GameObject g)
         {
             mover = g.transform;
             IndexDelta id = Closest(g.transform.position);
-            moverBase = new GameObject(gameObject.name + "-base").transform;
-            moverBase.transform.parent = gameObject.transform;
-            moverBase.transform.localPosition = Position(id);
-            moverBase.transform.localRotation = facing == FacingLogic.Free ? Rotation(id) : Quaternion.identity;
+            virtualMover = new GameObject(gameObject.name + "-base").transform;
+            virtualMover.transform.parent = gameObject.transform;
+            virtualMover.transform.localPosition = Position(id);
+            virtualMover.transform.localRotation = facing == FacingLogic.Free ? Rotation(id) : Quaternion.identity;
             Vector3 p = g.transform.position;
             Quaternion q = g.transform.rotation;
-            g.transform.parent = moverBase.transform;
+            g.transform.parent = virtualMover.transform;
             g.transform.position = p;
             g.transform.rotation = q;
         }
@@ -263,6 +273,15 @@ namespace Tames
                         linked[i].transform.localRotation = Rotation(id);
                 }
         }
+        public override void MoveVirtual(float m)
+        {
+            IndexDelta id = GetID(m);
+            Vector3 p = Position(id);
+            virtualMover.transform.localPosition = p;
+            if (facing == FacingLogic.Free)
+                virtualMover.transform.localRotation = Rotation(id);
+
+        }
         override public void Move(int index, float m)
         {
             IndexDelta id = GetID(m);
@@ -282,7 +301,14 @@ namespace Tames
             return a.normalized;
 
         }
-
+        public override Vector3 Normal(float m)
+        {
+            IndexDelta id = GetID(m);
+            Vector3 u = Vector(id);
+            Vector3 v = Segtor(id);
+            Vector3 w = Vector3.Cross(u, v).normalized;
+            return w;
+        }
         private IndexDelta GetID(float m)
         {
             float ipd = m * (closed ? point.Length : point.Length - 1);

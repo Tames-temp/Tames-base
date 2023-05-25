@@ -14,49 +14,8 @@ namespace Tames
         {
             if (element.markerCycle != null)
                 PopulateCycle(tgos, tes, element.markerCycle);
-            else if (element.manifest != null)
-                if (element.manifest.linkType == LinkedKeys.Cycle)
-                    PopulateCycle(tgos, tes, null);
             if (element.markerQueue != null)
                 PopulateQueue(tgos, tes, element.markerQueue);
-            else if (element.manifest != null)
-                if (element.manifest.queued)
-                    PopulateQueue(tgos, tes, null);
-            if (element.manifest != null)
-            {
-                if (element.manifest.linkType != LinkedKeys.None)
-                {
-                    TameFinder finder = new TameFinder() { owner = element};
-                    finder.header = new ManifestHeader() { items = element.manifest.linked };
-                    finder.PopulateObjects(tgos);
-                    if (finder.objectList.Count > 0)
-                        switch (element.manifest.linkType)
-                        {
-                            case LinkedKeys.Clone:
-                                element.CreateClones(finder.objectList, tes);
-                                break;
-                            case LinkedKeys.Local:
-                                element.handle.AlignLinked(LinkedKeys.Local, null, finder.objectList);
-                                break;
-                            case LinkedKeys.Stack:
-                                element.handle.AlignLinked(element.manifest.linkType, null, finder.objectList);
-                                element.handle.linkedOffset = element.manifest.progressedDistance;
-                                break;
-                            case LinkedKeys.Progress:
-                                Transform t = Utils.FindStartsWith(finder.objectList[0].transform.parent, TameHandles.KeyLinker);
-                                //      Debug.Log("link: " + t.name);                             
-                                element.handle.AlignLinked(LinkedKeys.Progress, t != null ? t.gameObject : null, finder.objectList);
-                                element.handle.linkedOffset = element.manifest.progressedDistance;
-                                break;
-
-                        }
-                }
-                else if (element.manifest.queued)
-                {
-                    element.handle.AlignQueued(element.manifest);
-                }
-
-            }
         }
         private void PopulateCycle(List<TameGameObject> tgos, List<TameElement> tes, MarkerCycle mc)
         {
@@ -65,15 +24,7 @@ namespace Tames
             finder.owner = element;
             List<string> linked = new List<string>();
             string[] a;
-            if (mc == null)
-            {
-                if (element.manifest != null)
-                    finder.header = new ManifestHeader() { items = element.manifest.linked };
-                finder.PopulateObjects(tgos);
-                element.handle.AlignLinked(LinkedKeys.Cycle, null, finder.objectList);
-                element.handle.linkedOffset = element.manifest.progressedDistance;
-            }
-            else
+            if (mc != null)
             {
                 if (mc.itemNames != "")
                 {

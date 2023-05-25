@@ -60,17 +60,8 @@ namespace Tames
         {
             bool possible = true;
             if ((alternatives.Count > 0) && (current >= 0))
-            {
-                if (activeDistance > 0)
-                {
-                    if (activeAngle > 0)
-                        possible = (Vector3.Distance(alternatives[current].gameObject[0].transform.position, TameCamera.camera.transform.position) <= activeDistance) && (activeAngle > Vector3.Angle(alternatives[current].gameObject[0].transform.position - TameCamera.camera.transform.position, TameCamera.camera.transform.forward));
-                    else
-                        possible = Vector3.Distance(alternatives[current].gameObject[0].transform.position, TameCamera.camera.transform.position) <= activeDistance;
-                }
-                else if (activeAngle > 0)
-                    possible = activeAngle < Vector3.Angle(alternatives[current].gameObject[0].transform.position - TameCamera.camera.transform.position, TameCamera.camera.transform.forward);
-            }
+                possible = TameCamera.CheckDistanceAndAngle(alternatives[current].gameObject[0], activeDistance, activeAngle);
+            
             if (possible)
             {
                 foreach (TameInputControl tci in back)
@@ -79,80 +70,24 @@ namespace Tames
                     if (tci.Pressed()) { GoNext(); return; }
             }
         }
-        public void SetKeys(string keys, bool backOrFoth)
+        public void SetKeys(string keys)
         {
-            List<TameInputControl> tcs = backOrFoth ? back : forth;
+            TameInputControl[] tcis;
             string[] ks = keys.Split(' ');
             for (int i = 0; i < ks.Length; i++)
             {
-                TameInputControl tc = TameInputControl.ByStringMono(ks[i]);
-                if (tc != null) tcs.Add(tc);
-            }
-        }
-        public static List<TameAlternative> GetAlternativesOld(List<TameGameObject> tgos)
-        {
-            List<TameAlternative> tas = new List<TameAlternative>();
-            TameAlternative ta;
-            MarkerAlter ma;
-            List<MarkerAlter> markers = new List<MarkerAlter>();
-            List<MarkerAlter> syncMarkers = new List<MarkerAlter>();
-            Alternative alt;
-            for (int i = 0; i < tgos.Count; i++)
-                if ((ma = tgos[i].gameObject.GetComponent<MarkerAlter>()) != null)
+                TameInputControl[] tcs = TameInputControl.ByStringTwoMonos(ks[i]);
+                if (tcs != null)
                 {
-                    //         Debug.Log("ALTERX " + tgos[i].gameObject.name);
-                    if (ma.syncAlternative == null)
-                        markers.Add(ma);
-                    else
-                        syncMarkers.Add(ma);
+                    back.Add(tcs[0]);
+                    forth.Add(tcs[1]);
                 }
-            for (int i = 0; i < markers.Count; i++)
-            {
-                Debug.Log("ALTER " + markers[i].gameObject.name);
-                ta = new TameAlternative();
-                ta.SetKeys(markers[i].back, true);
-                ta.SetKeys(markers[i].forward, false);
-                alt = new Alternative();
-                alt.gameObject.Add(markers[i].gameObject);
-                for (int k = syncMarkers.Count - 1; k >= 0; k--)
-                    if (syncMarkers[k].gameObject == markers[i].gameObject)
-                    {
-                        alt.gameObject.Add(syncMarkers[k].gameObject);
-                        syncMarkers.RemoveAt(k);
-                    }
-                ta.alternatives.Add(alt);
-                int initial = 0;
-                bool initialized = false;
-                for (int j = markers.Count - 1; j > i; j--)
-                    if (markers[j].label.ToLower() == markers[i].label.ToLower())
-                    {
-                        //    Debug.Log("ALTER ADDED " + markers[j].gameObject.name);
-                        alt = new Alternative();
-                        alt.gameObject.Add(markers[j].gameObject);
-                        if (!initialized)
-                            if (markers[j].initial)
-                            {
-                                initial = j;
-                                initialized = true;
-                            }
-                        for (int k = syncMarkers.Count - 1; k >= 0; k--)
-                            if (syncMarkers[k].gameObject == markers[j].gameObject)
-                            {
-                                alt.gameObject.Add(syncMarkers[k].gameObject);
-                                syncMarkers.RemoveAt(k);
-                            }
-                        markers.RemoveAt(j);
-                        ta.alternatives.Add(alt);
-                    }
-                //     Debug.Log("ALTER INIT " + initial);
-                ta.SetInitial(initial);
-                tas.Add(ta);
             }
-            return tas;
         }
+   
         public static List<TameAlternative> GetAlternatives(List<TameGameObject> tgos)
         {
-            List<TameAlternative> tas = GetAlternativesOld(tgos);
+            List<TameAlternative> tas = new();
             TameAlternative ta;
             MarkerAlterObject ma;
             List<MarkerAlterObject> mas = new List<MarkerAlterObject>();
@@ -170,10 +105,9 @@ namespace Tames
             for (int i = 0; i < mas.Count; i++)
             {
                 ta = new TameAlternative();
-                ta.SetKeys(mas[i].back, true);
-                ta.SetKeys(mas[i].forward, false);
-                ta.activeDistance = mas[i].activationDistance;
-                ta.activeAngle = mas[i].activationAngle;
+                ta.SetKeys(mas[i].control.pair);
+                ta.activeDistance = mas[i].control.maxDistance;
+                ta.activeAngle = mas[i].control.maxAngle;
                 for (int j = 0; j < mas[i].alternatives.Length; j++)
                     if (mas[i].alternatives[j] != null)
                     {
@@ -182,7 +116,7 @@ namespace Tames
                         for (int k = syncMarkers.Count - 1; k >= 0; k--)
                             if (syncMarkers[k].syncWith == mas[i].alternatives[j])
                             {
-                       //         Debug.Log("ALTER " + syncMarkers[k].gameObject.name);
+                                //         Debug.Log("ALTER " + syncMarkers[k].gameObject.name);
                                 alt.gameObject.Add(syncMarkers[k].gameObject);
                                 syncMarkers.RemoveAt(k);
                             }

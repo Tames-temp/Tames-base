@@ -10,30 +10,9 @@ using UnityEngine;
 
 namespace Tames
 {
-    /// <summary>
-    /// this is the base, somewhat abstract class for all interactive elements (including <see cref="TameObject"/>, <see cref="TameManterial"/> and <see cref="TameLight"/>
-    /// </summary>
     public class TameElement
     {
-        //   public List<TameChanger> properties;
-        public bool updatedUnique = false;
-        public MarkerProgress markerProgress = null;
-        public MarkerPerson marketEnvironment = null;
-        public MarkerSpeed markerSpeed = null;
-        //    public MarkerFlicker[] markerFlicker = null;
-        public static bool isPaused = false;
-        public static float FrameValue = -1;
-        public static float deltaTime;
-        public static float originalDelta;
-        public static float lastDelta = 1;
-        public static float TimeScale { get { return timeScale; } }
-        private static float timeScale = 1;
-        private static int scaleFactor = 0;
-        public static int ScaleFactor
-        {
-            get { return scaleFactor; }
-            set { if (Mathf.Abs(value) < 5) scaleFactor = value; else scaleFactor = (int)Mathf.Sign(value) * 5; timeScale = Mathf.Pow(1.5f, scaleFactor); }
-        }
+        #region statics
         /// <summary>
         /// the universal project tick. It determines the number of frames (and hence updates) passed since the start of the application. It is used to check which progresses are alread updated. See <see cref="TameProgress.tick"/>
         /// </summary>
@@ -50,6 +29,22 @@ namespace Tames
         /// the size of the array used to calculate average speed by <see cref="averageSpeed"/> 
         /// </summary>
         public const int DataHistoryCount = 10;
+        public static float FrameValue = -1;
+        public static float deltaTime;
+        public static float originalDelta;
+        public static bool isPaused = false;
+        public static float lastDelta = 1;
+        public static float TimeScale { get { return timeScale; } }
+        private static float timeScale = 1;
+        private static int scaleFactor = 0;
+        public static int ScaleFactor
+        {
+            get { return scaleFactor; }
+            set { if (Mathf.Abs(value) < 5) scaleFactor = value; else scaleFactor = (int)Mathf.Sign(value) * 5; timeScale = Mathf.Pow(1.5f, scaleFactor); }
+        }
+        #endregion
+
+        #region general
         /// <summary>
         /// name of the element, usually the same as the name of the associated game object or material
         /// </summary>
@@ -63,29 +58,13 @@ namespace Tames
         /// </summary>
         public TameKeys tameType = TameKeys.Object;
         /// <summary>
-        /// the manifest associated with this element, which will be an inheritor class of <see cref="ManifestBase"/>
-        /// </summary>
-        public ManifestBase manifest = null;
-        /// <summary>
-        /// the progress for each update mode. Index 0 is for update or slide, and index 1 is for rotate.
-        /// </summary>
-        public TameProgress progress = null;
-
-        /// <summary>
         /// the parent game object of the moving part of the interactive object 
         /// </summary>
         public GameObject owner = null;
         /// <summary>
-        /// the moving object of the interactive object
-        /// </summary>
-        public GameObject mover = null;
-        //  public byte AuthorityType { get { return } }
-
-        /// <summary>
         /// lis of parent effect/objects that control updating of this element. If the parent is another <see cref="TameElement"/>, this can only have one member. Normally, the update parent of an element is another element whose <see cref="GameObject"/> is the parent or first ancestor with a <see cref="TameElement"/> attached to it. But this can be changed in the manifest file (see <see cref="TameManager"/> and <see cref="ManifestHeader.subKey"/>) with subkey "update" inside a block that defines this element. In the update line, the names of the parents are listed, separated by comma and subject to naming conventions of the <see cref="TameFinder.Relations"/>. Position tracking (@) is only acceptable for <see cref="TameObject"/> elements. The same declaring pattern applies to subkeys "slide" and "rotate" which fill <see cref="slideParents"/> and <see cref="rotateParents"/> respectively.
         /// </summary>
         public List<TameEffect> parents = new List<TameEffect>();
-
         /// <summary>
         /// the parents for each update action in a given frame. For <see cref="TameMaterial"/>, <see cref="TameLight"/> and also for <see cref="TameObject"> with <see cref="ManifestKeys.Update"/> mode, only the first element would be valued. These values will be added to universal array of <see cref="TameEffect"/>s to be sorted to create a queue of updating elements in each frame
         /// </summary>
@@ -94,51 +73,81 @@ namespace Tames
         /// stores the index of progress if successful, (<see cref="Unsuccessful"/> if not)
         /// </summary>
         public byte basis = TrackBasis.Time;
+        float activeDistance = 0, activeAngle = 0, visDistance = 0, visAngle = 0, controlDistance = 0, controlAngle = 0;
+        public List<TameInputControl> control, actSwitch, visSwitch;
+        public bool manual = false;
+        #endregion
 
+        #region progress
+        /// <summary>
+        /// the progress for each update mode. Index 0 is for update or slide, and index 1 is for rotate.
+        /// </summary>
+        public TameProgress progress = null;
+        public MarkerProgress markerProgress = null;
+        public MarkerSpeed markerSpeed = null;
+        public float directProgress = -1;
+        #endregion
+
+        #region objects
+        /// <summary>
+        /// the moving object of the interactive object
+        /// </summary>
+        public GameObject mover = null;
         public List<GameObject> scaledObjects = new List<GameObject>();
         public List<Material> scaledMaterials = new List<Material>();
         public List<float> initialTiles = new List<float>();
-        /// <summary>
-        /// a basis for  <see cref="TameProgress.changingDirection"/> when the progress are updated based on interactors.
-        /// </summary>
-        public int changingDirection = 1;
-        //   public int switchingKey = -1;
         public bool initialVisibility = true;
-        /// <summary>
-        /// the interaction areas attached to this elements. 
-        /// </summary>
-        public List<TameArea> areas = new List<TameArea>();
-        public List<TameInputControl> control, actSwitch, visSwitch;
-        public bool manual = false;
-        /// <summary>
-        /// whether the <see cref="TameArea.mode"/> of this element's <see cref="areas"/> is <see cref="InteractionMode.Grip"/>
-        /// </summary>
-        public bool isGrippable = false;
+
+        #endregion
+
+        #region lights and materials
+        public List<TameChanger> properties = new();
+        public bool updatedUnique = false;
+        #endregion
+
+        #region areas
         /// <summary>
         /// whether the <see cref="TameArea.mode"/> of this element's <see cref="areas"/> is <see cref="InteractionMode"/>.Switch1, 2, or 3
         /// </summary>
         public bool isSwitch = false;
         public bool isDistance = false;
         public bool isTracking = false;
-        public float directProgress = -1;
+        /// <summary>
+        /// whether the <see cref="TameArea.mode"/> of this element's <see cref="areas"/> is <see cref="InteractionMode.Grip"/>
+        /// </summary>
+        public bool isGrippable = false;
+        /// <summary>
+        /// a basis for  <see cref="TameProgress.changingDirection"/> when the progress are updated based on interactors.
+        /// </summary>
+        public int changingDirection = 1;
+        /// <summary>
+        /// the interaction areas attached to this elements. 
+        /// </summary>
+        public List<TameArea> areas = new List<TameArea>();
+        #endregion
+
+        #region general methods
         public TameElement()
         {
             control = new List<TameInputControl>();
             actSwitch = new List<TameInputControl>();
             visSwitch = new List<TameInputControl>();
         }
-        public void ReadInput(string s)
+        public static void PassTime()
         {
-            string[] list = s.ToLower().Split(' ');
-            TameInputControl tci;
-            for (int i = 0; i < list.Length; i++)
-                if ((tci = TameInputControl.ByStringDuo(list[i])) != null)
-                    control.Add(tci);
-            manual = control.Count > 0;
-         //   if (name == "path") Debug.Log("inputs: " + s + " " + manual);
-            if (control.Count > 0)
-                progress = new TameProgress(this);
+            lastDelta = deltaTime;
+            deltaTime = FrameValue < 0 ? Time.deltaTime * TimeScale : FrameValue;
+            originalDelta = FrameValue < 0 ? Time.deltaTime : FrameValue;
+            if (!isPaused)
+            {
+                Tick++;
+                ActiveTime += deltaTime;
+            }
+            TotalTime += deltaTime;
         }
+        #endregion
+
+        #region updating
         private TameEffect GetEffect(Person headOwner, Person handOwner, TameAreaTrack tat)
         {
             TameEffect r = null;
@@ -253,17 +262,35 @@ namespace Tames
             TameObject to;
             if (isGrippable)
             {
-                r = TameArea.Grip(areas);
+                r = TameArea.CheckGrip(areas);
                 if (r != null)
                 {
                     to = (TameObject)this;
                     pe = r.personIndex == Person.LocalDefault ? Person.localPerson : Person.people[r.personIndex];
                     ti = areas[r.areaIndex];
-                    ti.gripDisplacement = owner.transform.InverseTransformPoint(pe.hand[r.handIndex].gripCenter) - owner.transform.InverseTransformPoint(ti.relative.transform.position);
-                    if (to.handle.RotationType == MovingTypes.Rotator)
-                        ti.displacement = Utils.Angle(owner.transform.InverseTransformPoint(ti.relative.transform.position), Vector3.zero, to.handle.start - to.handle.pivot, to.handle.axis, true);
+                    Vector3 u = pe.hand[r.handIndex].gripCenter - pe.hand[r.handIndex].lastGripCenter;
+                    if (ti.autoGripped)
+                    {
+                        if (u.magnitude > 0)
+                        {
+                            float m = to.handle.CalculateGripProgress(progress.progress, ti.relative.transform.position, u);
+                            directProgress = m;
+                            //   Debug.Log("dir prog: "+m);
+                            Debug.Log(name + pe.hand[r.handIndex].gripCenter.ToString() + u.ToString("0.00000") + u.magnitude + " " + directProgress);
+                        }
+                    }
+                    else
+                    {
+                        ti.autoGripped = true;
+                        directProgress = progress.progress;
+                    }
                     r.child = this;
+                    ti.lastGripCenter = pe.hand[r.handIndex].gripCenter;
+                    //    Debug.Log(ti.displacement);
                 }
+                else
+                    foreach (TameArea area in areas)
+                        area.autoGripped = false;
                 return r;
             }
             if (isSwitch)
@@ -343,21 +370,289 @@ namespace Tames
             }
             return r;
         }
-        public static void PassTime()
-        {
-            lastDelta = deltaTime;
-            deltaTime = FrameValue < 0 ? Time.deltaTime * TimeScale : FrameValue;
-            originalDelta = FrameValue < 0 ? Time.deltaTime : FrameValue;
-            if (!isPaused)
-            {
-                Tick++;
-                ActiveTime += deltaTime;
-            }
-            TotalTime += deltaTime;
-        }
         public virtual void AssignParent(TameEffect[] all, int index)
         {
 
+        }
+        public virtual void Scale()
+        {
+            if (tameType == TameKeys.Object)
+            {
+                TameObject to = (TameObject)this;
+                if (to.scales)
+                {
+                    Vector3 ls;
+                    float s = to.scaleFrom + (to.scaleTo - to.scaleFrom) * progress.slerpProgress;
+                    foreach (GameObject go in scaledObjects)
+                    {
+                        ls = go.transform.localScale;
+                        if (to.scaleAxis == 0) go.transform.localScale = new Vector3(s, ls.y, ls.z);
+                        else if (to.scaleAxis == 1) go.transform.localScale = new Vector3(ls.x, s, ls.z);
+                        else go.transform.localScale = new Vector3(ls.x, ls.y, s);
+                    }
+                    Vector2 tex;
+                    for (int i = 0; i < initialTiles.Count; i++)
+                        try
+                        {
+                            tex = scaledMaterials[i].GetTextureScale(Utils.ProperyKeywords[TameMaterial.MainTex]);
+                            if (to.scaleUV == 0) tex.x = s * initialTiles[i]; else tex.y = s * initialTiles[i];
+                            scaledMaterials[i].SetTextureScale(Utils.ProperyKeywords[TameMaterial.MainTex], tex);
+                        }
+                        catch { }
+                }
+            }
+        }
+        public void SetProgress(float p)
+        {
+            if (progress != null) progress.SetProgress(p);
+        }
+        /// <summary>
+        /// sets the progress at a specific index based on the parent progress 
+        /// </summary>
+        /// <param name="p">the parent progress</param>
+        /// <param name="index">index of the progress in this element, 0 or 1 for the exact index, and 2 for both progresses</param>
+        public void SetByParent(TameProgress p)
+        {
+            if (progress != null)
+            {
+                progress.interactDirection = changingDirection;
+                progress.SetByParent(new float[] { p.lastProgress, p.progress }, new float[] { p.lastTotal, p.totalProgress }, p.passToChildren, deltaTime);
+            }
+        }
+        public void CheckStatus()
+        {
+            if (owner != null)
+            {
+                if (Tick <= 0)
+                    owner.SetActive(initialVisibility);
+                else
+                {
+                    if (TameCamera.CheckDistanceAndAngle(owner, visDistance, visAngle))
+                        if (visSwitch.Count > 0)
+                            foreach (TameInputControl tci in visSwitch)
+                                if (tci.Pressed())
+                                {
+                                    owner.SetActive(!owner.activeSelf);
+                                    break;
+                                }
+                    if (TameCamera.CheckDistanceAndAngle(owner, activeDistance, activeAngle))
+                        if (actSwitch.Count > 0)
+                            foreach (TameInputControl tci in actSwitch)
+                                if (tci.Pressed())
+                                {
+                                    progress.active = !progress.active;
+                                    break;
+                                }
+                }
+            }
+        }
+
+        /// <summary>
+        /// updates the progress of the element (this is used for remote update).
+        /// </summary>
+        /// <param name="p"></param>
+        public virtual void Update(float p) { }
+        public virtual void Rotate(float p, int i) { }
+        /// <summary>
+        /// updates the progress(es) in this element based on a parent progress. 
+        /// </summary>
+        /// <param name="p">the parent progress</param>
+        public virtual void Update(TameProgress p) { }
+        /// <summary>
+        /// updates the progress(es) in this element based on a position
+        /// </summary>
+        /// <param name="p">the parent position</param>
+        public virtual void Update(Vector3 p) { }
+        /// <summary>
+        /// sets the progress at a specific index based on time
+        /// </summary>
+        /// <param name="index">index of the progress in this element, 0 or 1 for the exact index, and 2 for both progresses</param>
+        public void SetByTime()
+        {
+            if (progress != null)
+            {
+                progress.interactDirection = changingDirection;
+
+                progress.SetByTime(TameElement.deltaTime);
+            }
+        }
+        public void SetManually()
+        {
+            int dir = 0;
+            if (TameCamera.CheckDistanceAndAngle(owner, controlDistance, controlAngle))
+                foreach (TameInputControl tci in control)
+                {
+                    dir = tci.Hold();
+                    if (dir != 0)
+                        break;
+                }
+            if (dir != 0)
+            {
+                progress.interactDirection = dir;
+                progress.SetByTime(deltaTime);
+            }
+        }
+        /// <summary>
+        /// updates the current element based on passage of time. 
+        /// </summary>
+        public virtual void UpdateManually()
+        {
+            SetManually();
+        }   /// <summary>
+            /// updates the current element based on passage of time. 
+            /// </summary>
+        public virtual void Update()
+        {
+        }
+        /// <summary>
+        /// Gets the parents of all interactive elements in the project, this should be called during each frame if there is a chance that parents are changed (for example there are multiple objects or people being tracked for the same element, so their position affects which one would be the parent. The method also sorts the parents so they would be updated in order
+        /// </summary>
+        /// <param name="allEffects">an array including all the parents for all actions for all interactive elements. As mentioned in <see cref="TameElement.GetParent"/> for each element, there are three types of potential parents. Therefore, the length of this array is three times the count of elements</param>
+        /// <param name="tes">the list of all interactive elements in the project</param>
+        public static int GetAllParents(TameEffect[] allEffects, List<TameElement> tes)
+        {
+            for (int i = 0; i < tes.Count; i++)
+
+                if (tes[i].manual)
+                {
+                    //       Debug.Log("MANUL " + tes[i].name);
+                    tes[i].UpdateManually();
+                }
+                else
+                {
+                    tes[i].CheckStatus();
+                    tes[i].AssignParent(allEffects, i);
+                    //    if (tes[i].name == "room-fan") Debug.Log("fan: " + tes[i].progress.progress);
+                    //   if (tes[i].name == "cooler") Debug.Log("cool: " + tes[i].progress.progress);
+                    //      if (tes[i].name.ToLower() == "inlight")
+                    //         Debug.Log("light " + tes[i].progress.progress + " "+tes[i].basis);
+                    //         if (tes[i].name.ToLower() == "longbase")
+                    //   Debug.Log("base " + tes[i].progress.progress+" "+ tes[i].progress.lastProgress);
+                }
+            return Order(allEffects);
+        }
+        /// <summary>
+        /// sorts the parent effects in all effects array, so we can <see cref="Apply"/> them from index 0 and count of the returned value (everything after would be null or invalid).  
+        /// </summary>
+        /// <param name="allEffects">static array <see cref="TameEffect.AllEffects"/></param>
+        /// <returns>the number of valid parents</returns>
+        private static int Order(TameEffect[] allEffects)
+        {
+            TameEffect t;
+            int count = 0;
+            for (int i = 0; i < allEffects.Length; i++)
+                if (allEffects[i] != null)
+                {
+                    if (TrackBasis.IsHand(allEffects[i].type) || TrackBasis.IsHead(allEffects[i].type) || (allEffects[i].type == TrackBasis.Grip))
+                    {
+                        t = allEffects[count];
+                        allEffects[count] = allEffects[i];
+                        allEffects[i] = t;
+                        count++;
+                    }
+                }
+            for (int i = count; i < allEffects.Length; i++)
+                if (allEffects[i] != null)
+                    if (allEffects[i].type == TrackBasis.Time)
+                    {
+                        t = allEffects[count];
+                        allEffects[count] = allEffects[i];
+                        allEffects[i] = t;
+                        count++;
+                    }
+            TameElement ti, tj;
+            int tame = count;
+            for (int i = tame; i < allEffects.Length; i++)
+                if (allEffects[i] != null)
+                {
+                    t = allEffects[count];
+                    allEffects[count] = allEffects[i];
+                    allEffects[i] = t;
+                    count++;
+                }
+
+            for (int i = tame; i < count - 1; i++)
+                for (int j = i + 1; j < count; j++)
+                {
+                    if (allEffects[i].type == TrackBasis.Tame)
+                        ti = allEffects[i].parent;
+                    else
+                        ti = allEffects[i].gameObject.tameParent;
+                    if (ti == allEffects[i].child)
+                    {
+                        t = allEffects[i];
+                        allEffects[i] = allEffects[j];
+                        allEffects[j] = t;
+                    }
+                }
+            return count;
+        }
+
+        /// <summary>
+        /// see <see cref="TameObject.Grip"/>
+        /// </summary>
+        public virtual void Grip(TameEffect tp) { }
+        /// <summary>
+        /// applies a parent effect on its child. This should be run for all parent effects after <see cref="GetAllParents"/> in order
+        /// </summary>
+        /// <param name="tp">the applied parent effect</param>
+        public static void Apply(TameEffect tp)
+        {
+            TameProgress p = null;
+
+            if (tp.type == TrackBasis.Tame)
+            {
+                if (tp.parent.progress != null)
+                    p = tp.parent.progress;
+                if (p == null) return;
+            }
+
+            switch (tp.type)
+            {
+                case TrackBasis.Tame: tp.child.Update(p); break;
+                case TrackBasis.Object: tp.child.Update(tp.gameObject.transform.position); break;
+                case TrackBasis.Hand:
+                case TrackBasis.Head: tp.child.Update(tp.position); break;
+                case TrackBasis.Time: tp.child.Update(); break;
+                case TrackBasis.Grip: tp.child.Update(); break;// tp.child.Grip(tp); break;Debug.Log("m should be: "+tp.child.directProgress); 
+            }
+
+            tp.child.Scale();
+        }
+        #endregion
+
+        #region identifications
+        public void ReadInput(string s)
+        {
+            string[] list = s.ToLower().Split(' ');
+            TameInputControl tci;
+            for (int i = 0; i < list.Length; i++)
+                if ((tci = TameInputControl.ByStringDuo(list[i])) != null)
+                    control.Add(tci);
+            manual = control.Count > 0;
+            //   if (name == "path") Debug.Log("inputs: " + s + " " + manual);
+            if (control.Count > 0)
+                progress = new TameProgress(this);
+        }
+        public void ReadInput(CoupledInput ci)
+        {
+            string s = ci.pair.ToLower();
+
+            string[] list = s.Split(' ');
+            TameInputControl tci;
+            for (int i = 0; i < list.Length; i++)
+                if ((tci = TameInputControl.ByStringDuo(list[i])) != null)
+                    control.Add(tci);
+            manual = control.Count > 0;
+            if (control.Count > 0)
+            {
+                progress = new TameProgress(this);
+                if (tameType != TameKeys.Material)
+                {
+                    controlDistance = ci.maxDistance;
+                    controlAngle = ci.maxAngle;
+                }
+            }
         }
         /// <summary>
         /// checks if a game object is the parent or grandparent of the <see cref="owner"/> of this element.
@@ -417,139 +712,12 @@ namespace Tames
                         return true;
             return false;
         }
-        public void SetProgress(float p)
-        {
-            if (progress != null) progress.SetProgress(p);
-        }
-        /// <summary>
-        /// sets the progress at a specific index based on the parent progress 
-        /// </summary>
-        /// <param name="p">the parent progress</param>
-        /// <param name="index">index of the progress in this element, 0 or 1 for the exact index, and 2 for both progresses</param>
-        public void SetByParent(TameProgress p)
-        {
-            if (progress != null)
-            {
-                progress.interactDirection = changingDirection;
-                progress.SetByParent(new float[] { p.lastProgress, p.progress }, new float[] { p.lastTotal, p.totalProgress }, p.passToChildren, deltaTime);
-            }
-        }
-        public virtual void Scale()
-        {
-            if (tameType == TameKeys.Object)
-            {
-                TameObject to = (TameObject)this;
-                if (to.scales)
-                {
-                    Vector3 ls;
-                    float s = to.scaleFrom + (to.scaleTo - to.scaleFrom) * progress.slerpProgress;
-                    foreach (GameObject go in scaledObjects)
-                    {
-                        ls = go.transform.localScale;
-                        if (to.scaleAxis == 0) go.transform.localScale = new Vector3(s, ls.y, ls.z);
-                        else if (to.scaleAxis == 1) go.transform.localScale = new Vector3(ls.x, s, ls.z);
-                        else go.transform.localScale = new Vector3(ls.x, ls.y, s);
-                    }
-                    Vector2 tex;
-                    for (int i = 0; i < initialTiles.Count; i++)
-                        try
-                        {
-                            tex = scaledMaterials[i].GetTextureScale(Utils.ProperyKeywords[TameMaterial.MainTex]);
-                            if (to.scaleUV == 0) tex.x = s * initialTiles[i]; else tex.y = s * initialTiles[i];
-                            scaledMaterials[i].SetTextureScale(Utils.ProperyKeywords[TameMaterial.MainTex], tex);
-                        }
-                        catch { }
-                }
-            }
-        }
-        public void CheckStatus()
-        {
-            if (owner != null)
-            {
-                if (Tick <= 0)
-                    owner.SetActive(initialVisibility);
-                else
-                {
-                    if (visSwitch.Count > 0)
-                        foreach (TameInputControl tci in visSwitch)
-                            if (tci.Pressed())
-                            {
-                                owner.SetActive(!owner.activeSelf);
-                                break;
-                            }
-                    if (actSwitch.Count > 0)
-                        foreach (TameInputControl tci in actSwitch)
-                            if (tci.Pressed())
-                            {
-                                progress.active = !progress.active;
-                                break;
-                            }
-                }
-            }
-        }
-
-        /// <summary>
-        /// updates the progress of the element (this is used for remote update).
-        /// </summary>
-        /// <param name="p"></param>
-        public virtual void Update(float p) { }
-        public virtual void Rotate(float p, int i) { }
-        /// <summary>
-        /// updates the progress(es) in this element based on a parent progress. 
-        /// </summary>
-        /// <param name="p">the parent progress</param>
-        public virtual void Update(TameProgress p) { }
-        /// <summary>
-        /// updates the progress(es) in this element based on a position
-        /// </summary>
-        /// <param name="p">the parent position</param>
-        public virtual void Update(Vector3 p) { }
-        /// <summary>
-        /// sets the progress at a specific index based on time
-        /// </summary>
-        /// <param name="index">index of the progress in this element, 0 or 1 for the exact index, and 2 for both progresses</param>
-        public void SetByTime()
-        {
-            if (progress != null)
-            {
-                progress.interactDirection = changingDirection;
-
-                progress.SetByTime(TameElement.deltaTime);
-            }
-        }
-        public void SetManually()
-        {
-            int dir = 0;
-            foreach (TameInputControl tci in control)
-            {
-                dir = tci.Hold();
-                if (dir != 0)
-                    break;
-            }
-            if (dir != 0)
-            {
-                progress.interactDirection = dir;
-                progress.SetByTime(deltaTime);
-            }
-        }
-        /// <summary>
-        /// updates the current element based on passage of time. 
-        /// </summary>
-        public virtual void UpdateManually()
-        {
-            SetManually();
-        }   /// <summary>
-            /// updates the current element based on passage of time. 
-            /// </summary>
-        public virtual void Update()
-        {
-        }
         /// <summary>
         /// adds interactors to the this elements. Currently, it only works on <see cref="TameObject"/>s, so please see <see cref="TameObject.AddArea(TameArea, GameObject)"/>
         /// </summary>
         /// <param name="ti"></param>
         /// <param name="g"></param>
-       // public virtual void AddArea(TameArea ti, GameObject g = null) { }
+        // public virtual void AddArea(TameArea ti, GameObject g = null) { }
         /// <summary>
         /// clean disabled interactors. Currently, it only works on <see cref="TameObject"/>s, so please see <see cref="TameObject.CleanAreas"/>
         /// </summary>
@@ -640,26 +808,26 @@ namespace Tames
             //basis[1] = basis[2] = TrackBasis.Error;
 
         }
-        void MonoUpdate(int subtype, TameGameObject tgo)
+        void MonoUpdate(TameGameObject tgo)
         {
             TameEffect tp;
             parents.Clear();
             basis = TrackBasis.Object;
-            parents.Add(new TameEffect(subtype, tgo));
+            parents.Add(new TameEffect(tgo));
         }
-        void MonoUpdate(int subtype, TameElement te)
+        void MonoUpdate(TameElement te)
         {
             TameEffect tp;
             parents.Clear();
             basis = TrackBasis.Tame;
-            parents.Add(new TameEffect(subtype, te));
+            parents.Add(new TameEffect(te));
         }
         /// <summary>
         /// Add update parents 
         /// </summary> add update parents with position tracking to this elements. It adds to the list of same effects but removes parents with other shared effects (see <see cref="TameEffect.effect"/> for the notion of shared effect). This method is called by <see cref="PopulateUpdates"/>
         /// <param name="subtype">the effect type</param>
         /// <param name="pos">the parent game objects whose position will be tracked</param>
-        void AddUpdate(int subtype, List<TameGameObject> pos)
+        void AddUpdate(List<TameGameObject> pos)
         {
             TameEffect tp;
             List<TameEffect> p = null;
@@ -668,7 +836,7 @@ namespace Tames
             basis += TrackBasis.Object;
             //     basis[1] = basis[2] = TrackBasis.Error;
 
-            for (int i = 0; i < pos.Count; i++) p.Add(new TameEffect(subtype, pos[i]));
+            for (int i = 0; i < pos.Count; i++) p.Add(new TameEffect(pos[i]));
         }
         /// <summary>
         /// add update parents with progress tracking to this elements. It adds to the list of same effects but removes parents with other shared effects (see <see cref="TameEffect.effect"/> for the notion of shared effect). This method is called by <see cref="PopulateUpdates"/>
@@ -676,12 +844,12 @@ namespace Tames
         /// <param name="subtype">the effect type</param>
         /// <param name="prog">the parent elements whose progress are tracked</param>
         /// <param name="rot">if the tracked position is Rotate (true) or Update or Slide (false)</param>
-        void AddUpdate(int subtype, List<TameElement> prog)
+        void AddUpdate(List<TameElement> prog)
         {
             parents.Clear();
             basis = TrackBasis.Tame;
             // basis[1] = basis[2] = TrackBasis.Error;
-            for (int i = 0; i < prog.Count; i++) parents.Add(new TameEffect(subtype, prog[i]));
+            for (int i = 0; i < prog.Count; i++) parents.Add(new TameEffect(prog[i]));
         }
         public bool PopulateUpdateByMarker(List<TameElement> tes, List<TameGameObject> tgos, MarkerProgress mp)
         {
@@ -697,19 +865,19 @@ namespace Tames
                     {
                         switch (basis)
                         {
-                            case TrackBasis.Object: MonoUpdate(TrackBasis.Object, byElement); break;
+                            case TrackBasis.Object: MonoUpdate(byElement); break;
                             case TrackBasis.Mover:
                                 if ((te != this) && (te != null))
                                 {
                                     byMover = TameGameObject.Find(te.mover, tgos);
-                                    MonoUpdate(TrackBasis.Object, te.owner == byElement.gameObject ? byMover : byElement);
+                                    MonoUpdate(te.owner == byElement.gameObject ? byMover : byElement);
                                 }
                                 break;
                             case TrackBasis.Head: break;
-                            default: if ((te != null) && (te != this)) MonoUpdate(TrackBasis.Tame, te); break;
+                            default: if ((te != null) && (te != this)) MonoUpdate(te); break;
                         }
                     }
-                    else if (te != null) MonoUpdate(TrackBasis.Tame, te);
+                    else if (te != null) MonoUpdate(te);
                     return true;
                 }
                 else if (mp.byMaterial != null)
@@ -717,7 +885,7 @@ namespace Tames
                     tm = TameMaterial.Find(mp.byMaterial, tes);
                     if (tm != null)
                     {
-                        MonoUpdate(TrackBasis.Tame, tm);
+                        MonoUpdate(tm);
                         return true;
                     }
                 }
@@ -749,14 +917,14 @@ namespace Tames
                             basis = TrackBasis.Error;
                             if (finder.includes[TameFinder.Head]) basis = TrackBasis.Head;
                             if (finder.includes[TameFinder.Hand]) basis += TrackBasis.Hand;
-                            AddUpdate(manifest.updates.subKey, finder.objectList);
+                            AddUpdate(finder.objectList);
                         }
                         break;
                     case TrackBasis.Tame:
                         basis = TrackBasis.Time;
-                        if ((tameType == TameKeys.Object) || (manifest.updates.subKey == ManifestKeys.Update))
+                        if (tameType == TameKeys.Object)
                         {
-                            AddUpdate(manifest.updates.subKey, finder.elementList);
+                            AddUpdate(finder.elementList);
                             if (finder.elementList.Count > 0)
                                 basis = TrackBasis.Tame;
                         }
@@ -765,7 +933,7 @@ namespace Tames
                         if (tameType == TameKeys.Object)
                         {
                             basis = TrackBasis.Error;
-                            AddUpdate(manifest.updates.subKey, finder.objectList);
+                            AddUpdate(finder.objectList);
                             if (finder.objectList.Count > 0) basis = TrackBasis.Mover;
                         }
                         break;
@@ -780,12 +948,12 @@ namespace Tames
                     {
                         if (to.parentObject != null)
                         {
-                            AddUpdate(ManifestKeys.Object, new List<TameGameObject>() { TameFinder.FindTGO(to.parentObject.mover, tgos) });
+                            AddUpdate(new List<TameGameObject>() { TameFinder.FindTGO(to.parentObject.mover, tgos) });
                             basis = TrackBasis.Object;
                         }
                     }
                     else if (to.parentObject != null)
-                        AddUpdate(ManifestKeys.Update, new List<TameElement>() { to.parentObject });
+                        AddUpdate(new List<TameElement>() { to.parentObject });
                 }
             }
         }
@@ -801,19 +969,7 @@ namespace Tames
             if (updatedUnique) return;
             TameGameObject tgo = TameGameObject.Find(owner, tgos);
             bool noMarker = !PopulateUpdateByMarker(tes, tgos, markerProgress);
-            if (noMarker && (manifest != null))
-            {
-                finder.header = null;
-                if (manifest.updates != null)
-                {
-                    finder.header = manifest.updates;
-                    finder.elementList.Clear();
-                    finder.objectList.Clear();
-                    finder.owner = this;
-                    finder.trackMode = manifest.updateType;
-                }
-                PopulateByFinder(finder, tes, tgos);
-            }
+
             if (noMarker)
             {
                 if (tameType == TameKeys.Object)
@@ -823,12 +979,12 @@ namespace Tames
                     {
                         if (to.parentObject != null)
                         {
-                            AddUpdate(ManifestKeys.Object, new List<TameGameObject>() { TameFinder.FindTGO(to.parentObject.mover, tgos) });
+                            AddUpdate(new List<TameGameObject>() { TameFinder.FindTGO(to.parentObject.mover, tgos) });
                             basis = TrackBasis.Object;
                         }
                     }
                     else if (to.parentObject != null)
-                        AddUpdate(ManifestKeys.Update, new List<TameElement>() { to.parentObject });
+                        AddUpdate(new List<TameElement>() { to.parentObject });
                 }
             }
             //  if (name == "barrier sign") Debug.Log("UP: aft " + parents[0].parent.name);
@@ -837,90 +993,6 @@ namespace Tames
                     if (parents[i].type == TrackBasis.Tame)
                         parents.RemoveAt(i);
             // if (name == "barrier sign") Debug.Log("UP: aft1 " + parents.Count);
-        }
-        /// <summary>
-        /// Gets the parents of all interactive elements in the project, this should be called during each frame if there is a chance that parents are changed (for example there are multiple objects or people being tracked for the same element, so their position affects which one would be the parent. The method also sorts the parents so they would be updated in order
-        /// </summary>
-        /// <param name="allEffects">an array including all the parents for all actions for all interactive elements. As mentioned in <see cref="TameElement.GetParent"/> for each element, there are three types of potential parents. Therefore, the length of this array is three times the count of elements</param>
-        /// <param name="tes">the list of all interactive elements in the project</param>
-        public static int GetAllParents(TameEffect[] allEffects, List<TameElement> tes)
-        {
-            for (int i = 0; i < tes.Count; i++)
-
-                if (tes[i].manual)
-                {
-                    //       Debug.Log("MANUL " + tes[i].name);
-                    tes[i].UpdateManually();
-                }
-                else
-                {
-                    tes[i].CheckStatus();
-                    tes[i].AssignParent(allEffects, i);
-                    //    if (tes[i].name == "room-fan") Debug.Log("fan: " + tes[i].progress.progress);
-                    //   if (tes[i].name == "cooler") Debug.Log("cool: " + tes[i].progress.progress);
-                    //      if (tes[i].name.ToLower() == "inlight")
-                    //         Debug.Log("light " + tes[i].progress.progress + " "+tes[i].basis);
-                    //         if (tes[i].name.ToLower() == "longbase")
-                    //   Debug.Log("base " + tes[i].progress.progress+" "+ tes[i].progress.lastProgress);
-                }
-            return Order(allEffects);
-        }
-        /// <summary>
-        /// sorts the parent effects in all effects array, so we can <see cref="Apply"/> them from index 0 and count of the returned value (everything after would be null or invalid).  
-        /// </summary>
-        /// <param name="allEffects">static array <see cref="TameEffect.AllEffects"/></param>
-        /// <returns>the number of valid parents</returns>
-        private static int Order(TameEffect[] allEffects)
-        {
-            TameEffect t;
-            int count = 0;
-            for (int i = 0; i < allEffects.Length; i++)
-                if (allEffects[i] != null)
-                {
-                    if (TrackBasis.IsHand(allEffects[i].type) || TrackBasis.IsHead(allEffects[i].type) || (allEffects[i].type == TrackBasis.Grip))
-                    {
-                        t = allEffects[count];
-                        allEffects[count] = allEffects[i];
-                        allEffects[i] = t;
-                        count++;
-                    }
-                }
-            for (int i = count; i < allEffects.Length; i++)
-                if (allEffects[i] != null)
-                    if (allEffects[i].type == TrackBasis.Time)
-                    {
-                        t = allEffects[count];
-                        allEffects[count] = allEffects[i];
-                        allEffects[i] = t;
-                        count++;
-                    }
-            TameElement ti, tj;
-            int tame = count;
-            for (int i = tame; i < allEffects.Length; i++)
-                if (allEffects[i] != null)
-                {
-                    t = allEffects[count];
-                    allEffects[count] = allEffects[i];
-                    allEffects[i] = t;
-                    count++;
-                }
-
-            for (int i = tame; i < count - 1; i++)
-                for (int j = i + 1; j < count; j++)
-                {
-                    //       Debug.Log("nullref: " + allEffects[i].child.name+ );
-                    if (allEffects[i].type == TrackBasis.Tame)
-                        ti = allEffects[i].parent;
-                    else
-                        ti = allEffects[i].gameObject.tameParent;
-                    if (ti == allEffects[i].child)
-                    {
-                        t = allEffects[i];
-                        allEffects[i] = allEffects[j];
-                        allEffects[j] = t;
-                    }
-                }
-            return count;
         }
         private void RotateAreaFromBlender(Transform t)
         {
@@ -932,7 +1004,7 @@ namespace Tames
             List<GameObject> io = new List<GameObject>();
             TameArea ir;
             io.AddRange(custom ? MarkerArea.FindAreasForCustom(owner) : MarkerArea.FindAreas(owner));
-        //    if (name == "rotar") Debug.Log("rotar : " + io.Count);
+            //    if (name == "rotar") Debug.Log("rotar : " + io.Count);
 
             for (int i = 0; i < cc; i++)
                 if (TameArea.HasAreaKeyword(owner.transform.GetChild(i).name))
@@ -950,7 +1022,7 @@ namespace Tames
             if (mp.duration != -1) progress.manager.Duration = mp.duration;
             if (mp.trigger != "")
             {
-                TameTrigger tt = ManifestBase.ReadTrigger(mp.trigger);
+                TameTrigger tt = TameTrigger.TriggerFromText(mp.trigger);
                 if (tt != null) progress.trigger = tt;
             }
             progress.continuity = mp.continuity;
@@ -960,76 +1032,71 @@ namespace Tames
         }
         public void SetShowKeys(MarkerProgress mp)
         {
-            initialVisibility = mp.gameObject.activeSelf;
-            string[] ks = mp.showBy.Split(' ');
+            if (tameType == TameKeys.Material) return;
+            string[] ks = mp.visibilityControl.press.Split(' ');
             TameInputControl tci;
-            string sk = "";
-            List<TameInputControl> tcis = new List<TameInputControl>();
+
             for (int j = 0; j < ks.Length; j++)
             {
                 tci = TameInputControl.ByStringMono(ks[j]);
                 if (tci != null)
-                {
-                    tcis.Add(tci);
-                    sk += "-" + ks[j];
-                }
+                    visSwitch.Add(tci);
             }
-            if (tcis.Count > 0) visSwitch = tcis;
+            if (visSwitch.Count > 0)
+            {
+                visDistance = mp.visibilityControl.maxDistance;
+                visAngle = mp.visibilityControl.maxAngle;
+            }
         }
         public void SetActiveKeys(MarkerProgress mp)
         {
-            string[] ks = mp.activateBy.Split(' ');
+            if (tameType == TameKeys.Material) return;
+            string[] ks = mp.activationControl.press.Split(' ');
             TameInputControl tci;
-            string sk = "";
-            List<TameInputControl> tcis = new List<TameInputControl>();
+
             for (int j = 0; j < ks.Length; j++)
             {
                 tci = TameInputControl.ByStringMono(ks[j]);
                 if (tci != null)
-                {
-                    tcis.Add(tci);
-                    sk += "-" + ks[j];
-                }
-                if (tcis.Count > 0)
-                {
-                    progress.active = mp.active;
-                    actSwitch = tcis;
-                }
+                    actSwitch.Add(tci);
             }
+            if (actSwitch.Count > 0)
+            {
+                activeDistance = mp.activationControl.maxDistance;
+                activeAngle = mp.activationControl.maxAngle;
+                progress.active = mp.active;
+            }
+        }
+        /// <summary>
+        /// sets the speed, duration, cycle and trigger properties of <see cref="progress"/>es in this element based on the <see cref="manifest"/>
+        /// </summary>
+        public void UpdateMarkerProgress()
+        {
+            float[] ps = new float[] { progress.progress, progress.lastProgress, progress.lastProgress, progress.lastTotal };
+            SetDurations(markerProgress);
+            progress.progress = ps[0];
+            progress.lastProgress = ps[1];
+            progress.totalProgress = ps[2];
+            progress.lastTotal = ps[3];
+            progress.trigger = TameTrigger.TriggerFromText(markerProgress.trigger);
+            progress.slerp = Slerp.FromString(markerProgress.slerp);
         }
         /// <summary>
         /// sets the speed, duration, cycle and trigger properties of <see cref="progress"/>es in this element based on the <see cref="manifest"/>
         /// </summary>
         public virtual void SetProgressProperties(List<TameElement> tes, List<TameGameObject> tgos)
         {
-            List<TameChanger> chs;
             TameFinder finder = new TameFinder();
             if (progress != null)
             {
-                if (manifest != null)
-                {
-                    progress.manager = manifest.manager;
-                    if (manifest.mgrParent.Length > 0)
-                    {
-                        finder.elementList.Clear();
-                        finder.header.items.Clear();
-                        finder.header.items.Add(manifest.mgrParent);
-                        finder.PopulateElements(tes, tgos);
-                        if (finder.elementList.Count > 0)
-                            progress.manager.parent = finder.elementList[0];
-                    }
-                    if (progress.trigger == null) progress.trigger = manifest.trigger;
-                    progress.continuity = manifest.cycle;
-                }
                 if (markerProgress != null)
                 {
+                    markerProgress.element = this;
+                    markerProgress.ChangedThisFrame(false);
                     SetDurations(markerProgress);
                     SetShowKeys(markerProgress);
                     SetActiveKeys(markerProgress);
-                    //     if (name == "barrier sign") Debug.Log("UP: trig " + progress.trigger.value[0]);
-                    //    if (visSwitch.Count > 0) Debug.Log("MKM: " + name + "> " + visSwitch[0].keyValue[0] + " " + visSwitch[0].hold + " " + visSwitch[0].direction + " " + visSwitch[0].control);
-                    //    Debug.Log("marker progress: not null " + markerProgress.cycleType);
-
+             
                 }
                 if (markerSpeed != null)
                 {
@@ -1064,45 +1131,8 @@ namespace Tames
                         }
                     }
                 }
-                if (manifest != null)
-                {
-                    if (tameType == TameKeys.Light)
-                    {
-                        chs = ((ManifestLight)manifest).properties;
-                    }
-                }
-            }
-        }
-        /// <summary>
-        /// see <see cref="TameObject.Grip"/>
-        /// </summary>
-        public virtual void Grip(TameEffect tp) { }
-        /// <summary>
-        /// applies a parent effect on its child. This should be run for all parent effects after <see cref="GetAllParents"/> in order
-        /// </summary>
-        /// <param name="tp">the applied parent effect</param>
-        public static void Apply(TameEffect tp)
-        {
-            TameProgress p = null;
 
-            if (tp.type == TrackBasis.Tame)
-            {
-                if (tp.parent.progress != null)
-                    p = tp.parent.progress;
-                if (p == null) return;
             }
-
-            switch (tp.type)
-            {
-                case TrackBasis.Tame: tp.child.Update(p); break;
-                case TrackBasis.Object: tp.child.Update(tp.gameObject.transform.position); break;
-                case TrackBasis.Hand:
-                case TrackBasis.Head: tp.child.Update(tp.position); break;
-                case TrackBasis.Time: tp.child.Update(); break;
-                case TrackBasis.Grip: tp.child.Grip(tp); break;
-            }
-
-            tp.child.Scale();
         }
         public List<TameLink> clones = new(), links = new();
         public void AddClones(MarkerLink ml, bool ofChildren, List<TameGameObject> tgos)
@@ -1205,8 +1235,7 @@ namespace Tames
                     go.transform.position = bo.transform.position;
                     bo.transform.position = tlt.position;
                     tlt.parent = bo.transform;
-                    tlt.position = pm;
-                    tlt.rotation = qm;
+                    tlt.SetPositionAndRotation(pm, qm);
                     path.linked[i] = bo.transform;
                     path.linkOffset[i] = GetLinkValue(tl.offsetBase, new float[] { progress.progress, tl.offset, 0f, 1f });
                 }
@@ -1255,6 +1284,8 @@ namespace Tames
             to.control = control;
             return to;
         }
+        #endregion
+
     }
 }
 

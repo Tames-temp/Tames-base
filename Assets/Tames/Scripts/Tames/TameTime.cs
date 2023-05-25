@@ -31,71 +31,8 @@ namespace Tames
             //     progress.stop = StopTypes.Never;
             progress.continuity = ContinuityMode.Cycle;
         }
-    }
-
-    public class TameHead : TameElement
-    {
-        public static TameHead Heads = new TameHead();
-        public Person[] people;
-        public TameHead()
-        {
-            tameType = TameKeys.Head;
-            progress = new TameProgress(this);
-        }
-        public override void Update(TameProgress p)
-        {
-            progress.totalProgress = Time.time;
-            progress.progress = Time.time % 1;
-            progress.passToChildren = PassTypes.Total;
-            //   progress.stop = StopTypes.Never;
-            progress.continuity = ContinuityMode.Cycle;
-        }
-    }
-    public class TameHand : TameElement
-    {
-        public static TameHand Hands = new TameHand();
-        public Person[] people;
-        public TameHand()
-        {
-            tameType = TameKeys.Head;
-            progress = new TameProgress(this);
-            progress.passToChildren = PassTypes.Total;
-            //    progress.stop = StopTypes.Never;
-            progress.continuity = ContinuityMode.Cycle;
-        }
-        public override void Update(TameProgress p)
-        {
-            progress.totalProgress = Time.time;
-            progress.progress = Time.time % 1;
-        }
-    }
-    public class TameCalendar : TameElement
-    {
-        public TameCalendar()
-        {
-            tameType = TameKeys.Calendar;
-            progress = new TameProgress(this);
-            progress.passToChildren = PassTypes.Total;
-            //   progress.stop = StopTypes.Never;
-            progress.continuity = ContinuityMode.Cycle;
-        }
-        public override void Update(TameProgress p)
-        {
-            SetSunPosition();
-        }
-        public void IncreaseHour(int x)
-        {
-            progress.SetProgress(progress.totalProgress + x / 24f);
-        }
-        public void IncreaseMonth(int x)
-        {
-            progress.SetProgress(progress.totalProgress + x / 12f);
-        }
-        public void SetSunPosition()
-        {
-
-        }
-    }
+    }   
+  
     /// <summary>
     /// this class is used to create custom parameters that are linked to the input devices
     /// </summary>
@@ -108,6 +45,16 @@ namespace Tames
             progress = new TameProgress(this);
 
             basis = TrackBasis.Time;
+        }
+        public static List<TameInputControl> GetControl(ManifestHeader header, int start)
+        {
+            List<TameInputControl> r = new List<TameInputControl>();
+            for (int i = start; i < header.items.Count; i++)
+            {
+                TameInputControl tci = TameInputControl.ByStringDuo(header.items[i]);
+                if (tci != null) r.Add(tci);
+            }
+            return r;
         }
         public override void AssignParent(TameEffect[] all, int index)
         {
@@ -142,10 +89,7 @@ namespace Tames
      
         public static void FromMarker(Markers.MarkerCustom mc, List<TameElement> tes)
         {
-            ManifestCustom man = new ManifestCustom();
-         //   man.Read(mc.manifestLines.Split(";"), -1);
-            TameCustomValue tcv = new TameCustomValue();
-            tcv.manifest = man;
+             TameCustomValue tcv = new TameCustomValue();
             tcv.markerProgress = mc.gameObject.GetComponent<Markers.MarkerProgress>();  
             tcv.name = mc.name;
            

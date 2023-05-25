@@ -67,11 +67,9 @@
     <Compile Include="Assets\Tames\Scripts\Tames\TameLink.cs" />
     <Compile Include="Assets\Tames\Scripts\Walking\WalkManager.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerAlterObject.cs" />
-    <Compile Include="Assets\Tames\Scripts\Tames\Manifests\ManifestBase.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerLink.cs" />
     <Compile Include="Assets\Tames\Scripts\Others\Grass.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerOrigin.cs" />
-    <Compile Include="Assets\Tames\Scripts\Tames\Manifests\ManifestObject.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameTime.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameOrbit.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerManifest.cs" />
@@ -98,7 +96,6 @@
     <Compile Include="Assets\Tames\Scripts\Multi\Multiplayer\MessageExtensions.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\ExportModel.cs" />
     <Compile Include="Assets\Tames\Scripts\Records\TameKeyMap.cs" />
-    <Compile Include="Assets\Tames\Scripts\Tames\Manifests\ManifestCustom.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\Utils.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameManager.cs" />
     <Compile Include="Assets\Tames\Scripts\HandAsset\ControllerData.cs" />
@@ -115,18 +112,15 @@
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerProgress.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameElement.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameAlternative.cs" />
-    <Compile Include="Assets\Tames\Scripts\Tames\Manifests\ManifestLight.cs" />
     <Compile Include="Assets\Tames\Scripts\Multi\Multiplayer\NetworkManager.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerMaster.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameMaterialAlternative.cs" />
     <Compile Include="Assets\Tames\Scripts\Records\FrameShot.cs" />
-    <Compile Include="Assets\Tames\Scripts\Identifier.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameFreeRotator.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TamePath.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerAlterMaterial.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameInputControl.cs" />
-    <Compile Include="Assets\Tames\Scripts\Tames\Manifests\ManifestMaterial.cs" />
-    <Compile Include="Assets\Tames\Scripts\Tames\Manifests\ManifestHeader.cs" />
+    <Compile Include="Assets\Tames\Scripts\Tames\ManifestHeader.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerObject.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerCarrier.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerCustom.cs" />
@@ -135,14 +129,10 @@
     <Compile Include="Assets\Tames\Scripts\Tames\TameMaterial.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerCycle.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerArea.cs" />
-    <Compile Include="Assets\Tames\Scripts\Tames\Manifests\ManifestMatch.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Tames\Scripts\Tames\handle-change.txt" />
     <None Include="Assets\Tames\Scripts\Multi\Multiplayer\RiptideNetworking.xml" />
     <None Include="Assets\Tames\Scripts\Multi\Multiplayer\RiptideNetworking.dll" />
-    <None Include="Assets\Tames\Scripts\Tames\alias.txt" />
-    <None Include="Assets\Tames\Scripts\Tames\working.txt" />
     <None Include="Assets\Tames\Scripts\Multi\Multiplayer\ReadMe and Disclaimer.txt" />
   </ItemGroup>
   <ItemGroup>

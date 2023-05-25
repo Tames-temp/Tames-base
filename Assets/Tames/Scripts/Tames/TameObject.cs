@@ -151,6 +151,22 @@ namespace Tames
             if (progress != null)
             {
                 handle.Move(progress.slerpProgress, progress.lastSlerp);
+                if (name == "last-door.001")
+                {
+            //        handle.path.MoveVirtual(progress.slerpProgress);
+             //       Debug.Log(" last " + handle.path.virtualMover.position + " " + handle.path.bases[0].position);
+                    //       TameOrbit to  =(TameOrbit)handle.path;
+                    //       Debug.Log(" >> "+ (to.self.TransformPoint(to.axis + to.pivot) - to.self.TransformPoint(to.pivot)));
+
+                }
+                if (name == "rotax")
+                {
+               //     handle.path.MoveVirtual(progress.slerpProgress);
+               //     Debug.Log(" rotax " + handle.path.virtualMover.position + " " + handle.path.bases[0].position);
+                    //       TameOrbit to  =(TameOrbit)handle.path;
+                    //       Debug.Log(" >> "+ (to.self.TransformPoint(to.axis + to.pivot) - to.self.TransformPoint(to.pivot)));
+
+                }
             }
             //              SetChildren();
         }
@@ -174,7 +190,7 @@ namespace Tames
                 handle.Move(progress.progress, progress.lastProgress);
             }
         }
-
+     
         private void AddArea(TameArea ti, GameObject g = null)
         {
             TameArea ti2 = ti;

@@ -13,9 +13,14 @@ namespace Tames
         public Vector3 up;
         public float span;
         public Transform[] rot;
-
+        public void SetLength()
+        {
+            length = Mathf.Abs(span) * Mathf.Deg2Rad;
+        }
         override public void AssignMovers(GameObject[] g, bool def = false)
         {
+            Vector3 p;
+            Quaternion q;
             bases = new Transform[g.Length];
             attached = new Transform[g.Length];
             for (int i = 0; i < g.Length; i++)
@@ -26,50 +31,29 @@ namespace Tames
                 bases[i].parent = mover.parent;
                 bases[i].localPosition = Position(m);
                 bases[i].localRotation = facing == FacingLogic.Free ? Rotation(bases[i].localPosition - pivot) : Quaternion.identity;
-                Vector3 p = g[i].transform.position;
-                Quaternion q = g[i].transform.rotation;
+                p = g[i].transform.position;
+                q = g[i].transform.rotation;
                 g[i].transform.parent = bases[i];
                 g[i].transform.position = p;
                 g[i].transform.rotation = q;
             }
+            virtualMover = new GameObject(bases[0].parent.name + "-virtual").transform;
+            virtualMover.parent = bases[0].parent;
+            virtualMover.localPosition = Position(0);
+            virtualMover.localRotation = facing == FacingLogic.Free ? Rotation(virtualMover.localPosition - pivot) : Quaternion.identity;
         }
-        public void AssignMovers2(GameObject[] g, bool def = false)
-        {
-            bases = new Transform[g.Length];
-            rot = new Transform[g.Length];
-            attached = new Transform[g.Length];
-            for (int i = 0; i < g.Length; i++)
-            {
-                attached[i] = g[i].transform;
-                float m = GetM(g[i].transform.position);
-                bases[i] = new GameObject(mover.parent.name + "-b" + i).transform;
-                rot[i] = new GameObject(mover.parent.name + "-r" + i).transform;
-                bases[i].parent = mover.parent;
-                rot[i].parent = mover.parent;
-                bases[i].localPosition = pivot;
-                bases[i].LookAt(mover.parent.TransformPoint(start), mover.parent.TransformPoint(pivot + axis) - mover.parent.TransformPoint(pivot));
-                bases[i].Rotate(bases[i].up, m * span);
-                rot[i].localPosition = attached[i].localPosition;
-                rot[i].localRotation = Quaternion.identity;
-                bases[i].localRotation = facing == FacingLogic.Free ? Rotation(bases[i].localPosition - pivot) : Quaternion.identity;
-                Vector3 p = g[i].transform.position;
-                Quaternion q = g[i].transform.rotation;
-                g[i].transform.parent = bases[i];
-                g[i].transform.position = p;
-                g[i].transform.rotation = q;
-            }
-        }
+
         override public void AssignMoverBasis(GameObject g)
         {
             mover = g.transform;
             float m = GetM(g.transform.position);
-            moverBase = new GameObject(mover.parent.name + "-base").transform;
-            moverBase.parent = mover.parent;
-            moverBase.localPosition = Position(m);
-            moverBase.localRotation = facing == FacingLogic.Free ? Rotation(moverBase.localPosition - pivot) : Quaternion.identity;
+            virtualMover = new GameObject(mover.parent.name + "-base").transform;
+            virtualMover.parent = mover.parent;
+            virtualMover.localPosition = Position(m);
+            virtualMover.localRotation = facing == FacingLogic.Free ? Rotation(virtualMover.localPosition - pivot) : Quaternion.identity;
             Vector3 p = g.transform.position;
             Quaternion q = g.transform.rotation;
-            g.transform.parent = moverBase.transform;
+            g.transform.parent = virtualMover.transform;
             g.transform.position = p;
             g.transform.rotation = q;
         }
@@ -100,11 +84,15 @@ namespace Tames
                 attached[i].rotation = q;
             }
         }
-        override public Vector3 Position(float m)
+        public override Vector3 Normal(float m)
         {
-            return Utils.Rotate(start, pivot,  axis, m * span);
+            return Utils.Rotate(start, pivot, axis, m * span).normalized;
         }
-        override public Quaternion Rotation(float m)
+        public override  Vector3 Position(float m)
+        {
+            return Utils.Rotate(start, pivot, axis, m * span);
+        }
+        public override Quaternion Rotation(float m)
         {
             return Quaternion.LookRotation(Position(m), axis);
         }
@@ -112,7 +100,15 @@ namespace Tames
         {
             return Quaternion.LookRotation(pos, axis);
         }
-        public override void MoveLinked(float m)
+        override public  void MoveVirtual(float m)
+        {
+            Vector3 p = Position(m);
+            virtualMover.localPosition = p;
+            if (facing == FacingLogic.Free)
+                virtualMover.localRotation = Rotation(p - pivot);
+
+        }
+        override public  void MoveLinked(float m)
         {
             float mi;
             if (linked != null)

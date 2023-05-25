@@ -109,46 +109,25 @@ namespace Tames
                     return flickering ? steps[^1].value : steps[0].value;
             }
         }
-        /// <summary>
-        /// creates a changer from a line as translated to a <see cref="ManifestHeader"/>. 
-        /// </summary>
-        /// <param name="mh">the manifest header</param>
-        /// <param name="n">the number of expected value <see cref="count"/> in each stop. Every stop should have this exact amount of float values</param>
-        /// <returns>returnes a TameChanger object if successful, or null if an error occurred</returns>
-        public static TameChanger Read(ManifestHeader mh, int n)
+        public void UpdateMarker()
         {
-            ToggleType st = ToggleType.Gradual;
-            if (mh.items.Count <= 2) return null;
-            List<string> s;
-            float sv = 0, f;
-            s = Utils.Split(mh.items[0], ",");
-            if (mh.items[0].StartsWith("grad")) st = ToggleType.Gradual;
-            else if (mh.items[0].StartsWith("step")) st = ToggleType.Stepped;
-            else if (Utils.SafeParse(mh.items[0], out sv)) st = ToggleType.Switch;
-            else return null;
-            List<TameNumericStep> steps = new List<TameNumericStep>();
-            float[] value;
-            for (int i = 1; i < mh.items.Count; i++)
+            TameChanger ch = null;
+            TameColor cc = null;
+            if (count > 1 && marker.colorSteps.Length > 0)
             {
-                //             Debug.Log("read-y: " + mh.items[i]);
-                s = Utils.Split(mh.items[i], ",");
-                if (s.Count < n) return null;
-                value = new float[n];
-                for (int j = 0; j < n; j++)
-                    if (Utils.SafeParse(s[j], out f))
-                        value[j] = f;
-                    else
-                        return null;
-                steps.Add(new TameNumericStep() { value = value });
+                cc = TameColor.ReadStepsOnly(marker.colorSteps, toggleType, toggle, true);
+                steps = cc.steps;
             }
-            return new TameChanger()
+            else
             {
-                steps = steps,
-                toggleType = st,
-                toggle = sv,
-                count = n
-            };
+                ch = ReadStepsOnly(marker.steps, toggleType, toggle, count);
+                if (ch != null)
+                    steps = ch.steps;
+            }
+            toggle = ch.toggle;
+            toggleType = ch.toggleType;
         }
+
         public static TameChanger ReadStepsOnly(string line, ToggleType st, float sv, int n)
         {
             string clean = Utils.Clean(line);
@@ -197,7 +176,7 @@ namespace Tames
             Markers.Flicker mf = marker.flicker;
             if ((mf.byLight != null) || (mf.byMaterial != null)) return;
             flickerPlan = new bool[FlickPlanCount * 100];
-        //     Debug.Log("flicker " + marker.gameObject.name+" "+property);
+            //     Debug.Log("flicker " + marker.gameObject.name+" "+property);
             //   float f0 = mf.minFlicker, f2 = mf.maxFlicker;
             float df;
             float[] fs = new float[mf.flickerCount];
