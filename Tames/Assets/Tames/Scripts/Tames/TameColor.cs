@@ -285,7 +285,7 @@ namespace Tames
                         return null;
                 }
             }
-            return new TameColor()
+             return new TameColor()
             {
                 steps = stops,
                 toggleType = st,
@@ -298,7 +298,7 @@ namespace Tames
         {
             List<TameNumericStep> stops = new List<TameNumericStep>();
             Color c;
-            for (int i = 0; i < line.Length; i++)
+             for (int i = 0; i < line.Length; i++)
             {
                 c = line[i];
                 if (spectrum)
@@ -306,7 +306,7 @@ namespace Tames
                 else
                     stops.Add(new TameNumericStep() { value = new float[] { c.r, c.g, c.b, c.a } });
             }
-            return new TameColor()
+               return new TameColor()
             {
                 steps = stops,
                 toggleType = st,

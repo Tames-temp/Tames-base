@@ -41,11 +41,13 @@ namespace Tames
             float[] f;
             //   ManifestLight m = (ManifestLight)manifest;
             //   Debug.Log("coll "+(m == null ? "null" : "not"));
+            TameProgress progress = this.progress;
             if (progress != null)
                 //           Debug.Log("color updating " + m.properties.Count);
                 foreach (TameChanger tc in properties)
                 {
-                    f = tc.On(progress.slerpProgress, progress.totalProgress, progress.continuity);
+                    if (tc.parent != null) progress = tc.parent.progress; else progress = this.progress;
+                    f = tc.On(progress.subProgress, progress.totalProgress, progress.continuity);
                     switch (tc.property)
                     {
                         case MaterialProperty.Glow:

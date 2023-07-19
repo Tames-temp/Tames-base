@@ -73,9 +73,10 @@ namespace Tames
         /// stores the index of progress if successful, (<see cref="Unsuccessful"/> if not)
         /// </summary>
         public byte basis = TrackBasis.Time;
-        float activeDistance = 0, activeAngle = 0, visDistance = 0, visAngle = 0, controlDistance = 0, controlAngle = 0;
-        public List<TameInputControl> control, actSwitch, visSwitch;
+        public InputSetting control = null, visibility = null, activation = null, altering = null;
+        public TameElement activeParent = null, visibilityParent = null;
         public bool manual = false;
+        private float waitCount = 0;
         #endregion
 
         #region progress
@@ -85,6 +86,8 @@ namespace Tames
         public TameProgress progress = null;
         public MarkerProgress markerProgress = null;
         public MarkerSpeed markerSpeed = null;
+        public MarkerControl progMarker, actMarker, visMarker, altMarker = null;
+        public TameTrigger visibilityTrigger = null;
         public float directProgress = -1;
         #endregion
 
@@ -129,9 +132,6 @@ namespace Tames
         #region general methods
         public TameElement()
         {
-            control = new List<TameInputControl>();
-            actSwitch = new List<TameInputControl>();
-            visSwitch = new List<TameInputControl>();
         }
         public static void PassTime()
         {
@@ -300,7 +300,7 @@ namespace Tames
                 changingDirection = areas[0].switchDirection;
                 if (areas[0].geometry == InteractionGeometry.Remote)
                 {
-                    if (TameInputControl.keyMap.pressed[areas[0].key])
+                    if (areas[0].ManuallyTriggered())
                     {
                         areas[0].Switch(true);
                         changingDirection = areas[0].switchDirection;
@@ -315,7 +315,11 @@ namespace Tames
                     r = TameEffect.Time();
                     if (sd != TameArea.NotSwitched)
                         if (changingDirection != sd)
+                        {
                             changingDirection = sd;
+                            for (int i = 0; i < areas.Count; i++)
+                                areas[i].switchDirection = changingDirection;
+                        }
                     r.child = this;
                 }
                 return r;
@@ -382,7 +386,7 @@ namespace Tames
                 if (to.scales)
                 {
                     Vector3 ls;
-                    float s = to.scaleFrom + (to.scaleTo - to.scaleFrom) * progress.slerpProgress;
+                    float s = to.scaleFrom + (to.scaleTo - to.scaleFrom) * progress.subProgress;
                     foreach (GameObject go in scaledObjects)
                     {
                         ls = go.transform.localScale;
@@ -416,34 +420,110 @@ namespace Tames
             if (progress != null)
             {
                 progress.interactDirection = changingDirection;
-                progress.SetByParent(new float[] { p.lastProgress, p.progress }, new float[] { p.lastTotal, p.totalProgress }, p.passToChildren, deltaTime);
+                if (p.isMultiAlter)
+                    progress.SetByParent(new float[] { p.lastSub, p.subProgress }, new float[] { p.lastSub, p.subProgress }, p.passToChildren, deltaTime);
+                else
+                    progress.SetByParent(new float[] { p.lastProgress, p.progress }, new float[] { p.lastTotal, p.totalProgress }, p.passToChildren, deltaTime);
             }
         }
         public void CheckStatus()
         {
+            if (CoreTame.multiPlayer)
+                CheckStatusMulti();
+            else
+                CheckStatusSolo();
+        }
+        void CheckStatusSolo()
+        {
+            int d;
+            bool b;
             if (owner != null)
             {
                 if (Tick <= 0)
                     owner.SetActive(initialVisibility);
                 else
                 {
-                    if (TameCamera.CheckDistanceAndAngle(owner, visDistance, visAngle))
-                        if (visSwitch.Count > 0)
-                            foreach (TameInputControl tci in visSwitch)
-                                if (tci.Pressed())
+                    if (visibilityTrigger != null)
+                    {
+                        d = visibilityTrigger.Direction(visibilityParent.progress.progress);
+                        if (d < 0)
+                            owner.SetActive(false);
+                        else if (d > 0)
+                            owner.SetActive(true);
+                    }
+                    else if (visibility != null)
+                        if (visibility.CheckMono(owner)) owner.SetActive(!owner.activeSelf); ;
+
+                    if (progress.activeTrigger != null)
+                    {
+                        d = visibilityTrigger.Direction(activeParent.progress.progress);
+                        if (d < 0)
+                            progress.active = false;
+                        else if (d > 0)
+                            progress.active = true;
+
+                    }
+                    else if (activation != null)
+                        if (activation.CheckMono(owner)) progress.active = !progress.active;
+                    //        Debug.Log("checking");
+                    if (progress.isMultiAlter)
+                    {
+                        progress.initiated = 0;
+                        if (progress.isOn)
+                        {
+                            if (altering.back.Count > 0)
+                                progress.initiated = altering.CheckDualPressed(owner);
+                            else
+                            {
+                                waitCount += deltaTime;
+                                if (progress.frameWaitCount <= waitCount)
                                 {
-                                    owner.SetActive(!owner.activeSelf);
-                                    break;
+                                    progress.initiated = 1;
+                                    waitCount = 0;
                                 }
-                    if (TameCamera.CheckDistanceAndAngle(owner, activeDistance, activeAngle))
-                        if (actSwitch.Count > 0)
-                            foreach (TameInputControl tci in actSwitch)
-                                if (tci.Pressed())
-                                {
-                                    progress.active = !progress.active;
-                                    break;
-                                }
+                            }
+                        }
+                        if (progress.initiated != 0)
+                            Debug.Log("checking " + name + " " + progress.initiated);
+                    }
                 }
+            }
+        }
+        void CheckStatusMulti()
+        {
+            bool waitForAct = true, waitForVis = true;
+            if (owner != null)
+            {
+                if (Tick <= 0)
+                    owner.SetActive(initialVisibility);
+                else
+                    for (int i = 0; i < Person.people.Length; i++)
+                        if (Person.people[i] != null)
+                        {
+                            if (waitForVis)
+                                if (TameCamera.CheckDistanceAndAngle(owner, Person.people[i], visibility.maxDistance, visibility.maxAngle, visibility.axis))
+                                    if (!waitForVis)
+                                        foreach (TameInputControl tci in visibility.mono)
+                                            if (tci.Pressed(Person.people[i].keyMap))
+                                            {
+                                                owner.SetActive(!owner.activeSelf);
+                                                waitForVis = false;
+                                                break;
+                                            }
+
+                            if (waitForAct)
+                                if (TameCamera.CheckDistanceAndAngle(owner, Person.people[i], activation.maxDistance, activation.maxAngle, activation.axis))
+                                    foreach (TameInputControl tci in activation.mono)
+                                        if (tci.Pressed(Person.people[i].keyMap))
+                                        {
+                                            progress.active = !progress.active;
+                                            waitForAct = false;
+                                            break;
+                                        }
+
+                        }
+
+
             }
         }
 
@@ -478,14 +558,7 @@ namespace Tames
         }
         public void SetManually()
         {
-            int dir = 0;
-            if (TameCamera.CheckDistanceAndAngle(owner, controlDistance, controlAngle))
-                foreach (TameInputControl tci in control)
-                {
-                    dir = tci.Hold();
-                    if (dir != 0)
-                        break;
-                }
+            int dir = control.CheckDualHeld(owner);
             if (dir != 0)
             {
                 progress.interactDirection = dir;
@@ -522,7 +595,7 @@ namespace Tames
                 {
                     tes[i].CheckStatus();
                     tes[i].AssignParent(allEffects, i);
-                    //    if (tes[i].name == "room-fan") Debug.Log("fan: " + tes[i].progress.progress);
+                    //      if (tes[i].name == "arm") Debug.Log("fan: " );
                     //   if (tes[i].name == "cooler") Debug.Log("cool: " + tes[i].progress.progress);
                     //      if (tes[i].name.ToLower() == "inlight")
                     //         Debug.Log("light " + tes[i].progress.progress + " "+tes[i].basis);
@@ -606,7 +679,7 @@ namespace Tames
                     p = tp.parent.progress;
                 if (p == null) return;
             }
-
+            //      if (tp.child.name == "arm") Debug.Log(tp.type);
             switch (tp.type)
             {
                 case TrackBasis.Tame: tp.child.Update(p); break;
@@ -622,37 +695,13 @@ namespace Tames
         #endregion
 
         #region identifications
-        public void ReadInput(string s)
-        {
-            string[] list = s.ToLower().Split(' ');
-            TameInputControl tci;
-            for (int i = 0; i < list.Length; i++)
-                if ((tci = TameInputControl.ByStringDuo(list[i])) != null)
-                    control.Add(tci);
-            manual = control.Count > 0;
-            //   if (name == "path") Debug.Log("inputs: " + s + " " + manual);
-            if (control.Count > 0)
-                progress = new TameProgress(this);
-        }
-        public void ReadInput(CoupledInput ci)
-        {
-            string s = ci.pair.ToLower();
 
-            string[] list = s.Split(' ');
-            TameInputControl tci;
-            for (int i = 0; i < list.Length; i++)
-                if ((tci = TameInputControl.ByStringDuo(list[i])) != null)
-                    control.Add(tci);
-            manual = control.Count > 0;
-            if (control.Count > 0)
-            {
-                progress = new TameProgress(this);
-                if (tameType != TameKeys.Material)
-                {
-                    controlDistance = ci.maxDistance;
-                    controlAngle = ci.maxAngle;
-                }
-            }
+
+        public void ReadInput(InputSetting keys)
+        {
+            control = keys;
+            control.AssignControl(InputSetting.ControlTypes.DualHold);
+            manual = control.mono.Count > 0;
         }
         /// <summary>
         /// checks if a game object is the parent or grandparent of the <see cref="owner"/> of this element.
@@ -801,7 +850,7 @@ namespace Tames
         /// add a time update control. By doing so, it removes all parents with shared effects (see <see cref="TameEffect.effect"/> for the notion of shared effect). This method is called by <see cref="PopulateUpdates"/>
         /// </summary>
         /// <param name="subtype">the effect</param>
-        void AddTime(int subtype)
+        void AddTime()
         {
             parents.Clear();
             basis = TrackBasis.Time;
@@ -851,15 +900,72 @@ namespace Tames
             // basis[1] = basis[2] = TrackBasis.Error;
             for (int i = 0; i < prog.Count; i++) parents.Add(new TameEffect(prog[i]));
         }
+        void ControlUpdates(List<TameElement> tes, List<TameGameObject> tgos)
+        {
+            TameElement te;
+            TameGameObject tg;
+            TameTrigger tt;
+            if (!manual)
+                if (progMarker != null)
+                {
+                    if (progMarker.parent != null)
+                    {
+                        tg = TameGameObject.Find(progMarker.parent, tgos);
+                        if (tg != null)
+                            if (tg.isElement)
+                                MonoUpdate(tg.tameParent);
+                    }
+                    if (progMarker.trigger != "")
+                    {
+                        tt = TameTrigger.TriggerFromText(progMarker.trigger);
+                        if (tt != null)
+                            progress.trigger = tt;
+                    }
+                }
+            if (actMarker != null)
+            {
+                if (activation.mono.Count == 0)
+                    if (actMarker.parent != null)
+                    {
+                        tg = TameGameObject.Find(actMarker.parent, tgos);
+                        if (tg != null)
+                            if (tg.isElement)
+                                activeParent = tg.tameParent;
+                        if (actMarker.trigger != "")
+                        {
+                            tt = TameTrigger.TriggerFromText(actMarker.trigger);
+                            if (tt != null)
+                                progress.activeTrigger = tt;
+                        }
+                    }
+            }
+            if ((visMarker != null) && (tameType != TameKeys.Material) && (tameType != TameKeys.Custom))
+            {
+                if (visibility.mono.Count == 0)
+                    if (visMarker.parent != null)
+                    {
+                        tg = TameGameObject.Find(visMarker.parent, tgos);
+                        if (tg != null)
+                            if (tg.isElement)
+                                visibilityParent = tg.tameParent;
+                        if (visMarker.trigger != "")
+                        {
+                            tt = TameTrigger.TriggerFromText(visMarker.trigger);
+                            if (tt != null)
+                                visibilityTrigger = tt;
+                        }
+                    }
+            }
+        }
         public bool PopulateUpdateByMarker(List<TameElement> tes, List<TameGameObject> tgos, MarkerProgress mp)
         {
             TameMaterial tm;
             //   Debug.Log("pop " + name);
             if (mp != null)
             {
-                if (mp.byElement != null)
+                if (mp.parent != null)
                 {
-                    TameGameObject byMover, byElement = TameGameObject.Find(mp.byElement, tgos);
+                    TameGameObject byMover, byElement = TameGameObject.Find(mp.parent, tgos);
                     TameElement te = byElement == null ? null : byElement.tameParent;
                     if (tameType == TameKeys.Object)
                     {
@@ -880,15 +986,16 @@ namespace Tames
                     else if (te != null) MonoUpdate(te);
                     return true;
                 }
-                else if (mp.byMaterial != null)
-                {
-                    tm = TameMaterial.Find(mp.byMaterial, tes);
-                    if (tm != null)
+                /*    else if (mp.byMaterial != null)
                     {
-                        MonoUpdate(tm);
-                        return true;
+                        tm = TameMaterial.Find(mp.byMaterial, tes);
+                        if (tm != null)
+                        {
+                            MonoUpdate(tm);
+                            return true;
+                        }
                     }
-                }
+                  */
                 else if (mp.update != "")
                 {
                     TameFinder finder = new TameFinder();
@@ -983,6 +1090,8 @@ namespace Tames
                             basis = TrackBasis.Object;
                         }
                     }
+                    else if (to.handle.trackBasis == TrackBasis.Head)
+                        basis = TrackBasis.Head;
                     else if (to.parentObject != null)
                         AddUpdate(new List<TameElement>() { to.parentObject });
                 }
@@ -1019,6 +1128,8 @@ namespace Tames
         }
         public void SetDurations(MarkerProgress mp)
         {
+            progress.GetSteps(mp.steps);
+         //   Debug.Log("steps " + name + " " + progress.stepCount);
             if (mp.duration != -1) progress.manager.Duration = mp.duration;
             if (mp.trigger != "")
             {
@@ -1026,47 +1137,18 @@ namespace Tames
                 if (tt != null) progress.trigger = tt;
             }
             progress.continuity = mp.continuity;
-            progress.slerp = Slerp.FromString(markerProgress.slerp);
-            Update(mp.setAt);
+            progress.lerp = LerpManager.FromString(markerProgress.lerpXY);
+            if (altering != null && progress.stepCount > 1)
+            {
+                progress.isMultiAlter = true;
+                progress.SetAt(mp.setTo);
+                progress.frameWaitCount = progress.manager.Duration > 0 ? progress.manager.Duration : 1;
+            }
+            else
+                Update(mp.setTo);
 
         }
-        public void SetShowKeys(MarkerProgress mp)
-        {
-            if (tameType == TameKeys.Material) return;
-            string[] ks = mp.visibilityControl.press.Split(' ');
-            TameInputControl tci;
 
-            for (int j = 0; j < ks.Length; j++)
-            {
-                tci = TameInputControl.ByStringMono(ks[j]);
-                if (tci != null)
-                    visSwitch.Add(tci);
-            }
-            if (visSwitch.Count > 0)
-            {
-                visDistance = mp.visibilityControl.maxDistance;
-                visAngle = mp.visibilityControl.maxAngle;
-            }
-        }
-        public void SetActiveKeys(MarkerProgress mp)
-        {
-            if (tameType == TameKeys.Material) return;
-            string[] ks = mp.activationControl.press.Split(' ');
-            TameInputControl tci;
-
-            for (int j = 0; j < ks.Length; j++)
-            {
-                tci = TameInputControl.ByStringMono(ks[j]);
-                if (tci != null)
-                    actSwitch.Add(tci);
-            }
-            if (actSwitch.Count > 0)
-            {
-                activeDistance = mp.activationControl.maxDistance;
-                activeAngle = mp.activationControl.maxAngle;
-                progress.active = mp.active;
-            }
-        }
         /// <summary>
         /// sets the speed, duration, cycle and trigger properties of <see cref="progress"/>es in this element based on the <see cref="manifest"/>
         /// </summary>
@@ -1079,25 +1161,75 @@ namespace Tames
             progress.totalProgress = ps[2];
             progress.lastTotal = ps[3];
             progress.trigger = TameTrigger.TriggerFromText(markerProgress.trigger);
-            progress.slerp = Slerp.FromString(markerProgress.slerp);
+            progress.lerp = LerpManager.FromString(markerProgress.lerpXY);
         }
+        public void SetControls(MarkerControl[] mcs)
+        {
+            for (int i = 0; i < mcs.Length; i++)
+            {
+                if (mcs[i].type == ControlTarget.Progress)
+                    progMarker = mcs[i];
+                if (mcs[i].type == ControlTarget.Activation)
+                    actMarker = mcs[i];
+                if (mcs[i].type == ControlTarget.Visibility)
+                    visMarker = mcs[i];
+                if (mcs[i].type == ControlTarget.Alter)
+                {
+                    altMarker = mcs[i];
+             //       Debug.Log("found " + name + " " + mcs[i].control.key);
+                }
+           //     Debug.Log("type " + mcs[i].type);
+            }
+        }
+        public void SetControls()
+        {
+            if (progMarker != null)
+            {
+                ReadInput(progMarker.control);
+            }
+            if (visMarker != null && tameType != TameKeys.Material)
+            {
+                visibility = visMarker.control;
+                visibility.AssignControl(InputSetting.ControlTypes.Mono);
+            }
+            if (actMarker != null)
+            {
+                activation = actMarker.control;
+                activation.AssignControl(InputSetting.ControlTypes.Mono);
+            }
+            if (altMarker != null)
+            {
+                altering = altMarker.control;
+                altering.AssignControl(InputSetting.ControlTypes.DualPress);
+                //    Debug.Log(" keys " + altering.back[0].keyValue[0] + " " + altering.forth[0].keyValue[0]);
+            }
+        }
+
         /// <summary>
         /// sets the speed, duration, cycle and trigger properties of <see cref="progress"/>es in this element based on the <see cref="manifest"/>
         /// </summary>
         public virtual void SetProgressProperties(List<TameElement> tes, List<TameGameObject> tgos)
         {
             TameFinder finder = new TameFinder();
+            //    Debug.Log("type df " + name);
             if (progress != null)
             {
+                if (tameType != TameKeys.Material) SetControls(owner.GetComponents<MarkerControl>());
+                SetControls();
                 if (markerProgress != null)
                 {
                     markerProgress.element = this;
                     markerProgress.ChangedThisFrame(false);
+                  //  Debug.Log("multi  " + name + " checked");
                     SetDurations(markerProgress);
-                    SetShowKeys(markerProgress);
-                    SetActiveKeys(markerProgress);
-             
                 }
+                if (progress.isMultiAlter)
+                {
+                    parents.Clear();
+                    AddTime();
+                }
+             //   Debug.Log("multi  " + name + " " + progress.isMultiAlter);
+
                 if (markerSpeed != null)
                 {
                     if (markerSpeed.factor > 0)
@@ -1275,12 +1407,12 @@ namespace Tames
             to.isDistance = isDistance;
             to.isSwitch = isSwitch;
             to.manual = manual;
-            to.actSwitch = actSwitch;
+            to.activation = activation;
             to.basis = basis;
             to.changingDirection = changingDirection;
             to.initialVisibility = initialVisibility;
             to.tameType = tameType;
-            to.visSwitch = visSwitch;
+            to.visibility = visibility;
             to.control = control;
             return to;
         }
@@ -1288,4 +1420,5 @@ namespace Tames
 
     }
 }
+
 

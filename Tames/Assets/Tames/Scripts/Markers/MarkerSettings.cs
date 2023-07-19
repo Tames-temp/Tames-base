@@ -43,7 +43,7 @@ namespace Markers
                 {
                     switch (lines[index])
                     {
-                        case ":alter": index = MarkerAlter.FromLines(lines, index + 1, version); break;
+                        case ":alter": index = MarkerAlterObject.FromLines(lines, index + 1, version); break;
                         case ":matalt": index = MarkerAlterMaterial.FromLines(lines, index + 1, version); break;
                         case ":area": index = MarkerArea.FromLines(lines, index + 1, version); break;
                         case ":carrier": index = MarkerCarrier.FromLines(lines, index + 1, version); break;
@@ -66,7 +66,7 @@ namespace Markers
                 AllMaterials();
                 foreach (GameObject go in gos)
                 {
-                    MarkerAlter ma = go.GetComponent<MarkerAlter>();
+                    MarkerAlterObject ma = go.GetComponent<MarkerAlterObject>();
                     if (ma != null) lines.AddRange(ma.ToLines());
                     MarkerAlterMaterial mam = go.GetComponent<MarkerAlterMaterial>();
                     if (mam != null) lines.AddRange(mam.ToLines());

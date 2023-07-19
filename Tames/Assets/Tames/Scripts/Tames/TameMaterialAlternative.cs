@@ -26,17 +26,11 @@ namespace Tames
         /// The index of the initial alternative. This is set by <see cref="MarkerAlterMaterial.initial"/>.
         /// </summary>
         public int initial = -1;
-        /// <summary>
-        /// The input buttons for setting the previous alternative.
-        /// </summary>
-        public List<TameInputControl> back = new List<TameInputControl>();
-        /// <summary>
-        /// The input buttons for setting the next alternative
-        /// </summary>
-        public List<TameInputControl> forth = new List<TameInputControl>();
+        public InputSetting control;
         /// <summary>
         /// Change the current alternative to the next one in the queue.
         /// </summary>
+        public MarkerAlterMaterial marker = null;
         public void GoNext()
         {
             if (current >= 0)
@@ -83,30 +77,21 @@ namespace Tames
         /// </summary>
         public void Update()
         {
-            foreach (TameInputControl tci in back)
-                if (tci.Pressed()) { GoPrevious(); return; }
-            foreach (TameInputControl tci in forth)
-                if (tci.Pressed()) { GoNext(); return; }
+            int d = control.CheckDualPressed(marker.gameObject);
+            if (d < 0) GoPrevious();
+            else if (d > 0) GoNext();
         }
         /// <summary>
         /// Sets the inputs for a given input set"/>
         /// </summary>
         /// <param name="keys">a string representing the inputs</param>
         /// <param name="backOrFoth">whether the input set is <see cref="back"/>(true) or <see cref="forth"/> (false).</param>
-        public void SetKeys(string keys)
+        public void SetKeys(InputSetting keys)
         {
-            TameInputControl[] tcis;
-            string[] ks = keys.Split(' ');
-            for (int i = 0; i < ks.Length; i++)
-            {
-                TameInputControl[] tcs = TameInputControl.ByStringTwoMonos(ks[i]);
-                if (tcs != null)
-                {
-                    back.Add(tcs[0]);
-                    forth.Add(tcs[1]);
-                }
-            }
+            control = keys;
+            control.AssignControl(InputSetting.ControlTypes.DualPress);
         }
+
         /// <summary>
         /// Finds and creates all alternatives in the scene.
         /// </summary>
@@ -120,8 +105,8 @@ namespace Tames
             for (int i = 0; i < tgos.Count; i++)
                 if ((mam = tgos[i].gameObject.GetComponent<MarkerAlterMaterial>()) != null)
                 {
-                    tma = new();
-                    tma.SetKeys(mam.control.pair);
+                    tma = new() { marker = mam};
+                    tma.SetKeys(mam.control);
                     tma.alternatives = mam.alternatives;
                     tma.target = mam.applyTo;
                     if (mam.initial == null)
@@ -130,10 +115,17 @@ namespace Tames
                         for (int j = 0; j < tma.alternatives.Length; j++)
                             if (tma.alternatives[j] == mam.initial)
                                 tma.initial = j;
+
+                    for (int j = 0; j < tma.alternatives.Length; j++)
+                        if (tma.alternatives[j] == mam.applyTo)
+                        {
+                            MaterialReference mr = MaterialReference.AddToReference(tma.alternatives[j]);
+                            tma.target = mr.clone;
+                        }
                     tma.SetInitial(tma.initial);
                     tmas.Add(tma);
                 }
-            return tmas;
+               return tmas;
         }
     }
 }

@@ -258,7 +258,21 @@ public enum ForceType
     Rotate,
     Path,
 }
-
+public class IndexCounter
+{
+    public int start = 0;
+    public int end { get { return _end; } set { _end = value; _count = _end - start; } }
+    int _end = 0, _count = 0;
+    public int count { get { return _count; } set { _count = value; _end = start + count; } }
+    public static IndexCounter ByEnd(int start, int end)
+    {
+        return new IndexCounter() { start = start, end = end };
+    }
+    public static IndexCounter ByCount(int start, int count)
+    {
+        return new IndexCounter() { start = start, count = count };
+    }
+}
 /// <summary>
 /// this class contains the types of parents for an element
 /// </summary>
@@ -505,8 +519,8 @@ public class Utils
     }
     public static void SetPipelineLogics()
     {
-        string pn = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset.GetType().Name;
-        if (pn.IndexOf("HD") >= 0)
+        //   string pn = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset.GetType().Name;
+        if (TameMaterial.Pipeline == 1)
         {
             HDActive = true;
             ProperyKeywords = new string[] { "_BaseColor", "_EmissiveColor", "_BaseColorMap", "_EmissiveColorMap" };
@@ -514,7 +528,7 @@ public class Utils
         else
         {
 
-            ProperyKeywords = new string[] { "_BaseColor", "_EmissionColor", "_MainTex", "_EmissionMap" };
+            ProperyKeywords = new string[] { "_BaseColor", "_EmissionColor", "_BaseMap", "_EmissionMap" };
         }
     }
 
@@ -608,6 +622,18 @@ public class Utils
         }
         return q;
     }
+    public static Vector3[] MinMax(Vector3[] v)
+    {
+        Vector3[] r = new Vector3[2];
+        r[0] = v[0];
+        r[1] = v[0];
+        for (int i = 1; i < v.Length; i++)
+        {
+            r[0] = Vector3.Min(r[0], v[i]);
+            r[1] = Vector3.Max(r[1], v[i]);
+        }
+        return r;
+    }
     /// <summary>
     /// converts a vector in the space to the two dimensional scaled coordinates on a plane (the vector should be on the plane)  
     /// </summary>
@@ -633,7 +659,7 @@ public class Utils
     /// <param name="u">rotation axis</param>
     /// <param name="degrees">angle in degrees</param>
     /// <returns></returns>
-   
+
     public static Vector3 Rotate(Vector3 p, Vector3 o, Vector3 u, float degrees)
     {
         Vector3 op = p - o;
@@ -656,7 +682,7 @@ public class Utils
     }
     public static Vector3 AxisOf(Vector3 from, Vector3 to, float ang)
     {
-       Vector3 u = Vector3.Cross(from, to);
+        Vector3 u = Vector3.Cross(from, to);
         Vector3 p = Rotate(from, Vector3.zero, u, ang);
         Vector3 q = Rotate(from, Vector3.zero, u, -ang);
         if (Vector3.Distance(p, to) > Vector3.Distance(q, to)) u = -u;
@@ -664,13 +690,13 @@ public class Utils
     }
     public static float Angle(Vector3 p, Vector3 pivot, Vector3 start, Vector3 axis, bool signed)
     {
-        
+
         Vector3 pn = On(p, pivot, axis) - pivot;
         Vector3 sn = On(start, pivot, axis) - pivot;
-         pn.Normalize();
+        pn.Normalize();
         sn.Normalize();
         Vector3 axn = axis.normalized;
-        PO.transform.position =Vector3.zero;
+        PO.transform.position = Vector3.zero;
         float angle = Vector3.Angle(pn, sn);
         PO.transform.LookAt(sn, axn);
         CO.transform.position = PO.transform.forward;
@@ -708,89 +734,7 @@ public class Utils
             }
         }
     }
-    /// <summary>
-    /// returns the rotation angle from a starting point to a destination point around an axis and an origin point. The angle corresponds to the rotation from the landed points (see <see cref="On"/>) of the starting and destination points on the plane with origin and the axis (normal vector). The returned angle is signed (-180 to 180 degrees). For the full angle see <see cref="FullAngle"/>
-    /// </summary>
-    /// <param name="p">the destination point</param>
-    /// <param name="pivot">the origin</param>
-    /// <param name="start">the starting point</param>
-    /// <param name="axis">the rotation axis</param>
-    /// <returns>the signed angle of the rotation in degrees</returns>
-    public static float _SignedAngle(Vector3 p, Vector3 pivot, Vector3 start, Vector3 axis)
-    {
 
-        Vector3 a = On(start - pivot, Vector3.zero, axis).normalized;
-        Vector3 b = On(p - pivot, Vector3.zero, axis).normalized;
-        float f = Vector3.Angle(a, b);
-        Vector3 c = Rotate(a, Vector3.zero, axis, f);
-        return Vector3.Distance(c, b) > Vector3.Distance(a, b) ? -f : f;
-
-    }
-    /// <summary>
-    /// returns the rotation angle from a starting point to a destination point around an axis and an origin point. The angle corresponds to the rotation from the landed points (see <see cref="On"/>) of the starting and destination points on the plane with origin and the axis (normal vector). The returned angle is always zero or positive. For the signed angle see <see cref="SignedAngle"/>
-    /// </summary>
-    /// <param name="p">the destination point</param>
-    /// <param name="pivot">the origin</param>
-    /// <param name="start">the starting point</param>
-    /// <param name="axis">the rotation axis</param>
-    /// <returns>the full angle of the rotation in degrees</returns>
-    public static float _FullAngle(Vector3 p, Vector3 pivot, Vector3 start, Vector3 axis)
-    {
-        Vector3 a = On(start - pivot, Vector3.zero, axis).normalized;
-        Vector3 b = On(p - pivot, Vector3.zero, axis).normalized;
-        float f = Vector3.Angle(a, b);
-        Vector3 c = Rotate(a, Vector3.zero, axis, f);
-        return Vector3.Distance(c, b) > Vector3.Distance(a, b) ? 360 - f : f;
-    }
-    public static float _FullAngle(Vector3 p, Vector3 pivot, Vector3 start, Vector3 axis, Vector3 normal)
-    {
-
-        Vector3 a = On(start - pivot, Vector3.zero, axis).normalized;
-        Vector3 n = On(normal - pivot, Vector3.zero, axis).normalized;
-        Vector3 b = On(p - pivot, Vector3.zero, axis).normalized;
-        float fa = Vector3.Angle(a, b);
-        float fn = Vector3.Angle(b, n);
-        if (fn <= 90) return fa;
-        else return 360 - fa;
-    }
-    /// <summary>
-    /// checks of two vectors are parallel. The vectors should be normalized.
-    /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
-    /// <returns>returns if a and b are parallel</returns>
-    public static bool Parallel(Vector3 a, Vector3 b)
-    {
-        return a.Equals(b) || a.Equals(-b);
-    }
-    /// <summary>
-    /// finds an axis for rotation from one vector to another. If the vectors are parallel and opposite, it generates a vector based on Up or Right directions
-    /// </summary>
-    /// <param name="a">starting vector</param>
-    /// <param name="b">ending vector</param>
-    /// <returns>returns the rotation axis</returns>
-    public static Vector3 Axis(Vector3 a, Vector3 b)
-    {
-        int C = 0;
-        Vector3 u = Vector3.Cross(b, a).normalized;
-        if (u.magnitude == 0)
-        {
-            if (Vector3.Distance(b, a) < a.magnitude)
-                C = 1;
-            else
-                C = -1;
-        }
-        if (C == 1)
-            return Vector3.up;
-        if (C == -1)
-        {
-            if (!Parallel(a.normalized, Vector3.up))
-                u = On(Vector3.up, Vector3.zero, a);
-            else
-                u = On(Vector3.right, Vector3.zero, a);
-        }
-        return u;
-    }
     public static Vector3 Perp(Vector3 u)
     {
         int max = Mathf.Abs(u.x) < Mathf.Abs(u.y) ? (Mathf.Abs(u.y) < Mathf.Abs(u.z) ? 2 : 1) : (Mathf.Abs(u.x) < Mathf.Abs(u.z) ? 2 : 0);
@@ -968,7 +912,7 @@ public class Utils
             Vector3 g;
             for (int i = 0; i < v.Length; i++)
             {
-              //  g = t.TransformPoint(v[i]);
+                //  g = t.TransformPoint(v[i]);
                 g = v[i];
                 if (g.x < min.x) min.x = g.x;
                 if (g.y < min.y) min.y = g.y;
@@ -978,9 +922,9 @@ public class Utils
                 if (g.z > max.z) max.z = g.z;
             }
             float x = Vector3.Distance(t.TransformPoint(max.x, 0, 0), t.TransformPoint(min.x, 0, 0));
-            float y = Vector3.Distance(t.TransformPoint(0,max.y,  0), t.TransformPoint(0,min.y, 0));
-            float z = Vector3.Distance(t.TransformPoint(0,0,max.z), t.TransformPoint(0,0,min.z));
-            return new Vector3(x,y,z);
+            float y = Vector3.Distance(t.TransformPoint(0, max.y, 0), t.TransformPoint(0, min.y, 0));
+            float z = Vector3.Distance(t.TransformPoint(0, 0, max.z), t.TransformPoint(0, 0, min.z));
+            return new Vector3(x, y, z);
         }
     }
     /// <summary>

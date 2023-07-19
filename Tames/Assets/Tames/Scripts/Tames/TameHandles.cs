@@ -111,7 +111,7 @@ namespace Tames
         public GameObject linker;
         public float linkedScale = 1;
         Transform[] transforms; //    public bool walk = false;
-        public GameObject childrenParent = null;
+        public GameObject[] childrenParent = null;
         public const string KeyArea = "_area_";
         public const string KeyAreaBox = "_box";
         public const string KeyAreaCube = "_cub";
@@ -168,16 +168,25 @@ namespace Tames
         {
             Markers.MarkerObject om = g.GetComponent<Markers.MarkerObject>();
             if (om != null) om.Set();
-            Transform m = GetTransform(g.transform, om, KeyMover, 7);
-            followMode = 0;
-            if (m == null)
+            Transform m = ByComponent(g);
+            if (m != null)
             {
-                m = GetTransform(g.transform, om, KeyTracker, 6);
-                if (m != null) followMode = 1;
-                else
+                Markers.MarkerDynamic md = m.GetComponent<Markers.MarkerDynamic>();
+                followMode = md.mover == Markers.MoverType.Progress ? 0 : (md.mover == Markers.MoverType.Mover ? 1 : 2);
+            }else
+            {
+              m=  GetTransform(g.transform, om, KeyMover, 7);
+                followMode = 0;
+                if (m == null)
                 {
-                    m = GetTransform(g.transform, om, KeyHeadTracker, 9);
-                    if (m != null) followMode = 2;
+                    m = GetTransform(g.transform, om, KeyTracker, 6);
+                    if (m != null) followMode = 1;
+                    else
+                    {
+                        m = GetTransform(g.transform, om, KeyHeadTracker, 9);
+                        if (m != null) followMode = 2;
+                     
+                    }
                 }
             }
             type = 0;
@@ -202,6 +211,7 @@ namespace Tames
         }
         public Vector3 Localize(Transform t)
         {
+     //       Debug.Log("error on " +mover.name);
             if (t.parent == mover.transform.parent)
                 return t.localPosition;
             else
@@ -269,6 +279,14 @@ namespace Tames
                 r.transforms = ts;
             }
             return r;
+        }
+        private static Transform ByComponent(GameObject g)
+        {
+            int cc = g.transform.childCount;
+            for (int i = 0; i < cc; i++)
+                if (g.transform.GetChild(i).GetComponent<Markers.MarkerDynamic>() != null)
+                    return g.transform.GetChild(i);
+            return null;
         }
         private static Transform GetTransform(Transform t, Markers.MarkerObject om, string key, int index)
         {
@@ -622,7 +640,7 @@ namespace Tames
             foreach (Transform t in transforms)
                 if (t != null)
                     if (t.gameObject == g) return true;
-            if (g == childrenParent) return true;
+          foreach(GameObject go in childrenParent)if(go==g) return true;
             return false;
 
         }
@@ -692,7 +710,7 @@ namespace Tames
                 float dif = Utils.Angle(p, pivot, p0, axis, true);
                 float ang = dif + current * ((TameOrbit)path).span;
                 m = ang / span;
-                Debug.Log(m + " " + dv.ToString("0.000") + " " + dif + pivot.ToString() + axis.ToString() + p0.ToString("0.000") + p.ToString("0.000"));
+        //        Debug.Log(m + " " + dv.ToString("0.000") + " " + ((TameOrbit)path).span + " "+ pivot.ToString() + axis.ToString() + p0.ToString("0.000") + p.ToString("0.000"));
                 if (m < 0f) m = 0f;
                 if (m > 1f) m = 1f;
             }

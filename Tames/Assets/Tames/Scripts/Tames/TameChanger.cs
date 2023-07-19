@@ -62,7 +62,7 @@ namespace Tames
             int dc;
             if (parent != null)
             {
-                p = parent.progress.progress;
+                p = parent.progress.subProgress;
                 tp = parent.progress.totalProgress;
             }
             if (p >= 1) return steps[^1].value;

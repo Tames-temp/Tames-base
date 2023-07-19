@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{2CD29817-E6A0-ED9C-E766-002C91DA110D}</ProjectGuid>
+    <ProjectGuid>{5C7CEB15-CEE3-BEAA-09B5-AC3682399F95}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.XR.OpenXR.Features.MetaQuestSupport.Editor</AssemblyName>
@@ -735,23 +735,23 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Unity.XR.OpenXR.Editor.csproj">
-      <Project>{3F603EC5-CD1D-BEB5-9520-A38A692B150F}</Project>
+      <Project>{697406D0-E5BE-A4E9-F1FB-4F4CE8B51D30}</Project>
       <Name>Unity.XR.OpenXR.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.OpenXR.csproj">
-      <Project>{BCA3E065-216E-9EA3-4722-858E667356C4}</Project>
+      <Project>{B27DF6D0-5589-2C1F-E5A7-CA74B60C3607}</Project>
       <Name>Unity.XR.OpenXR</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.OpenXR.Features.MetaQuestSupport.csproj">
-      <Project>{DB283FC6-66BC-26E3-CD8A-81D479CCC19C}</Project>
+      <Project>{3B2FA75B-B62C-CBB5-7A2C-8987ABF4F3AB}</Project>
       <Name>Unity.XR.OpenXR.Features.MetaQuestSupport</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEditor.TestRunner.csproj">
-      <Project>{CA4AB4E6-996C-1AD2-8857-C8159F79201A}</Project>
+      <Project>{E2EE28E4-7944-2C06-3FE1-7248587A471E}</Project>
       <Name>UnityEditor.TestRunner</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEngine.TestRunner.csproj">
-      <Project>{30B52F71-6222-9F35-680C-2950573BD59C}</Project>
+      <Project>{22898296-0A54-AF6B-F9DA-A77D4C68A725}</Project>
       <Name>UnityEngine.TestRunner</Name>
     </ProjectReference>
   </ItemGroup>

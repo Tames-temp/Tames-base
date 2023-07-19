@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{BE1224E2-CC66-0BC2-4A99-ECEDD6E13C39}</ProjectGuid>
+    <ProjectGuid>{12E99545-650E-0B33-2125-4943002C7657}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.XR.Management.Editor</AssemblyName>
@@ -759,15 +759,15 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Unity.XR.Management.csproj">
-      <Project>{3EF15214-470C-FA3A-38F5-5B0467A5B7A6}</Project>
+      <Project>{782C495A-DF38-A34E-1433-3A270E8A1F8D}</Project>
       <Name>Unity.XR.Management</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEditor.TestRunner.csproj">
-      <Project>{CA4AB4E6-996C-1AD2-8857-C8159F79201A}</Project>
+      <Project>{E2EE28E4-7944-2C06-3FE1-7248587A471E}</Project>
       <Name>UnityEditor.TestRunner</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEngine.TestRunner.csproj">
-      <Project>{30B52F71-6222-9F35-680C-2950573BD59C}</Project>
+      <Project>{22898296-0A54-AF6B-F9DA-A77D4C68A725}</Project>
       <Name>UnityEngine.TestRunner</Name>
     </ProjectReference>
   </ItemGroup>

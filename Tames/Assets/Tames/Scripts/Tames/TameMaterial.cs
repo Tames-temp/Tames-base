@@ -6,6 +6,45 @@ using System.Threading.Tasks;
 using UnityEngine;
 namespace Tames
 {
+    public class MaterialReference
+    {
+        public Material original;
+        public Material clone;
+        public static List<MaterialReference> references = new List<MaterialReference>();
+        public static MaterialReference AddToReference(Material m)
+        {
+            MaterialReference r = new MaterialReference() { original = m };
+            r.clone = new Material(m);
+            r.clone.CopyPropertiesFromMaterial(m);
+            foreach (TameGameObject tgo in TameManager.tgos)
+            {
+                MeshRenderer mr = tgo.gameObject.GetComponent<MeshRenderer>();
+                if (mr != null)
+                {
+                    Material[] ms = mr.sharedMaterials;
+                    for (int i = 0; i < ms.Length; i++)
+                        if (ms[i] == m)
+                            ms[i] = r.clone;
+                    mr.sharedMaterials = ms;
+                }
+            }
+            references.Add(r);
+            return r;
+        }
+        public static Material Check(Material m)
+        {
+            foreach (MaterialReference mr in references)
+                if (mr.original == m)
+                    return mr.clone;
+            return m;
+        }
+        public static void Check()
+        {
+            foreach (TameElement te in TameManager.tes)
+                if (te.tameType == TameKeys.Material)
+                    ((TameMaterial)te).original = Check(((TameMaterial)te).original);
+        }
+    }
     public class TameMaterial : TameElement
     {
         /// <summary>
@@ -38,7 +77,7 @@ namespace Tames
         public const int EmissionColor = 1;
         public const int MainTex = 2;
         public const int EmissionMap = 3;
-
+        public static int Pipeline = 0;
         public TameMaterial()
         {
             tameType = TameKeys.Material;
@@ -67,7 +106,7 @@ namespace Tames
                 if (te.tameType == TameKeys.Material)
                 {
                     tm = (TameMaterial)te;
-                    Debug.Log("material " + te.name+ " "+tm.original.name+ " "+m.name);
+                    Debug.Log("material " + te.name + " " + tm.original.name + " " + m.name);
                     if (!tm.cloned)
                         if (tm.original == m)
                             return tm;
@@ -82,7 +121,7 @@ namespace Tames
         public override void AssignParent(TameEffect[] all, int index)
         {
             TameEffect ps = GetParent();
-               all[index] = ps;
+            all[index] = ps;
         }
         /// <summary>
         /// swaps a specific material in a gameobject with its clone and returns the latter (or null if that material is not on the gameobject)
@@ -118,27 +157,27 @@ namespace Tames
         /// </summary>
         private void ApplyUpdate()
         {
-         //   if (name == "light 1") Debug.Log(parents[0].parent.tameType + " " + progress.progress);
             float[] f;
             float[] glowColor = new float[] { 0, 0, 0 };
             float intensity = 0;
             bool glowSet = false;
-             if (name == "colorplay 37") Debug.Log("37: " + progress.progress + " "+parents[0].parent.progress.progress);
-            //      Debug.Log("UP: " + name + " " + parents.Count);
-            //   Debug.Log("changer before " + name);
-            if (progress != null)
+            TameProgress prg = this.progress;
+            if (prg != null)
             {
-                if (hasIntensity) intensity = intensityChanger.On(progress.slerpProgress, progress.totalProgress, progress.continuity)[0];
-          //      if (name == "light 1") Debug.Log(progress.progress);
+                if (hasIntensity) intensity = intensityChanger.On(prg.subProgress, prg.totalProgress, prg.continuity)[0];
+                //      if (name == "light 1") Debug.Log(progress.progress);
                 foreach (TameChanger tc in properties)
                 {
-                    f = tc.On(progress.slerpProgress, progress.totalProgress, progress.continuity);
+                    if (tc.parent != null) prg = tc.parent.progress; else prg = this.progress;
+                    //        if (name == "glass dyno") Debug.Log(prg.element.name+ " "+prg.progress + " " + tc.property);
+                    f = tc.On(prg.subProgress, prg.totalProgress, prg.continuity);
                     switch (tc.property)
                     {
                         case MaterialProperty.Color:
                             //    Debug.Log("mix: " + progress[0].progress + " " + f[1] + ", " + clones.Count);
                             if (clonedMaterials.Count == 0) original.SetColor(Utils.ProperyKeywords[BaseColor], TameColor.ToColor(f));
                             else foreach (Material mat in clonedMaterials) mat.SetColor(Utils.ProperyKeywords[BaseColor], TameColor.ToColor(f));
+                            //       Debug.Log("in: "+prg.element.name + " " + prg.progress + " " + tc.property+" "+f[3]);
                             break;
                         case MaterialProperty.Glow:
                             glowColor = f;
@@ -183,7 +222,7 @@ namespace Tames
         {
             parents.Clear();
             basis = TrackBasis.Tame;
-            parents.Add(new TameEffect( te)
+            parents.Add(new TameEffect(te)
             {
                 child = this
             });
@@ -246,7 +285,7 @@ namespace Tames
         /// <param name="man">the <see cref="TameManager"/> manifest</param>
         /// <param name="tgos">list of all children and descendants of the interactive root, created by <see cref="TameManager.SurveyInteractives(GameObject[])"/></param>
         /// <returns>a list of <see cref="TameElement"/> that includes <see cref="TameMaterial"/> objects made by each material found</returns>
-     
+
         public void OrderChanger()
         {
             TameChanger c = null;
@@ -264,17 +303,18 @@ namespace Tames
            /// </summary>
         public void CheckEmission()
         {
-             foreach (TameChanger tc in properties)
-                if ((tc.property == MaterialProperty.Glow) || (tc.property == MaterialProperty.LightX) || (tc.property == MaterialProperty.LightY) || (tc.property == MaterialProperty.Bright))
-                {
-                    if (!original.IsKeywordEnabled("_EmissiveColor"))
-                        original.EnableKeyword("_EmissiveColor");
-                    if (tc.property == MaterialProperty.Bright)
+            if (Pipeline == 0)
+                foreach (TameChanger tc in properties)
+                    if ((tc.property == MaterialProperty.Glow) || (tc.property == MaterialProperty.LightX) || (tc.property == MaterialProperty.LightY) || (tc.property == MaterialProperty.Bright))
                     {
-                        hasIntensity = true;
-                        intensityChanger = tc;
+                        if (!original.IsKeywordEnabled("_EMISSION"))
+                            original.EnableKeyword("_EMISSION");
+                        if (tc.property == MaterialProperty.Bright)
+                        {
+                            hasIntensity = true;
+                            intensityChanger = tc;
+                        }
                     }
-                }
             GetInitial();
         }
         public static List<TameChanger> ExternalChanger(Markers.MarkerChanger[] chs)
@@ -286,9 +326,9 @@ namespace Tames
             List<TameChanger> properties = new();
             int pcount = properties.Count;
             if (chs != null)
-                foreach (Markers.MarkerChanger ch in chs)
+                foreach (Markers.MarkerChanger mrk in chs)
                 {
-                    mp = ch.GetProperty();
+                    mp = mrk.GetProperty();
                     switch (mp)
                     {
                         case MaterialProperty.Bright:
@@ -296,25 +336,26 @@ namespace Tames
                         case MaterialProperty.LightY:
                         case MaterialProperty.MapX:
                         case MaterialProperty.LightX:
-                            if ((tch = TameChanger.ReadStepsOnly(ch.steps, ch.GetToggle(), ch.switchValue, 1)) != null)
+                            if ((tch = TameChanger.ReadStepsOnly(mrk.steps, mrk.GetToggle(), mrk.switchValue, 1)) != null)
                                 tch.property = mp;
                             break;
                         default:
-                            if (ch.colorSteps.Length > 0)
-                                tch = tco = TameColor.ReadStepsOnly(ch.colorSteps, ch.GetToggle(), ch.switchValue, mp == MaterialProperty.Glow);
+                            //        Debug.Log("its here " + mrk.name+" " + mrk.colorSteps.Length);
+                            if (mrk.colorSteps.Length > 0)
+                                tch = tco = TameColor.ReadStepsOnly(mrk.colorSteps, mrk.GetToggle(), mrk.switchValue, mp == MaterialProperty.Glow);
                             else
-                                tch = tco = TameColor.ReadStepsOnly(ch.steps, ch.GetToggle(), ch.switchValue, mp == MaterialProperty.Glow);
+                                tch = tco = TameColor.ReadStepsOnly(mrk.steps, mrk.GetToggle(), mrk.switchValue, mp == MaterialProperty.Glow);
                             if (tch != null)
                             {
                                 tco.property = mp;
                                 if (mp == MaterialProperty.Glow)
-                                    tco.factor = ch.factor;
+                                    tco.factor = mrk.factor;
                             }
                             break;
                     }
                     if (tch != null)
                     {
-                        tch.marker = ch;
+                        tch.marker = mrk;
                         found = false;
                         for (int i = 0; i < pcount; i++)
                             if (mp == properties[i].property)

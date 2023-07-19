@@ -42,6 +42,10 @@ public class Player : MonoBehaviour
     [MessageHandler(FrameData)]
     private static void ReceiveFrame(Message m)
     { 
+        // receive for each person,
+        // aggregate hold and replace press for that person
+        // in core, read that person on update,
+        // nullify press
         float time = m.GetFloat();
         for (int i = 0; i < frames.Length; i++)
             if (m.GetBool())

@@ -7,6 +7,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine;
 using UnityEngine.InputSystem.XR;
+using Multi;
 
 namespace Tames
 {
@@ -176,10 +177,70 @@ namespace Tames
                 _ => InputControlHold.None,
             };
         }
-        public static TameInputControl[] ByStringTwoMonos(string S)
+        public static List<TameInputControl> AllMonos(Markers.InputSetting keys)
+        {
+            List<TameInputControl> r = new List<TameInputControl>();
+            TameInputControl tci;
+            if (keys.key != "")
+            {
+                tci = TameInputControl.StringToMono(keys.key, InputTypes.KeyboardMouse, keys.Aux(0));
+                if (tci != null) r.Add(tci);
+            }
+            if (keys.gamepad != "")
+            {
+                tci = TameInputControl.StringToMono(keys.gamepad, InputTypes.GamePad, keys.Aux(1));
+                if (tci != null) r.Add(tci);
+            }
+            if (keys.controller != "")
+            {
+                tci = TameInputControl.StringToMono(keys.controller, InputTypes.VRController, keys.Aux(2));
+                if (tci != null) r.Add(tci);
+            }
+            return r;
+        }
+        public static void AllDuos(Markers.InputSetting keys, List<TameInputControl> back, List<TameInputControl> forth)
+        {
+            TameInputControl[] tcs;
+            if (keys.key != "")
+            {
+                tcs = StringToMonos(keys.key, InputTypes.KeyboardMouse, keys.Aux(0));
+                if (tcs != null) { back.Add(tcs[0]); forth.Add(tcs[1]); }
+            }
+            if (keys.gamepad != "")
+            {
+                tcs = StringToMonos(keys.gamepad, InputTypes.GamePad, keys.Aux(1));
+                if (tcs != null) { back.Add(tcs[0]); forth.Add(tcs[1]); }
+            }
+            if (keys.controller != "")
+            {
+                tcs = StringToMonos(keys.controller, InputTypes.VRController, keys.Aux(2));
+                if (tcs != null) { back.Add(tcs[0]); forth.Add(tcs[1]); }
+            }
+        }
+        public static void AllDuos(Markers.InputSetting keys, List<TameInputControl> back)
+        {
+            TameInputControl tcs;
+            if (keys.key != "")
+            {
+                Debug.Log(keys.key);
+                tcs = StringToDuo(keys.key, InputTypes.KeyboardMouse, keys.Aux(0));
+                if (tcs != null) { back.Add(tcs);  }
+            }
+            if (keys.gamepad != "")
+            {
+                tcs = StringToDuo(keys.gamepad, InputTypes.GamePad, keys.Aux(1));
+                if (tcs != null) { back.Add(tcs);}
+            }
+            if (keys.controller != "")
+            {
+                tcs = StringToDuo(keys.controller, InputTypes.VRController, keys.Aux(2));
+                if (tcs != null) { back.Add(tcs);  }
+            }
+        }
+        public static TameInputControl[] StringToMonos(string S, InputTypes expectedType, InputControlHold iht)
         {
             string s = S.ToLower();
-            TameInputControl pair = ByStringDuo(s);
+            TameInputControl pair = StringToDuo(s, expectedType, iht);
             if (pair != null)
             {
                 TameInputControl[] r = new TameInputControl[2];
@@ -190,13 +251,13 @@ namespace Tames
                             return null;
                         else
                         {
-                            r[0] = new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Key, keyValue = new int[] { pair.keyValue[0] }, aux = pair.aux };
-                            r[1] = new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Key, keyValue = new int[] { pair.keyValue[1] }, aux = pair.aux };
+                            r[0] = new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Key, keyValue = new int[] { pair.keyValue[0] }, aux = iht };
+                            r[1] = new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Key, keyValue = new int[] { pair.keyValue[1] }, aux = iht };
                             return r;
                         }
                     case InputTypes.GamePad:
-                        r[0] = new TameInputControl() { control = InputTypes.GamePad, aux = pair.aux };
-                        r[1] = new TameInputControl() { control = InputTypes.GamePad, aux = pair.aux };
+                        r[0] = new TameInputControl() { control = InputTypes.GamePad, aux = iht };
+                        r[1] = new TameInputControl() { control = InputTypes.GamePad, aux = iht };
                         switch (pair.hold)
                         {
                             case InputHoldType.GYA: r[0].hold = InputHoldType.GY; r[1].hold = InputHoldType.GA; break;
@@ -211,25 +272,16 @@ namespace Tames
             }
             return null;
         }
-        public static TameInputControl ByStringMono(string S)
+        public static TameInputControl StringToMono(string S, InputTypes expecteType, InputControlHold holder)
         {
             int k;
             string s = S.ToLower();
-            string[] plus = s.Split('+');
-            InputControlHold holder = InputControlHold.Shift;
-            InputTypes it = InputTypes.None;
-            if (plus.Length == 2) holder = GetHolder(plus[0], out it);
-            s = plus.Length == 2 ? plus[1] : s;
-            if (it != InputTypes.Error)
-                if ((holder == InputControlHold.None) || (it == InputTypes.KeyboardMouse))
-                {
-                    //    if ((s == "mouse") || (s == "button")) return new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Button, aux = holder };
-                    k = FindKey(s);
-                    if (k >= 0) return new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Key, keyValue = new int[] { k }, aux = holder };
-
-                }
-            if ((holder == InputControlHold.None) || (it == InputTypes.GamePad))
+            if (expecteType == InputTypes.KeyboardMouse)
             {
+                k = FindKey(s);
+                if (k >= 0) return new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Key, keyValue = new int[] { k }, aux = holder };
+            }
+            else if (expecteType == InputTypes.GamePad)
                 switch (s)
                 {
                     case "ga": return new TameInputControl() { control = InputTypes.GamePad, hold = InputHoldType.GA, aux = holder };
@@ -247,27 +299,19 @@ namespace Tames
                     case "gdyu":
                     case "gdy+": return new TameInputControl() { control = InputTypes.GamePad, hold = InputHoldType.GDYU, aux = holder };
                 }
-            }
-
             return null;
         }
 
-        public static TameInputControl ByStringDuo(string S)
+        public static TameInputControl StringToDuo(string S, InputTypes expectedType, InputControlHold holder)
         {
             int a = -1, b = -1;
             string s = S.ToLower();
             string[] comma = s.Split(',');
-            string[] plus = comma.Length == 1 ? s.Split('+') : comma[0].Split('+');
-            InputControlHold holder = InputControlHold.None;
-            InputTypes it = InputTypes.None;
-            if (plus.Length == 2) holder = GetHolder(plus[0], out it);
-            s = plus.Length == 2 ? plus[1] : comma[0];
-            if ((holder == InputControlHold.None) || (it == InputTypes.KeyboardMouse))
+            if (expectedType == InputTypes.KeyboardMouse)
             {
                 if (comma.Length == 2)
                 {
-                    //    if ((s == "mouse") || (s == "button")) return new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Button, aux = holder };
-                    a = FindKey(s);
+                    a = FindKey(comma[0]);
                     b = FindKey(comma[1]);
                     if (a >= 0 && b >= 0)
                         return new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Key, keyValue = new int[] { a, b }, aux = holder };
@@ -282,8 +326,7 @@ namespace Tames
                         return new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Button, aux = holder };
                 }
             }
-            if ((holder == InputControlHold.None) || (it == InputTypes.GamePad))
-            {
+            else if (expectedType == InputTypes.GamePad)
                 switch (s)
                 {
                     case "gya": return new TameInputControl() { control = InputTypes.GamePad, hold = InputHoldType.GYA, aux = holder };
@@ -292,10 +335,9 @@ namespace Tames
                     case "gdx": return new TameInputControl() { control = InputTypes.GamePad, hold = InputHoldType.GDX, aux = holder };
                     case "gdy": return new TameInputControl() { control = InputTypes.GamePad, hold = InputHoldType.GDY, aux = holder };
                 }
-            }
-
             return null;
         }
+   
 
         public static int FindKey(string key, bool byUser = true)
         {
@@ -374,7 +416,7 @@ namespace Tames
             checkedKeys.Add(b);
             return checkedKeys.Count - 1;
         }
-        public int Hold()
+        public int Hold(Records.TameKeyMap keyMap)
         {
             float f;
             int k;
@@ -418,7 +460,12 @@ namespace Tames
                     }
             }
         }
-        public bool Pressed()
+        public int Hold()
+        {
+            return Hold(keyMap);        
+        }
+
+        public bool Pressed(Records.TameKeyMap keyMap)
         {
             float f;
             int k;
@@ -451,6 +498,10 @@ namespace Tames
                         return keyMap.pressed[keyValue[0]];
                     }
             }
+        }
+        public bool Pressed()
+        {
+            return Pressed(keyMap);
         }
     }
 }

@@ -6,27 +6,29 @@ using UnityEditor;
 
 
 [CustomEditor(typeof(Markers.MarkerArea)), CanEditMultipleObjects]
-public class MarkerGeometry : Editor
+public class AreaInEditor : Editor
 {
     //    SerializedProperty thisIsArea;
     SerializedProperty geometry;
-    SerializedProperty input;
+    SerializedProperty range;
     SerializedProperty update;
     SerializedProperty mode;
     SerializedProperty appliesTo;
     SerializedProperty applyToSelf;
     SerializedProperty autoPosition;
+    SerializedProperty control;
 
     void OnEnable()
     {
         //      thisIsArea = serializedObject.FindProperty("thisIsArea");
         geometry = serializedObject.FindProperty("geometry");
-        input = serializedObject.FindProperty("input");
+        range = serializedObject.FindProperty("range");
         update = serializedObject.FindProperty("update");
         mode = serializedObject.FindProperty("mode");
         applyToSelf = serializedObject.FindProperty("applyToSelf");
         appliesTo = serializedObject.FindProperty("appliesTo");
         autoPosition = serializedObject.FindProperty("autoPosition");
+        control = serializedObject.FindProperty("control");
     }
 
     public override void OnInspectorGUI()
@@ -34,12 +36,13 @@ public class MarkerGeometry : Editor
         serializedObject.Update();
         //      EditorGUILayout.PropertyField(thisIsArea);
         EditorGUILayout.PropertyField(geometry);
-        EditorGUILayout.PropertyField(input);
+        EditorGUILayout.PropertyField(range);
         EditorGUILayout.PropertyField(update);
         EditorGUILayout.PropertyField(mode);
         EditorGUILayout.PropertyField(applyToSelf);
         EditorGUILayout.PropertyField(appliesTo);
         EditorGUILayout.PropertyField(autoPosition);
+        EditorGUILayout.PropertyField(control);
 
         serializedObject.ApplyModifiedProperties();
     }
@@ -59,6 +62,35 @@ public class OriginInEditor : Editor
         serializedObject.Update();
         EditorGUILayout.PropertyField(origin);
         serializedObject.ApplyModifiedProperties();
+    }
+}
+[CustomEditor(typeof(Markers.MarkerDynamic))]
+public class DynamicInEditor : Editor
+{
+    //    SerializedProperty thisIsArea;
+    SerializedProperty type;
+    SerializedProperty up;
+    SerializedProperty mover;
+    void OnEnable()
+    {
+        type = serializedObject.FindProperty("type");
+        up = serializedObject.FindProperty("up");
+        mover = serializedObject.FindProperty("mover");
+    }
+
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
+        EditorGUILayout.PropertyField(type);
+        EditorGUILayout.PropertyField(up);
+        EditorGUILayout.PropertyField(mover);
+        serializedObject.ApplyModifiedProperties();
+        Markers.MarkerDynamic dyn = (Markers.MarkerDynamic)target;
+        dyn.ChangeDynamic();
+        if (GUILayout.Button("Remove"))
+        {
+            dyn.Remove();
+        }
     }
 }
 [CustomEditor(typeof(Markers.MarkerChanger)), CanEditMultipleObjects]
@@ -230,60 +262,51 @@ public class MarkerScaleEditor : Editor
 public class MarkerProgressEditor : Editor
 {
     SerializedProperty continuity;
-    SerializedProperty initialStatus;
-    SerializedProperty setAt;
+    SerializedProperty steps;
+    SerializedProperty preset;
+    SerializedProperty setTo;
     SerializedProperty duration;
-    SerializedProperty slerp;
+    SerializedProperty lerpXY;
     SerializedProperty trigger;
-    SerializedProperty byElement;
-    SerializedProperty byMaterial;
-    SerializedProperty manualControl;
+    SerializedProperty parent;
+  //  SerializedProperty byMaterial;
+//    SerializedProperty manualControl;
     SerializedProperty update;
    // SerializedProperty showBy;
     SerializedProperty active;
-    SerializedProperty activationControl;
-    SerializedProperty visibilityControl;
+ //   SerializedProperty activationControl;
+ //   SerializedProperty visibilityControl;
   //  SerializedProperty activateBy;
   Markers.MarkerProgress progress;
 
     void OnEnable()
     {
         continuity = serializedObject.FindProperty("continuity");
-        initialStatus = serializedObject.FindProperty("initialStatus");
-        setAt = serializedObject.FindProperty("setAt");
+        steps = serializedObject.FindProperty("steps");
+        preset = serializedObject.FindProperty("preset");
+        setTo = serializedObject.FindProperty("setTo");
         duration = serializedObject.FindProperty("duration");
-        slerp = serializedObject.FindProperty("slerp");
+        lerpXY = serializedObject.FindProperty("lerpXY");
         trigger = serializedObject.FindProperty("trigger");
-        byElement = serializedObject.FindProperty("byElement");
-        byMaterial = serializedObject.FindProperty("byMaterial");
-        manualControl = serializedObject.FindProperty("manualControl");
-        update = serializedObject.FindProperty("update");
-  //      showBy = serializedObject.FindProperty("showBy");
+        parent = serializedObject.FindProperty("parent");
+          update = serializedObject.FindProperty("update");
         active = serializedObject.FindProperty("active");
-        activationControl = serializedObject.FindProperty("activationControl");
-        visibilityControl = serializedObject.FindProperty("visibilityControl");
-    //    activateBy = serializedObject.FindProperty("activateBy");
-    }
+   }
 
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
         EditorGUILayout.PropertyField(continuity);
-        EditorGUILayout.PropertyField(initialStatus);
-        EditorGUILayout.PropertyField(setAt);
+        EditorGUILayout.PropertyField(steps);
+        EditorGUILayout.PropertyField(preset);
+        EditorGUILayout.PropertyField(setTo);
         EditorGUILayout.PropertyField(duration);
-        EditorGUILayout.PropertyField(slerp);
+        EditorGUILayout.PropertyField(lerpXY);
         EditorGUILayout.PropertyField(trigger);
-        EditorGUILayout.PropertyField(byElement);
-        EditorGUILayout.PropertyField(byMaterial);
-        EditorGUILayout.PropertyField(manualControl);
+        EditorGUILayout.PropertyField(parent);
         EditorGUILayout.PropertyField(update);
-     //   EditorGUILayout.PropertyField(showBy);
         EditorGUILayout.PropertyField(active);
-        EditorGUILayout.PropertyField(activationControl);
-        EditorGUILayout.PropertyField(visibilityControl);
-    //    EditorGUILayout.PropertyField(activateBy);
-
+  
         serializedObject.ApplyModifiedProperties();
         progress = (Markers.MarkerProgress)target;
         progress.ChangedThisFrame(true);
@@ -378,6 +401,137 @@ public class ExportOptionEditor : Editor
         {
             option.Export();
         }
+        serializedObject.ApplyModifiedProperties();
+    }
+}
+[CustomEditor(typeof(Markers.MarkerInfo)), CanEditMultipleObjects]
+public class MarkerInfoEditor : Editor
+{
+    SerializedProperty imagePosition;
+    SerializedProperty textPosition;
+    SerializedProperty lineCount;
+    SerializedProperty color;
+    SerializedProperty background;
+    SerializedProperty textColor;
+    SerializedProperty textHighlight;
+    SerializedProperty font;
+    SerializedProperty items;
+    SerializedProperty margin;
+    SerializedProperty width;
+    SerializedProperty height;
+    SerializedProperty position;
+    SerializedProperty X;
+    SerializedProperty Y;
+    SerializedProperty rotateObject;
+    SerializedProperty control;
+    SerializedProperty areas;
+    SerializedProperty references;
+    SerializedProperty link;
+
+
+    void OnEnable()
+    {
+        imagePosition = serializedObject.FindProperty("imagePosition");
+        textPosition = serializedObject.FindProperty("textPosition");
+        lineCount = serializedObject.FindProperty("lineCount");
+        color = serializedObject.FindProperty("color");
+        background = serializedObject.FindProperty("background");
+        textColor = serializedObject.FindProperty("textColor");
+        textHighlight = serializedObject.FindProperty("textHighlight");
+        font = serializedObject.FindProperty("font");
+        items = serializedObject.FindProperty("items");
+        margin = serializedObject.FindProperty("margin");
+        width = serializedObject.FindProperty("width");
+        height = serializedObject.FindProperty("height");
+        position = serializedObject.FindProperty("position");
+        X = serializedObject.FindProperty("X");
+        Y = serializedObject.FindProperty("Y");
+        rotateObject = serializedObject.FindProperty("rotateObject");
+        control = serializedObject.FindProperty("control");
+        areas = serializedObject.FindProperty("areas");
+        references = serializedObject.FindProperty("references");
+        link = serializedObject.FindProperty("link");
+    }
+
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
+        EditorGUILayout.PropertyField(imagePosition);
+        EditorGUILayout.PropertyField(textPosition);
+        EditorGUILayout.PropertyField(lineCount);
+        EditorGUILayout.PropertyField(color);
+        EditorGUILayout.PropertyField(background);
+        EditorGUILayout.PropertyField(textColor);
+        EditorGUILayout.PropertyField(textHighlight);
+      //  EditorGUILayout.PropertyField(font);
+        EditorGUILayout.PropertyField(items);
+        EditorGUILayout.PropertyField(margin);
+        EditorGUILayout.PropertyField(width);
+        EditorGUILayout.PropertyField(height);
+        EditorGUILayout.PropertyField(position);
+        EditorGUILayout.PropertyField(X);
+        EditorGUILayout.PropertyField(Y);
+        EditorGUILayout.PropertyField(rotateObject);
+        EditorGUILayout.PropertyField(control);
+         EditorGUILayout.PropertyField(areas);
+        EditorGUILayout.PropertyField(references);
+        EditorGUILayout.PropertyField(link);
+        serializedObject.ApplyModifiedProperties();
+        Markers.MarkerInfo ms = (Markers.MarkerInfo)target;
+        ms.ChangedThisFrame(true);
+    }
+}
+[CustomEditor(typeof(Markers.MarkerScore)), CanEditMultipleObjects]
+public class MarkerScoreditor : Editor
+{
+    SerializedProperty isBasket;
+    SerializedProperty score;
+    SerializedProperty count;
+    SerializedProperty passScore;
+    SerializedProperty basket;
+    SerializedProperty onlyAfter;
+    SerializedProperty activate;
+    SerializedProperty show;
+    SerializedProperty control;
+    SerializedProperty showAfter;
+    SerializedProperty activateAfter;
+
+    void OnEnable()
+    {
+        isBasket = serializedObject.FindProperty("isBasket");
+        score = serializedObject.FindProperty("score");
+        count = serializedObject.FindProperty("count");
+        passScore = serializedObject.FindProperty("passScore");
+        basket = serializedObject.FindProperty("basket");
+        onlyAfter = serializedObject.FindProperty("onlyAfter");
+        activate = serializedObject.FindProperty("activate");
+        show = serializedObject.FindProperty("show");
+        control = serializedObject.FindProperty("control");
+        activateAfter = serializedObject.FindProperty("activateAfter");
+        showAfter = serializedObject.FindProperty("showAfter");
+    }
+
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
+        Markers.MarkerScore ms = (Markers.MarkerScore)target;
+        EditorGUILayout.PropertyField(isBasket);
+        if (ms.isBasket)
+        {
+            EditorGUILayout.PropertyField(passScore);
+        }
+        else
+        {
+            EditorGUILayout.PropertyField(score);
+            EditorGUILayout.PropertyField(count);
+            EditorGUILayout.PropertyField(basket);
+            EditorGUILayout.PropertyField(onlyAfter);
+            EditorGUILayout.PropertyField(control);
+            EditorGUILayout.PropertyField(showAfter);
+        }
+        EditorGUILayout.PropertyField(activateAfter);
+        EditorGUILayout.PropertyField(activate);
+        EditorGUILayout.PropertyField(show);
         serializedObject.ApplyModifiedProperties();
     }
 }

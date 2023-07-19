@@ -42,6 +42,7 @@ namespace Tames
 
         public float Move(Vector3 global)
         {
+      //     if (this.element.name == "arm")                Debug.Log("arm : " + global.ToString());
             Vector3 p = parent.InverseTransformPoint(global);
             Vector3 u = p - pivot;
             Vector3 v = start - pivot;
@@ -51,19 +52,23 @@ namespace Tames
             float a = Vector3.Angle(u, v);
             if (a == 0)
             {
-                bases[0].localRotation = Quaternion.LookRotation(W, U);
+                //    bases[0].localRotation = Quaternion.LookRotation(W, U);
+                bases[0].localRotation = Quaternion.identity;
                 bases[0].localPosition = start;
-
             }
             else
             {
+                bases[0].localRotation = Quaternion.identity;
+                bases[0].localPosition = start;
                 Vector3 w = Vector3.Cross(v, u);
                 a = Utils.Angle(u, Vector3.zero, v, w, true);
-                u = Utils.Rotate(W, Vector3.zero, w, a);
-                v = Utils.Rotate(V, Vector3.zero, w, a);
-                p = Utils.Rotate(start - pivot, Vector3.zero, w, a);
-                bases[0].localRotation = Quaternion.LookRotation(u, v);
-                bases[0].localPosition = pivot + p;
+                //    u = Utils.Rotate(W, Vector3.zero, w, a);
+                //     v = Utils.Rotate(V, Vector3.zero, w, a);
+                //     p = Utils.Rotate(start - pivot, Vector3.zero, w, a);
+                //   bases[0].localRotation = Quaternion.LookRotation(u, v);
+                //      bases[0].localPosition = pivot + p;
+                bases[0].Rotate(w, a);
+                bases[0].localPosition = Utils.Rotate(start, pivot, w, a);
             }
             return a / span;
         }

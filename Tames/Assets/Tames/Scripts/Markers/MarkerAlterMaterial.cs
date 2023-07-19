@@ -9,7 +9,7 @@ namespace Markers
     public class MarkerAlterMaterial : MonoBehaviour
     {
         public Material applyTo = null;
-        public CoupledInput control;
+        public InputSetting control;
         public Material initial = null;
         public Material[] alternatives;
         public string[] ToLines()
@@ -18,7 +18,7 @@ namespace Markers
             r[0] = ":matalt";
             r[1] = MarkerSettings.ObjectToLine(gameObject);
             r[2] = MarkerSettings.FindMaterial(applyTo);
-            r[3] = control.pair;
+            r[3] = control.ToString();
             r[4] = MarkerSettings.FindMaterial(initial);
             r[5] = alternatives.Length + "";
             for (int i = 0; i < alternatives.Length; i++)
@@ -35,7 +35,7 @@ namespace Markers
                     case 1:
                         if ((ma = go.AddComponent<MarkerAlterMaterial>()) == null) ma = go.AddComponent<MarkerAlterMaterial>();
                         ma.applyTo = MarkerSettings.FindMaterial(line[index + 1]);
-                        ma.control =new CoupledInput() { pair = line[index + 2] };
+                        ma.control = InputSetting.FromString(line[index + 2]);
                         ma.initial = MarkerSettings.FindMaterial(line[index + 3]);
                         int l = int.Parse(line[index + 4]);
                         ma.alternatives = new Material[l];

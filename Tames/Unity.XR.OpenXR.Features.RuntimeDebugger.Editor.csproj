@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{C144C137-831E-90FA-FBA4-3E5AF1462069}</ProjectGuid>
+    <ProjectGuid>{837F7DC8-D34B-1BCB-7C9E-06CABE23CB2F}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.XR.OpenXR.Features.RuntimeDebugger.Editor</AssemblyName>
@@ -735,23 +735,23 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Unity.XR.OpenXR.Features.RuntimeDebugger.csproj">
-      <Project>{EC81776A-3849-14AF-900C-8FD7AC19065D}</Project>
+      <Project>{F4B86573-9DA2-6A5C-A2CC-CB716F6DA760}</Project>
       <Name>Unity.XR.OpenXR.Features.RuntimeDebugger</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.OpenXR.csproj">
-      <Project>{BCA3E065-216E-9EA3-4722-858E667356C4}</Project>
+      <Project>{B27DF6D0-5589-2C1F-E5A7-CA74B60C3607}</Project>
       <Name>Unity.XR.OpenXR</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.OpenXR.Editor.csproj">
-      <Project>{3F603EC5-CD1D-BEB5-9520-A38A692B150F}</Project>
+      <Project>{697406D0-E5BE-A4E9-F1FB-4F4CE8B51D30}</Project>
       <Name>Unity.XR.OpenXR.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEditor.TestRunner.csproj">
-      <Project>{CA4AB4E6-996C-1AD2-8857-C8159F79201A}</Project>
+      <Project>{E2EE28E4-7944-2C06-3FE1-7248587A471E}</Project>
       <Name>UnityEditor.TestRunner</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEngine.TestRunner.csproj">
-      <Project>{30B52F71-6222-9F35-680C-2950573BD59C}</Project>
+      <Project>{22898296-0A54-AF6B-F9DA-A77D4C68A725}</Project>
       <Name>UnityEngine.TestRunner</Name>
     </ProjectReference>
   </ItemGroup>

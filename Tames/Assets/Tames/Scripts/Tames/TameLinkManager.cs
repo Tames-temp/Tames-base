@@ -34,12 +34,14 @@ namespace Tames
                     finder.header = new ManifestHeader() { items = linked };
                     finder.PopulateObjects(tgos);
                 }
-                if (mc.childrenOf != null)
+                if (mc.childrenOf.Length > 0)
                 {
                     element.handle.childrenParent = mc.childrenOf;
-                    for (int i = 0; i < mc.childrenOf.transform.childCount; i++)
-                        finder.objectList.Add(TameGameObject.Find(mc.childrenOf.transform.GetChild(i).gameObject, tgos));
+                    for (int j = 0; j < mc.childrenOf.Length; j++)
+                        for (int i = 0; i < mc.childrenOf[j].transform.childCount; i++)
+                            finder.objectList.Add(TameGameObject.Find(mc.childrenOf[j].transform.GetChild(i).gameObject, tgos));
                 }
+                Debug.Log("children " + mc.name + " " + finder.objectList.Count);
                 element.handle.AlignLinked(LinkedKeys.Cycle, null, finder.objectList);
             }
         }

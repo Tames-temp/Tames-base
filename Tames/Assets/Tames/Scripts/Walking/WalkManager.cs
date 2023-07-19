@@ -98,7 +98,7 @@ namespace Walking
                 if (Vector3.Distance(onFace.control.lastPosition, onFace.control.owner.transform.position) > 0.00001)
                     dpos = onFace.control.owner.transform.position - onFace.control.lastPosition;
                 dAngle = Utils.VerticalRotation(onFace.control.lastRotation, onFace.control.owner.transform.rotation);
-                Debug.Log(onFace.control.owner.name+" dpos = " + dpos.ToString("0.0000") + " " + dAngle);
+                Debug.Log(onFace.control.owner.name + " dpos = " + dpos.ToString("0.0000") + " " + dAngle);
             }
         }
         /// <summary>
@@ -137,38 +137,39 @@ namespace Walking
                 return null;
             }
         }
+        public WalkFace MoveTo(Vector3 targetPoint, out Vector3 onFace)
+        {
+            float dy;
+            float min = float.PositiveInfinity;
+            WalkFace wf = null;
+            foreach (WalkFace face in faces)
+                if (face.control.active)
+                {
+                    if (face.On(targetPoint, out dy))
+                        if (dy < min)
+                        {
+                            wf = face;
+                            min = dy;
+                        }
+                }
+            if (min != float.PositiveInfinity)
+            {
+                onFace = targetPoint - min * Vector3.up;
+                return wf;
+            }
+            else
+            {
+                onFace = Vector3.zero;
+                return null;
+            }
+        }
         /// <summary>
         /// finds and moves to the next possible point based on a target point.
         /// </summary>
         /// <param name="target">the target point in world space</param>
         /// <param name="speed">maximum speed of height change per second</param>
         /// <param name="dT">the frame delta time</param>
-        public void _Move(Vector3 target, float speed, float dT)
-        {
-            float dy;
-            float left = 0;
-            if (Move(target, out Vector3 onFace) != null)
-            {
-                dy = foot.y - onFace.y;
-                if (Mathf.Abs(dy) <= dT * speed)
-                {
-                    left = Mathf.Abs(dy) / speed;
-                    heightDifference += 0;
-                    foot = onFace;
-                }
-                else
-                {
-                    heightDifference += Mathf.Sign(dy) * (Mathf.Abs(dy) - dT * speed);
-                    foot = onFace + dT * speed * Vector3.up;
-                }
-                foot.x = onFace.x;
-                foot.z = onFace.z;
-            }
-            dy = left * speed;
-            dy = heightDifference < 0 ? dy : -dy;
-            foot += dy * Vector3.up;
-            heightDifference += dy;
-        }
+      
         public WalkFace Move(Vector3 target)
         {
             float dy;
@@ -182,10 +183,22 @@ namespace Walking
             }
             return face;
         }
-        /// <summary>
-        /// sets the initial position based on a given point. If the point cannot land on a face, the face with the closest (by <see cref="WalkFace.center"/> to that point is selected instead and the <see cref="foot"/> is set to the <see cref="eyeHeight"/> above the center.
-        /// </summary>
-        /// <param name="p">the given position in world space</param>
+        public WalkFace MoveTo(Vector3 target)
+        {
+            float dy;
+            WalkFace face;
+            if ((face = MoveTo(target, out Vector3 onFace)) != null)
+            {
+                dy = foot.y - onFace.y;
+                //        Debug.Log("WLK: " + onFace.ToString("0.00") + " > " + dy + " ");
+                //       if (Mathf.Abs(dy) < heightDifference)
+                foot = onFace;
+            }
+            return face;
+        }      /// <summary>
+               /// sets the initial position based on a given point. If the point cannot land on a face, the face with the closest (by <see cref="WalkFace.center"/> to that point is selected instead and the <see cref="foot"/> is set to the <see cref="eyeHeight"/> above the center.
+               /// </summary>
+               /// <param name="p">the given position in world space</param>
         public WalkFace InitiatePosition(Vector3 p)
         {
             heightDifference = 0;

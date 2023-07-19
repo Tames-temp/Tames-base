@@ -59,6 +59,7 @@ namespace Multi
         {
             headPosition = head.transform.position;
             headRotation = head.transform.rotation;
+            headForward = head.transform.forward;   
             for (int i = 0; i < 2; i++)
             {
                 position[i] = hand[i].wrist.transform.position;
@@ -116,6 +117,7 @@ namespace Multi
                     position[i] = hand[i].wrist.transform.position;
                     localEuler[i] = hand[i].wrist.transform.localEulerAngles;
                 }
+                
             }
         }
         /// <summary>

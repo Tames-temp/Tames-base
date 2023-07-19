@@ -16,7 +16,8 @@ namespace Markers
         public bool applyToSelf = false;
         public GameObject appliesTo;
         public InteractionGeometry geometry;
-        public string input;
+        public string range = "";
+        public InputSetting control;
         public EditorUpdate update;
         public InteractionMode mode;
         public bool autoPosition = false;
@@ -32,7 +33,7 @@ namespace Markers
                 MarkerSettings.ObjectToLine(gameObject),
                MarkerSettings.ObjectToLine(appliesTo),
                 geometry.ToString(),
-                input,
+                control.ToString(),
                 update.ToString(),
                 mode.ToString(),
                 autoPosition?"1":"0",
@@ -50,7 +51,7 @@ namespace Markers
                         if ((ma = go.GetComponent<MarkerArea>()) == null) ma = go.AddComponent<MarkerArea>();
                         ma.appliesTo = MarkerSettings.LineToObject(line[index + 1]);
                         ma.geometry = Geo(line[index + 2]);
-                        ma.input = line[index + 3];
+                        ma.control = InputSetting.FromString(line[index + 3]);
                         ma.update = Up(line[index + 4]);
                         ma.mode = Mod(line[index + 5]);
                         ma.autoPosition = line[index + 6] == "1";
@@ -145,7 +146,7 @@ namespace Markers
                     r.Add(g);
                 else if ((allAreas[i].applyToSelf) && (allAreas[i].gameObject == g))
                     r.Add(g);
-                if (allAreas[i].name == "rotar") Debug.Log("l area "+g.name + (g==allAreas[i].gameObject));
+                if (allAreas[i].name == "rotar") Debug.Log("l area " + g.name + (g == allAreas[i].gameObject));
             }
             return r;
         }

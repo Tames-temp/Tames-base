@@ -384,6 +384,7 @@ namespace Records
         public bool shift = false;
         public bool ctrl = false;
         public bool alt = false;
+        public bool info = false;
         bool passed = false;
         public TameKeyMap(int keyCount)
         {
@@ -412,6 +413,7 @@ namespace Records
                 up = Keyboard.current.rKey.isPressed;
                 down = Keyboard.current.fKey.isPressed;
                 shift = Keyboard.current.shiftKey.isPressed;
+                info = Keyboard.current.enterKey.wasPressedThisFrame;
                 for (int i = 0; i < keyCount; i++)
                 {
                     pressed[i] = TameInputControl.checkedKeys[i].wasPressedThisFrame;
@@ -495,6 +497,7 @@ namespace Records
             bin.Write(shift);
             bin.Write(ctrl);
             bin.Write(alt);
+            bin.Write(info);
             bin.Write(mouse.y);
             bin.Write(UPressed);
             bin.Write(UHold);
@@ -515,6 +518,7 @@ namespace Records
             shift = bin.ReadBoolean();
             ctrl = bin.ReadBoolean();
             alt = bin.ReadBoolean();
+            info = bin.ReadBoolean();
             mouse.y = bin.ReadSingle();
             UPressed = bin.ReadUInt64();
             UHold = bin.ReadUInt64();
@@ -524,42 +528,17 @@ namespace Records
             vrMap.UPressed = bin.ReadUInt32();
             vrMap.UHold = bin.ReadUInt32();
         }
-        public FrameShot Aggregate(FrameShot[] fs, FrameShot local)
+        public void FromFrame(FrameShot f)
         {
             if (CoreTame.multiPlayer)
             {
-                FrameShot f = new FrameShot();
-                ulong ul = 0;
-                uint ui = 0;
-                for (int i = 0; i < fs.Length; i++)
-                    ul |= fs[i].KBPressed;
-                f.KBPressed = ul;
-                ul = 0;
-                for (int i = 0; i < fs.Length; i++)
-                    ul |= fs[i].KBHold;
-                f.KBHold = ul;
-                for (int i = 0; i < fs.Length; i++)
-                    ui |= fs[i].mouse;
-                f.mouse = ui;
-                ul = 0;
-                for (int i = 0; i < fs.Length; i++)
-                    ul |= fs[i].GPPressed;
-                f.GPPressed = ul;
-                ul = 0;
-                for (int i = 0; i < fs.Length; i++)
-                    ul |= fs[i].GPHold;
-                f.GPHold = ul;
-                ui = 0;
-                for (int i = 0; i < fs.Length; i++)
-                    ui |= fs[i].VRPressed;
-                f.VRPressed = ui;
-                for (int i = 0; i < fs.Length; i++)
-                    ui |= fs[i].VRHold;
-                f.VRHold = ui;
-                return f;
+                UPressed = f.KBPressed;
+                UHold = f.KBHold;
+                gpMap.UPressed = f.GPPressed;
+                gpMap.UHold = f.GPHold;
+                vrMap.UPressed = f.VRPressed;
+                vrMap.UHold = f.VRHold;
             }
-            else
-                return local;
         }
         public string Export(bool[] status, string[] names)
         {

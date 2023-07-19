@@ -14,6 +14,7 @@ using System;
 using Tames;
 using Records;
 using System.IO;
+using System.Reflection;
 
 public class CoreTame : MonoBehaviour
 {
@@ -52,15 +53,16 @@ public class CoreTame : MonoBehaviour
     public static string fingerHeader = "finger";
     public static bool replayMode = false;
     public static GameObject torch;
-    private GameObject camObject;
     public RenderTexture renderTexture;
+    public static Material baseCanvasMaterial;
     void Start()
     {
+     
+        LoadLibraries();
         Utils.SetPipelineLogics();
         Utils.SetPOCO();
         //   panel.SetActive(false);
         mainCamera = Camera.main;
-        camObject = new GameObject("camera object");
         renderTexture = new RenderTexture(Screen.width * 3, Screen.height * 3, 24);
         //   rendCam.targetTexture = renderTexure;
         //   rendCam.enabled = false;
@@ -93,12 +95,12 @@ public class CoreTame : MonoBehaviour
         manager.Initialize();
         if (TameManager.settings != null)
             torch = TameManager.settings.torch;
-        tes = manager.tes;
+        tes = TameManager.tes;
         if (TameManager.settings != null)
             replayMode = TameManager.settings.replay;
 
-        TameEffect.AllEffects = new TameEffect[manager.tes.Count];
-        ies = ITameEffect.AllEffects = new ITameEffect[manager.tes.Count];
+        TameEffect.AllEffects = new TameEffect[TameManager.tes.Count];
+        ies = ITameEffect.AllEffects = new ITameEffect[TameManager.tes.Count];
         ITameEffect.Initialize();
         //  text.text = "";
 
@@ -120,9 +122,29 @@ public class CoreTame : MonoBehaviour
             }
         //    Debug.Log("cam " + TameCamera.cameraTransform.position.ToString());
     }
+    void LoadLibraries()
+    {
+        string activePipeline = "";
 
+#if UNITY_2019_3_OR_NEWER
+        if (GraphicsSettings.renderPipelineAsset != null)
+        {
+            activePipeline = GraphicsSettings.renderPipelineAsset.GetType().Name;
+        }
+        else
+        {
+            activePipeline = "Built-in Render Pipeline";
+        }
+#else
+        activePipeline = "Built-in Render Pipeline";
+#endif
+        if (activePipeline == "HDRenderPipelineAsset")
+            TameMaterial.Pipeline = 1;
+
+    }
     void PrepareLoadScene()
     {
+        baseCanvasMaterial = (Material)Resources.Load("Tames models\\BaseCanvasMaterial");
         Utils.rig = TameCamera.cameraTransform.gameObject;
         XRController xrcl = null, xrcr = null;
         XRController[] all = Utils.rig.GetComponentsInChildren<XRController>();
@@ -180,10 +202,7 @@ public class CoreTame : MonoBehaviour
                     NetworkManager.Singleton.Connect();
                 }
             }
-
-
             UpdateSolo();
-
         }
         else
             UpdateReplay();
@@ -212,8 +231,8 @@ public class CoreTame : MonoBehaviour
             TameEffect.AllEffects[i].Apply();
             //          ies[i].Set(TameEffect.AllEffects[i]);
         }
-        for (int i = 0; i < manager.altering.Count; i++)
-            manager.altering[i].Update();
+        for (int i = 0; i < TameManager.altering.Count; i++)
+            TameManager.altering[i].Update();
     }
 
     void UpdateReplay()
@@ -276,6 +295,7 @@ public class CoreTame : MonoBehaviour
                 localPerson.UpdateHeadOnly();
             }
             CheckInput();
+
             int n = TameElement.GetAllParents(TameEffect.AllEffects, tes);
             //   Debug.Log("custom n " + n);
             for (int i = 0; i < n; i++)
@@ -284,12 +304,26 @@ public class CoreTame : MonoBehaviour
                 TameEffect.AllEffects[i].Apply();
                 ies[i].Set(TameEffect.AllEffects[i]);
             }
-            for (int i = 0; i < manager.altering.Count; i++)
-                manager.altering[i].Update();
+            for (int i = 0; i < TameManager.altering.Count; i++)
+                TameManager.altering[i].Update();
             for (int i = 0; i < manager.alteringMaterial.Count; i++)
                 manager.alteringMaterial[i].Update();
+            TameManager.UpdateScores();
+            foreach (Markers.MarkerTeleport mt in TameManager.teleport) mt.Check();
             TameCamera.UpdateCamera();
+            TameManager.UpdatePeoploids();
+            FlushPressed();
+          //  Debug.Log("cam " + mainCamera.transform.position);
         }
+    }
+    void FlushPressed()
+    {
+        for (int i = 0; i < people.Length; i++)
+            if (people[i] != null)
+            {
+                people[i].keyMap.UPressed = people[i].keyMap.gpMap.UPressed = people[i].keyMap.vrMap.UPressed = 0;
+                Player.frames[i].KBPressed = Player.frames[i].GPPressed = Player.frames[i].VRPressed = 0;
+            }
     }
     // Update is called once per frame
     IEnumerator SavePNG()
@@ -319,7 +353,7 @@ public class CoreTame : MonoBehaviour
     private FrameShot CheckInput(int index = -1)
     {
         TameKeyMap km = TameInputControl.CheckKeys(index);
-        FrameShot fa = TameInputControl.keyMap.Aggregate(Player.frames, km.Capture());
+
         if (Keyboard.current.tabKey.wasPressedThisFrame)
         {
             TameElement.isPaused = true;
@@ -333,6 +367,7 @@ public class CoreTame : MonoBehaviour
         {
             Application.Quit();
         }
+
         string path;
         if (Keyboard.current.ctrlKey.isPressed && Keyboard.current.sKey.wasPressedThisFrame)
         {

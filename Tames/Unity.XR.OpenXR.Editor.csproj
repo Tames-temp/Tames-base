@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{3F603EC5-CD1D-BEB5-9520-A38A692B150F}</ProjectGuid>
+    <ProjectGuid>{697406D0-E5BE-A4E9-F1FB-4F4CE8B51D30}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.XR.OpenXR.Editor</AssemblyName>
@@ -752,31 +752,31 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Unity.XR.Management.csproj">
-      <Project>{3EF15214-470C-FA3A-38F5-5B0467A5B7A6}</Project>
+      <Project>{782C495A-DF38-A34E-1433-3A270E8A1F8D}</Project>
       <Name>Unity.XR.Management</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.Management.Editor.csproj">
-      <Project>{BE1224E2-CC66-0BC2-4A99-ECEDD6E13C39}</Project>
+      <Project>{12E99545-650E-0B33-2125-4943002C7657}</Project>
       <Name>Unity.XR.Management.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.OpenXR.csproj">
-      <Project>{BCA3E065-216E-9EA3-4722-858E667356C4}</Project>
+      <Project>{B27DF6D0-5589-2C1F-E5A7-CA74B60C3607}</Project>
       <Name>Unity.XR.OpenXR</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.InputSystem.csproj">
-      <Project>{F6E489A8-CD3B-BC34-2DE9-C7135A703950}</Project>
+      <Project>{0D185189-DAD9-CDDA-6071-9BABBE550603}</Project>
       <Name>Unity.InputSystem</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.CoreUtils.Editor.csproj">
-      <Project>{E2BDA3EC-E407-10AA-4C74-933798EB5347}</Project>
+      <Project>{CB373AFC-0C93-C318-B932-A4B9A46BB5B2}</Project>
       <Name>Unity.XR.CoreUtils.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEditor.TestRunner.csproj">
-      <Project>{CA4AB4E6-996C-1AD2-8857-C8159F79201A}</Project>
+      <Project>{E2EE28E4-7944-2C06-3FE1-7248587A471E}</Project>
       <Name>UnityEditor.TestRunner</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEngine.TestRunner.csproj">
-      <Project>{30B52F71-6222-9F35-680C-2950573BD59C}</Project>
+      <Project>{22898296-0A54-AF6B-F9DA-A77D4C68A725}</Project>
       <Name>UnityEngine.TestRunner</Name>
     </ProjectReference>
   </ItemGroup>

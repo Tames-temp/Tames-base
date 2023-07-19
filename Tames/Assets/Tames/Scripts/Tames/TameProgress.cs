@@ -23,6 +23,7 @@ namespace Tames
         }
         public static TameTrigger TriggerFromText(string s)
         {
+            if (s == "") return null;
             List<int> sign = new();
             List<float> value = new();
             int p;
@@ -54,10 +55,18 @@ namespace Tames
                     expectNumber = false;
                 }
             if (sign.Count == value.Count) sign.Add(0);
+            bool integer = false;
+            float[] vi = value.ToArray();
+            for (int i = 0; i < value.Count; i++)
+            {
+                vi[i] /= 100;
+                if (value[i] > 1.0001f)
+                    integer = true;
+            }
             return new TameTrigger()
             {
                 sign = sign.ToArray(),
-                value = value.ToArray(),
+                value = integer ? vi : value.ToArray()
             };
         }
     }
@@ -135,6 +144,7 @@ namespace Tames
         /// trigger[0] &gt trigger[1]: this progress stops when the parent progress is between the triggers, changes normally when the latter is over trigger[0] and reverses when the latter is under progress[1]. 
         /// </summary>
         public TameTrigger trigger = null;
+        public TameTrigger activeTrigger = null;
         /// <summary>
         /// the progress change direction (-1: downward, 0: still, 1: upward). If the parent is another TameElement, this value is determined automatically depending on the trigger. However, if the parent is a position or time, this is determined by interaction with the interactors.
         /// </summary>
@@ -152,8 +162,8 @@ namespace Tames
         ///  the current progress value (after the last update), between 0 and 1
         /// </summary>
         public float progress = 0;
-        public float lastSlerp = 0;
-        public float slerpProgress = 0;
+        public float lastSub = 0;
+        public float subProgress = 0;
         /// <summary>
         /// the last total progress value before the last update
         /// </summary>
@@ -168,12 +178,20 @@ namespace Tames
         /// <param name="value">total value (or total progress)</param>
         /// <returns>the value of the would-be-progress</returns>
         private float time = 0;
-        public Slerp slerp = null;
+        public LerpManager lerp = null;
         public TameElement element = null;
         public bool active = true;
 
         public float A = 0;
         public float lastSpeed = 0;
+        public int stepCount = 0;
+        public float[] steps = null;
+        public bool isMultiAlter = false;
+        public int fromAlter = 0, toAlter = 1;
+        public int initiated = 0;
+        private int direction = 0;
+        public bool isOn = true;
+        public float frameWaitCount = 0;
         public TameProgress(TameElement element)
         {
             this.element = element;
@@ -186,7 +204,39 @@ namespace Tames
             //       Speed = p.speed;
             trigger = p.trigger;
             passToChildren = p.passToChildren;
-            slerp = p.slerp;
+            lerp = p.lerp;
+        }
+        public void GetSteps(string s)
+        {
+            List<float> st = new List<float>();
+            float f, max = 0;
+            if (s == "") stepCount = 0;
+            else
+            {
+                string[] sp = s.Split(new char[] { ',', ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                if (sp.Length == 1)
+                    try { stepCount = int.Parse(sp[0]); return; } catch { }
+                else
+                {
+                    for (int i = 0; i < sp.Length; i++)
+                        try
+                        {
+                            f = float.Parse(sp[i]);
+                            if (f >= 0 && f <= 100) st.Add(f);
+                            else continue;
+                            //       Debug.Log("step: " + element.name + " #" + st.Count + " " + f);
+                            max = Mathf.Max(max, f);
+                        }
+                        catch { }
+                    if (st.Count < 2) return;
+                    else max = max > 1 ? 100 : 1;
+                    steps = st.ToArray();
+                    stepCount = steps.Length;
+                    for (int i = 0; i < steps.Length; i++)
+                        steps[i] /= max;
+                    fromAlter = 0;
+                }
+            }
         }
         private float Reverse(float value)
         {
@@ -295,18 +345,21 @@ namespace Tames
 
             // float[] pp = new float[] { time, time + deltaTime * interactDirection };
             // time += deltaTime * interactDirection;
-
-            float[] pp = new float[] { time, time + deltaTime };
-            time += deltaTime;
-
-            SetByParent(pp, pp, PassTypes.Total, deltaTime);
+            //   if (element.name == "item1" )                Debug.Log(" : " + initiated);
+            if (isMultiAlter) SetByAlter(deltaTime);
+            else
+            {
+                float[] pp = new float[] { time, time + deltaTime };
+                time += deltaTime;
+                SetByParent(pp, pp, PassTypes.Total, deltaTime);
+            }
         }
         private float _p, _lp, _sp, _t, _lt;
         private void Push()
         {
             _p = progress;
             _lp = lastProgress;
-            _sp = slerpProgress;
+            _sp = subProgress;
             _t = totalProgress;
             _lt = lastTotal;
             //       _time = time;
@@ -315,7 +368,7 @@ namespace Tames
         {
             progress = _p;
             lastProgress = _lp;
-            slerpProgress = _sp;
+            subProgress = _sp;
             totalProgress = _t;
             lastTotal = _lt;
             //         time = _time;
@@ -325,7 +378,7 @@ namespace Tames
         {
             Push();
             float v = totalProgress + offset;
-            SetProgLin(v);
+            Set(v);
             v = progress;
             Pull();
             return v;
@@ -334,61 +387,7 @@ namespace Tames
         /// sets the progress based on the passage of time. The progress is determined by time, changingDirection and speed of the progress
         /// </summary>
         /// <param name="deltaTime">the frame's delta time</param>
-        public void SetProgressByTime(float deltaTime)
-        {
-            float pt;
-            manager.Refresh();
-            float duration = manager.Duration < 0 ? 1 : manager.Duration;
-            if (trigger == null)
-            {
-                if (continuity != ContinuityMode.Stop)
-                {
-                    time += deltaTime * interactDirection;
-                    SetProgress(time / duration, false);
-                    if (manager.parent != null) Debug.Log(time / duration + " " + interactDirection);
-                }
-                else
-                {
-                    pt = deltaTime * interactDirection / duration;
-                    if (progress + pt < 0f)
-                        SetProgress(0f, false);
-                    else if (progress + pt > 1f)
-                        SetProgress(1f, false);
-                    else
-                        SetProgress(pt + progress, false);
-                }
-            }
-            else
-            {
-                changingDirection = 0;
-                time += deltaTime;
-                pt = time / duration;
-                if (trigger.mono)
-                {
-                    changingDirection = trigger.Direction(pt) * interactDirection;
-                }
-                else
-                {
-                    switch (continuity)
-                    {
-                        case ContinuityMode.Stop:
-                            if (pt < 0f) pt = 0f;
-                            if (pt > 1f) pt = 1f;
-                            break;
-                        case ContinuityMode.Reverse:
-                            pt = Reverse(pt);
-                            break;
-                        case ContinuityMode.Cycle:
-                            pt = Cycle(pt);
-                            break;
-                    }
-                    changingDirection = trigger.Direction(pt) * interactDirection;
 
-                }
-                pt = totalProgress + changingDirection * deltaTime * manager.Speed;
-                SetProgress(pt, false);
-            }
-        }
         public void SetProgress(float value)
         {
             SetProgress(value, true);
@@ -404,28 +403,44 @@ namespace Tames
             if (refresh) manager.Refresh();
             if (tick < TameElement.Tick)
             {
-                if (A > 0)
-                    SetProgAcce(value);
-                else
-                    SetProgLin(value);
+                Set(value);
                 tick++;
             }
             //    if (element.name == "traain")                Debug.Log("train: " + (progress-lastProgress));
         }
-        private void SetProgLin(float value)
+        private float FromSteps(float value)
         {
-            float v;
-            lastSlerp = slerpProgress;
+            float v = value;
+            int i;
+            if (stepCount > 0)
+                if (steps == null)
+                    v = (int)(value * stepCount) / (float)stepCount;
+                else
+                {
+                    i = (int)(value * stepCount);
+                    if (i < 0) i = 0;
+                    if (i >= stepCount) i = stepCount - 1;
+                    v = steps[i];
+                }
+            return v;
+        }
+        private void Set(float value)
+        {
+            int i;
+            float v = value;
+            lastSub = subProgress;
             switch (continuity)
             {
                 case ContinuityMode.Stop:
-                    if (value < 0) value = 0;
-                    if (value > 1f) value = 1f;
+                    v = FromSteps(v);
+                    if (v < 0) v = 0;
+                    if (v > 1f) v = 1f;
                     lastProgress = lastTotal = progress;
-                    progress = totalProgress = value;
+                    progress = totalProgress = v;
                     break;
                 case ContinuityMode.Reverse:
                     v = Reverse(value);
+                    v = FromSteps(v);
                     lastTotal = totalProgress;
                     lastProgress = progress;
                     progress = v;
@@ -433,64 +448,157 @@ namespace Tames
                     break;
                 case ContinuityMode.Cycle:
                     v = Cycle(value);
+                    v = FromSteps(v);
                     lastTotal = totalProgress;
                     lastProgress = progress;
                     progress = v;
                     totalProgress = value;
                     break;
             }
-            if (slerp == null)
-                slerpProgress = progress;
+            if (lerp == null)
+                subProgress = progress;
             else
-                slerpProgress = slerp.On(progress);
-        }
+                subProgress = lerp.On(progress);
 
-        public void SetProgAcce(float value)
+        }
+        private float NormalAlter(float v)
         {
-            float v;
-            lastSlerp = slerpProgress;
-            float Ve, Va, Pe, Pa, Ae, dt = TameElement.deltaTime;
+            return v;
+        }
+        private void SetByAlter(float dt)
+        {
+            if (element.name == "item1" && initiated != 0)
+                Debug.Log(" : " + initiated);
+
+            if (initiated != 0)
+                direction = initiated;
+            if (direction == 0) return;
+
+            if (Mathf.Abs(dt) < 0.0001) dt = 0;
+            if (dt == 0) { Retain(dt); return; }
+            float dp = manager.Speed < 0 ? dt : manager.Speed * dt;
+
+            float v = progress + (!isOn ? dp * direction : 0);
+            float min, max;
+            int next;
+            lastSub = subProgress;
+            bool cycled = false;
             switch (continuity)
             {
                 case ContinuityMode.Stop:
-                    if (value < 0) value = 0;
-                    if (value > 1f) value = 1f;
-                    Pe = value;
-                    Pa = Va = Ve = (Pe - progress) / dt;
-                    Ae = (Ve - lastSpeed) / dt;
-                    if (Mathf.Abs(Ae) > A)
+                case ContinuityMode.Reverse:
+                    if (isOn)
                     {
-                        Va = A * dt * Mathf.Sign(Ae) + lastSpeed;
-                        Pa = Va * dt + progress;
+                        if (initiated > 0)
+                        {
+                            toAlter = fromAlter == stepCount - 1 ? fromAlter : fromAlter + 1;
+                            if (toAlter == fromAlter) v = 0;
+                            else { v = dp; isOn = false; }
+                        }
+                        else if (initiated < 0)
+                        {
+                            toAlter = fromAlter;
+                            fromAlter = fromAlter == 0 ? 0 : fromAlter + 1;
+                            if (fromAlter == 0) v = 0;
+                            else { v = 1 - dp; isOn = false; }
+                        }
                     }
-                    lastProgress = lastTotal = progress;
-                    progress = totalProgress = Pa;
-                    lastSpeed = Va;
-                    break;
-                case ContinuityMode.Reverse:
-                    v = Reverse(value);
-                    lastTotal = totalProgress;
-                    lastProgress = progress;
-                    progress = v;
-                    totalProgress = value;
+                    else
+                    {
+                        if (v <= 0)
+                        {
+                            isOn = true;
+                            v = 0;
+                        }
+                        else if (v >= 1)
+                        {
+                            isOn = true;
+                            v = 0;
+                            fromAlter = toAlter;
+                        }
+                    }
                     break;
                 case ContinuityMode.Cycle:
-                    v = Cycle(value);
-                    lastTotal = totalProgress;
-                    lastProgress = progress;
-                    progress = v;
-                    totalProgress = value;
+                    if (isOn)
+                    {
+                        if (initiated > 0)
+                        {
+                            if (steps == null)
+                            {
+                                toAlter = fromAlter == stepCount - 1 ? 1 : fromAlter + 1;
+                                fromAlter = fromAlter == stepCount - 1 ? 0 : fromAlter;
+                                v = dp; isOn = false;
+                            }
+                            else
+                            {
+                                toAlter = fromAlter == stepCount - 1 ? 0 : fromAlter + 1;
+                                v = dp; isOn = false;
+                            }
+                        }
+                        else if (initiated < 0)
+                        {
+                            if (steps == null)
+                            {
+                                toAlter = fromAlter == 0 ? stepCount - 1 : fromAlter;
+                                fromAlter = fromAlter == 0 ? stepCount - 2 : fromAlter - 1;
+                                v = 1 - dp; isOn = false;
+                            }
+                            else
+                            {
+                                toAlter = fromAlter;
+                                fromAlter = fromAlter == 0 ? stepCount - 1 : fromAlter - 1;
+                                v = 1 - dp; isOn = false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (v <= 0)
+                        {
+                            isOn = true;
+                            v = 0;
+                        }
+                        else if (v >= 1)
+                        {
+                            isOn = true;
+                            v = 0;
+                            fromAlter = toAlter;
+                        }
+                    }
                     break;
             }
-            if (slerp == null)
-                slerpProgress = progress;
+            lastProgress = lastTotal = progress;
+            progress = totalProgress = v;
+            if (steps == null)
+            {
+                subProgress = (fromAlter + v) / (steps.Length - 1);
+            }
             else
-                slerpProgress = slerp.On(progress);
+            {
+                min = steps[fromAlter];
+                max = steps[toAlter];
+                subProgress = min + v * (max - min);
+            }
         }
 
-        public void Initialize(float p)
+        public void SetAt(float p)
         {
-            lastProgress = totalProgress = progress = lastTotal = p;
+            int i = (int)(p * stepCount);
+            if (i < 0) i = 0;
+            if (i >= stepCount) i = stepCount - 1;
+            lastProgress = totalProgress = progress = lastProgress = 0;
+            if (steps != null)
+            {
+                fromAlter = (int)(p * (stepCount - 1));
+                fromAlter = fromAlter > stepCount - 2 ? stepCount - 2 : fromAlter;
+                subProgress = steps[fromAlter];
+            }
+            else
+            {
+                fromAlter = i;
+                subProgress = (float)i / stepCount;
+            }
+            isOn = true;
         }
 
         public TameProgress Clone(TameElement te)
@@ -501,13 +609,16 @@ namespace Tames
                 totalProgress = totalProgress,
                 lastProgress = lastProgress,
                 lastTotal = lastTotal,
-                lastSlerp = lastSlerp,
-                slerpProgress = slerpProgress,
-                slerp = slerp == null ? null : slerp.Clone(),
+                lastSub = lastSub,
+                subProgress = subProgress,
+                lerp = lerp == null ? null : lerp.Clone(),
                 trigger = trigger,
                 manager = manager.Clone(),
                 active = active,
                 continuity = continuity,
+                frameWaitCount = frameWaitCount,
+                stepCount = stepCount,
+                steps = steps,
             };
             return tp;
         }

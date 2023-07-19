@@ -24,18 +24,20 @@ namespace Markers
         public Color[] colorSteps;
         public float factor = 0;
         public Flicker flicker;
-        public Tames.TameChanger changer= null;
+        public Tames.TameChanger changer = null;
         private bool changed = false;
         public void ChangedThisFrame(bool shouldChange)
         {
-            changed = shouldChange;
+            if (UnityEditor.EditorApplication.isPlaying || UnityEditor.EditorApplication.isPaused)
+                changed = shouldChange;
+            else changed = false;
         }
         private void LateUpdate()
         {
             if (changed)
             {
                 changed = false;
-                changer.UpdateMarker();
+                if (changer != null) changer.UpdateMarker();
             }
         }
         public MaterialProperty GetProperty()

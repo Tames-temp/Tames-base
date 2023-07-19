@@ -1,4 +1,5 @@
 ﻿
+using Multi;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -102,19 +103,49 @@ namespace Tames
 
             return index;
         }
-        public static bool CheckDistanceAndAngle(GameObject owner, float activeDistance, float activeAngle)
+        private static bool CheckDistanceAndAngle(GameObject owner, Vector3 position, Vector3 forward, float activeDistance, float activeAngle, Markers.InputSetting.Axis axis)
         {
-            bool possible = true;
+            Vector3 u = owner.transform.position - position;
+            if (activeAngle > 0 || activeDistance > 0)
+                if (Vector3.Angle(u, forward) >= 90) return false;
             if (activeDistance > 0)
             {
+                if (Vector3.Distance(owner.transform.position, position) > activeDistance) return false;
                 if (activeAngle > 0)
-                    possible = (Vector3.Distance(owner.transform.position, cameraTransform.position) <= activeDistance) && (activeAngle > Vector3.Angle(owner.transform.position - cameraTransform.position, cameraTransform.forward));
-                else
-                    possible = Vector3.Distance(owner.transform.position, cameraTransform.position) <= activeDistance;
+                {
+                    switch (axis)
+                    {
+                        case Markers.InputSetting.Axis.X: return activeAngle > Vector3.Angle(-owner.transform.right, forward);
+                        case Markers.InputSetting.Axis.Y: return activeAngle > Vector3.Angle(-owner.transform.up, forward);
+                        case Markers.InputSetting.Axis.Z: return activeAngle > Vector3.Angle(-owner.transform.forward, forward);
+                        case Markers.InputSetting.Axis.NegX: return activeAngle > Vector3.Angle(owner.transform.right, forward);
+                        case Markers.InputSetting.Axis.NegY: return activeAngle > Vector3.Angle(owner.transform.up, forward);
+                        case Markers.InputSetting.Axis.NegZ: return activeAngle > Vector3.Angle(owner.transform.forward, forward);
+                        default: return activeAngle > Vector3.Angle(owner.transform.position - position, forward);
+                    }
+                }
+                else return true;
             }
             else if (activeAngle > 0)
-                possible = activeAngle < Vector3.Angle(owner.transform.position - cameraTransform.position, cameraTransform.forward);
-            return possible;
+                switch (axis)
+                {
+                    case Markers.InputSetting.Axis.X: return activeAngle > Vector3.Angle(-owner.transform.right, forward);
+                    case Markers.InputSetting.Axis.Y: return activeAngle > Vector3.Angle(-owner.transform.up, forward);
+                    case Markers.InputSetting.Axis.Z: return activeAngle > Vector3.Angle(-owner.transform.forward, forward);
+                    case Markers.InputSetting.Axis.NegX: return activeAngle > Vector3.Angle(owner.transform.right, forward);
+                    case Markers.InputSetting.Axis.NegY: return activeAngle > Vector3.Angle(owner.transform.up, forward);
+                    case Markers.InputSetting.Axis.NegZ: return activeAngle > Vector3.Angle(owner.transform.forward, forward);
+                    default: return activeAngle > Vector3.Angle(owner.transform.position - position, forward);
+                }
+            else return true;
+        }
+        public static bool CheckDistanceAndAngle(GameObject owner, float activeDistance, float activeAngle, Markers.InputSetting.Axis axis)
+        {
+            return CheckDistanceAndAngle(owner, cameraTransform.position, cameraTransform.forward, activeDistance, activeAngle, axis);          
+        }
+        public static bool CheckDistanceAndAngle(GameObject owner, Person person, float activeDistance, float activeAngle, Markers.InputSetting.Axis axis)
+        {
+            return CheckDistanceAndAngle(owner, person.headPosition, person.headForward, activeDistance, activeAngle, axis);           
         }
         public static void SetFirstFace(Walking.WalkFace f)
         {
@@ -211,7 +242,21 @@ namespace Tames
                 ToggleCamera();
             if (TameInputControl.keyMap.gpMap.pressed[8] && TameInputControl.keyMap.gpMap.hold[4] && (!TameInputControl.keyMap.gpMap.hold[5]))
                 InputBasis.ToggleNext();
+            if (TameInputControl.keyMap.info)
+            {
+                InfoUI.InfoControl.InfoVisibility = !InfoUI.InfoControl.InfoVisibility;
+                if (!InfoUI.InfoControl.InfoVisibility)
+                    foreach (InfoUI.InfoControl info in TameManager.info)
+                        info.Visible = false;
 
+            }
+            //  Debug.Log(TameManager.info.Count);
+            if (InfoUI.InfoControl.InfoVisibility)
+                foreach (InfoUI.InfoControl info in TameManager.info)
+                {
+                    info.Visible = info.InView();
+                    info.Update();
+                }
             if (Mouse.current != null)
             {
                 float ms = Mouse.current.scroll.y.ReadValue();
@@ -305,5 +350,43 @@ namespace Tames
                     CoreTame.torch.gameObject.SetActive(!CoreTame.torch.gameObject.activeSelf);
             }
         }
+        public static void TeleportTo(Transform tran)
+        {
+            Vector3 fwd;
+            if (InputBasis.move == InputBasis.VR) return;
+            currentObject = -1;
+            moveByObject = false;
+            if (InputBasis.turn != InputBasis.VR)
+            {
+                fwd = tran.forward;
+                Vector3 flat = new Vector3(fwd.x, 0, fwd.z);
+                flat.Normalize();
+                if (flat.magnitude == 0) flat = Vector3.forward;
+                onWalk.rotation = Quaternion.LookRotation(flat, Vector3.up);
+            }
+
+            Walking.WalkFace lastFace = currentFace;
+            if (TameManager.walkManager == null)
+                onWalk.position = tran.position;
+            else
+            {
+                Vector3 p = tran.position;
+       //         TameManager.walkManager.UpdateActive();
+                currentFace = TameManager.walkManager.MoveTo(p);
+                if (currentFace == null) currentFace = lastFace;
+                if (currentFace != lastFace)
+                {
+                    Quaternion q = onWalk.rotation;
+                    onWalk.parent = currentFace.control.owner.transform;
+                    onWalk.position = TameManager.walkManager.foot + eyeHeight;
+                    onWalk.rotation = q;
+                    Debug.Log("tele " + onWalk.position.ToString() + tran.position.ToString());
+                }
+                else
+                    onWalk.position = TameManager.walkManager.foot + eyeHeight;
+                TameManager.walkManager.RecordLastStatus();
+            }
+            cameraTransform.SetPositionAndRotation(onWalk.position, onWalk.rotation);
+          }
     }
 }

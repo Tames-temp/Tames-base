@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{BCA3E065-216E-9EA3-4722-858E667356C4}</ProjectGuid>
+    <ProjectGuid>{B27DF6D0-5589-2C1F-E5A7-CA74B60C3607}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.XR.OpenXR</AssemblyName>
@@ -751,15 +751,15 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Unity.XR.Management.csproj">
-      <Project>{3EF15214-470C-FA3A-38F5-5B0467A5B7A6}</Project>
+      <Project>{782C495A-DF38-A34E-1433-3A270E8A1F8D}</Project>
       <Name>Unity.XR.Management</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.Management.Editor.csproj">
-      <Project>{BE1224E2-CC66-0BC2-4A99-ECEDD6E13C39}</Project>
+      <Project>{12E99545-650E-0B33-2125-4943002C7657}</Project>
       <Name>Unity.XR.Management.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.InputSystem.csproj">
-      <Project>{F6E489A8-CD3B-BC34-2DE9-C7135A703950}</Project>
+      <Project>{0D185189-DAD9-CDDA-6071-9BABBE550603}</Project>
       <Name>Unity.InputSystem</Name>
     </ProjectReference>
   </ItemGroup>

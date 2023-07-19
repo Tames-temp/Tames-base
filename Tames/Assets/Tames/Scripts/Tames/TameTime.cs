@@ -45,17 +45,7 @@ namespace Tames
             progress = new TameProgress(this);
 
             basis = TrackBasis.Time;
-        }
-        public static List<TameInputControl> GetControl(ManifestHeader header, int start)
-        {
-            List<TameInputControl> r = new List<TameInputControl>();
-            for (int i = start; i < header.items.Count; i++)
-            {
-                TameInputControl tci = TameInputControl.ByStringDuo(header.items[i]);
-                if (tci != null) r.Add(tci);
-            }
-            return r;
-        }
+        }       
         public override void AssignParent(TameEffect[] all, int index)
         {
             TameEffect ps = GetParent();

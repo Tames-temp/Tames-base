@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Markers;
+using Multi;
 
 namespace Tames
 {
@@ -17,10 +18,8 @@ namespace Tames
         public List<Alternative> alternatives = new List<Alternative>();
         public int prev = -1, next = -1;
         public int current = -1;
-        public float activeDistance = -1;
-        public float activeAngle = 30;
-        public List<TameInputControl> back = new List<TameInputControl>();
-        public List<TameInputControl> forth = new List<TameInputControl>();
+        public MarkerAlterObject marker;
+        public InputSetting control;
         public void GoNext()
         {
             if (current >= 0)
@@ -58,33 +57,18 @@ namespace Tames
         }
         public void Update()
         {
-            bool possible = true;
-            if ((alternatives.Count > 0) && (current >= 0))
-                possible = TameCamera.CheckDistanceAndAngle(alternatives[current].gameObject[0], activeDistance, activeAngle);
-            
-            if (possible)
-            {
-                foreach (TameInputControl tci in back)
-                    if (tci.Pressed()) { GoPrevious(); return; }
-                foreach (TameInputControl tci in forth)
-                    if (tci.Pressed()) { GoNext(); return; }
-            }
+            if ((alternatives.Count <= 0) || (current < 0))
+                return;
+            int d = control.CheckDualPressed(alternatives[current].gameObject[0]);
+            if (d < 0) GoPrevious();
+            else if (d > 0) GoNext();
         }
-        public void SetKeys(string keys)
+        public void SetKeys(InputSetting keys)
         {
-            TameInputControl[] tcis;
-            string[] ks = keys.Split(' ');
-            for (int i = 0; i < ks.Length; i++)
-            {
-                TameInputControl[] tcs = TameInputControl.ByStringTwoMonos(ks[i]);
-                if (tcs != null)
-                {
-                    back.Add(tcs[0]);
-                    forth.Add(tcs[1]);
-                }
-            }
+            control = keys;
+            control.AssignControl(InputSetting.ControlTypes.DualPress);
         }
-   
+
         public static List<TameAlternative> GetAlternatives(List<TameGameObject> tgos)
         {
             List<TameAlternative> tas = new();
@@ -104,10 +88,8 @@ namespace Tames
                 }
             for (int i = 0; i < mas.Count; i++)
             {
-                ta = new TameAlternative();
-                ta.SetKeys(mas[i].control.pair);
-                ta.activeDistance = mas[i].control.maxDistance;
-                ta.activeAngle = mas[i].control.maxAngle;
+                ta = new TameAlternative() { marker = mas[i] };
+                ta.SetKeys(mas[i].control);
                 for (int j = 0; j < mas[i].alternatives.Length; j++)
                     if (mas[i].alternatives[j] != null)
                     {

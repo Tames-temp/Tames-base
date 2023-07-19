@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{EEF11D9B-751B-2A5F-D375-573F90DD67F5}</ProjectGuid>
+    <ProjectGuid>{DEFBE7E3-351B-D245-7F2C-9DFAC9EACDB8}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Assembly-CSharp</AssemblyName>
@@ -58,12 +58,14 @@
   <ItemGroup>
     <Compile Include="Assets\Tames\Scripts\HandAsset\HandModel.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameLinkManager.cs" />
+    <Compile Include="Assets\Tames\Scripts\Tames\Vase.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerMaterial.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameCamera.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameSlider.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameProgress.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerScale.cs" />
     <Compile Include="Assets\Tames\Scripts\HandAsset\ControllerFeature.cs" />
+    <Compile Include="Assets\Tames\Scripts\Tames\TamePeoploid.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameLink.cs" />
     <Compile Include="Assets\Tames\Scripts\Walking\WalkManager.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerAlterObject.cs" />
@@ -72,6 +74,8 @@
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerOrigin.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameTime.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameOrbit.cs" />
+    <Compile Include="Assets\Tames\Scripts\Graphs\TameGraph.cs" />
+    <Compile Include="Assets\Tames\Scripts\Markers\MarkerDynamic.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerManifest.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerSettings.cs" />
     <Compile Include="Assets\Tames\Scripts\CoreTame.cs" />
@@ -80,6 +84,7 @@
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerCorrespond.cs" />
     <Compile Include="Assets\Tames\Scripts\Multi\UIManager.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerChanger.cs" />
+    <Compile Include="Assets\Tames\Scripts\Markers\MarkerInfo.cs" />
     <Compile Include="Assets\Tames\Scripts\Multi\Person.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerGrass.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerRoot.cs" />
@@ -88,38 +93,46 @@
     <Compile Include="Assets\Tames\Scripts\Multi\GameLogic.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameColor.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameLight.cs" />
-    <Compile Include="Assets\Tames\Scripts\Markers\MarkerAlter.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameEffect.cs" />
+    <Compile Include="Assets\Tames\Scripts\InfoUI\InfoControl.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerSpeed.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerWalk.cs" />
     <Compile Include="Assets\Tames\Scripts\Multi\ITameEffect.cs" />
     <Compile Include="Assets\Tames\Scripts\Multi\Multiplayer\MessageExtensions.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\ExportModel.cs" />
     <Compile Include="Assets\Tames\Scripts\Records\TameKeyMap.cs" />
+    <Compile Include="Assets\Tames\Scripts\Tames\Labyrinth.cs" />
+    <Compile Include="Assets\Tames\Scripts\InfoUI\InfoFrame.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\Utils.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameManager.cs" />
     <Compile Include="Assets\Tames\Scripts\HandAsset\ControllerData.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameHandles.cs" />
+    <Compile Include="Assets\Tames\Scripts\Markers\MarkerControl.cs" />
     <Compile Include="Assets\Tames\Scripts\Records\TameRecord.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameChanger.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameArea.cs" />
     <Compile Include="Assets\Tames\Scripts\Walking\WalkFace.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\ExportOption.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerFlicker.cs" />
+    <Compile Include="Assets\Tames\Scripts\Tames\TameScoreBasket.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameFinder.cs" />
-    <Compile Include="Assets\Tames\Scripts\Tames\Slerp.cs" />
+    <Compile Include="Assets\Tames\Scripts\Tames\LerpManager.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameEnvironmentChanger.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerProgress.cs" />
+    <Compile Include="Assets\Tames\Scripts\Markers\InputSetting.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameElement.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameAlternative.cs" />
     <Compile Include="Assets\Tames\Scripts\Multi\Multiplayer\NetworkManager.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerMaster.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameMaterialAlternative.cs" />
     <Compile Include="Assets\Tames\Scripts\Records\FrameShot.cs" />
+    <Compile Include="Assets\Tames\Scripts\Markers\MarkerTeleport.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameFreeRotator.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TamePath.cs" />
+    <Compile Include="Assets\Tames\Scripts\Markers\MarkerScore.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerAlterMaterial.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameInputControl.cs" />
+    <Compile Include="Assets\Tames\Scripts\Markers\MarkerGraph.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\ManifestHeader.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerObject.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerCarrier.cs" />
@@ -127,13 +140,37 @@
     <Compile Include="Assets\Tames\Scripts\Tames\TameCorrespond.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerQueue.cs" />
     <Compile Include="Assets\Tames\Scripts\Tames\TameMaterial.cs" />
+    <Compile Include="Assets\Tames\Scripts\Markers\MarkerFaceCamera.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerCycle.cs" />
+    <Compile Include="Assets\Tames\Scripts\Graphs\GraphItem.cs" />
     <Compile Include="Assets\Tames\Scripts\Markers\MarkerArea.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Overlay.shader" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap.shader" />
     <None Include="Assets\Tames\Scripts\Multi\Multiplayer\RiptideNetworking.xml" />
+    <None Include="Assets\Tames\Scripts\Tames\TextFile1.txt" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMPro_Mobile.cginc" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF SSD.shader" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface-Mobile.shader" />
     <None Include="Assets\Tames\Scripts\Multi\Multiplayer\RiptideNetworking.dll" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface.shader" />
+    <None Include="Assets\TextMesh Pro\Sprites\EmojiOne Attribution.txt" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Custom-Atlas.shader" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF.shader" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile SSD.shader" />
+    <None Include="Assets\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMPro_Properties.cginc" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
+    <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />
     <None Include="Assets\Tames\Scripts\Multi\Multiplayer\ReadMe and Disclaimer.txt" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF Overlay.shader" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Mobile.shader" />
+    <None Include="Assets\TextMesh Pro\Fonts\LiberationSans - OFL.txt" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile.shader" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_Sprite.shader" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
@@ -802,135 +839,135 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Unity.VSCode.Editor.csproj">
-      <Project>{7C4C5B71-3F02-3A16-10A6-41FA66E5A5C2}</Project>
+      <Project>{CACB9573-3A32-A734-5C52-806016151D20}</Project>
       <Name>Unity.VSCode.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.TextMeshPro.Editor.csproj">
-      <Project>{D5CAA2E4-EA62-39C8-D637-0F271A783359}</Project>
+      <Project>{D7CFED6B-88F6-C77F-C074-41E21C1A9A39}</Project>
       <Name>Unity.TextMeshPro.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.Searcher.Editor.csproj">
-      <Project>{CD16FF2B-C383-3ACB-E657-75B7FF57B9DF}</Project>
+      <Project>{79868641-BEE5-97B8-80FD-88842CA180B0}</Project>
       <Name>Unity.Searcher.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.InputSystem.csproj">
-      <Project>{F6E489A8-CD3B-BC34-2DE9-C7135A703950}</Project>
+      <Project>{0D185189-DAD9-CDDA-6071-9BABBE550603}</Project>
       <Name>Unity.InputSystem</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.Rider.Editor.csproj">
-      <Project>{463DE8C9-D30B-5382-8AEF-7D2ED6F4B7F1}</Project>
+      <Project>{4671367B-BF4C-6642-8D64-32A193E5959A}</Project>
       <Name>Unity.Rider.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEngine.SpatialTracking.csproj">
-      <Project>{0C49718B-6E63-EF34-7759-53C84D20199D}</Project>
+      <Project>{DB044333-8EF7-1FD1-1400-D738956DC18C}</Project>
       <Name>UnityEngine.SpatialTracking</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.OpenXR.Features.MetaQuestSupport.csproj">
-      <Project>{DB283FC6-66BC-26E3-CD8A-81D479CCC19C}</Project>
+      <Project>{3B2FA75B-B62C-CBB5-7A2C-8987ABF4F3AB}</Project>
       <Name>Unity.XR.OpenXR.Features.MetaQuestSupport</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.CoreUtils.Editor.csproj">
-      <Project>{E2BDA3EC-E407-10AA-4C74-933798EB5347}</Project>
+      <Project>{CB373AFC-0C93-C318-B932-A4B9A46BB5B2}</Project>
       <Name>Unity.XR.CoreUtils.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.OpenXR.Features.MetaQuestSupport.Editor.csproj">
-      <Project>{2CD29817-E6A0-ED9C-E766-002C91DA110D}</Project>
+      <Project>{5C7CEB15-CEE3-BEAA-09B5-AC3682399F95}</Project>
       <Name>Unity.XR.OpenXR.Features.MetaQuestSupport.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.Management.csproj">
-      <Project>{3EF15214-470C-FA3A-38F5-5B0467A5B7A6}</Project>
+      <Project>{782C495A-DF38-A34E-1433-3A270E8A1F8D}</Project>
       <Name>Unity.XR.Management</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.Mathematics.Editor.csproj">
-      <Project>{11392741-BE22-B4AA-A4B7-FDD29615D9D8}</Project>
+      <Project>{3352F40E-5B12-B2EE-EC23-82F18EBD23DD}</Project>
       <Name>Unity.Mathematics.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.VisualStudio.Editor.csproj">
-      <Project>{9571BE35-F7C8-C717-5D14-CA3ABE4B7D4D}</Project>
+      <Project>{F46F9F3C-6294-7F8D-D2C1-9BC14C0EB01C}</Project>
       <Name>Unity.VisualStudio.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.OpenXR.Features.OculusQuestSupport.Editor.csproj">
-      <Project>{A3F84C44-5025-3614-78F3-1D8FFC2FBA90}</Project>
+      <Project>{E5960D31-8798-1445-1AE0-80421BD4A62D}</Project>
       <Name>Unity.XR.OpenXR.Features.OculusQuestSupport.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.Management.Editor.csproj">
-      <Project>{BE1224E2-CC66-0BC2-4A99-ECEDD6E13C39}</Project>
+      <Project>{12E99545-650E-0B33-2125-4943002C7657}</Project>
       <Name>Unity.XR.Management.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.Timeline.csproj">
-      <Project>{B2DE8C35-4C53-3475-B290-A257BEA8316C}</Project>
+      <Project>{19B85451-01DE-D5BF-6A53-EBEB8C7F70AA}</Project>
       <Name>Unity.Timeline</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.TextMeshPro.csproj">
-      <Project>{C206B706-EAF2-388B-0E79-8ABAD9A973DD}</Project>
+      <Project>{E49E9962-2B36-3223-2324-EB96821547A6}</Project>
       <Name>Unity.TextMeshPro</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.Burst.Editor.csproj">
-      <Project>{59A4EB9D-9F1D-3A9A-BE5F-55FF6C1F1F78}</Project>
+      <Project>{24C0D892-F736-D6AE-9DAE-D36112631AC5}</Project>
       <Name>Unity.Burst.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.Interaction.Toolkit.csproj">
-      <Project>{D3B70859-1D64-E3F9-C462-8D5BF8265988}</Project>
+      <Project>{9808776E-6B7A-F226-3B98-F70DAF5FDB7B}</Project>
       <Name>Unity.XR.Interaction.Toolkit</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.Subsystem.Registration.csproj">
-      <Project>{10472A87-274D-CB67-6F1D-E2872DE282CF}</Project>
+      <Project>{C6E93159-0E7B-A2A7-E192-0F5B67A9B70E}</Project>
       <Name>Unity.Subsystem.Registration</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.PlasticSCM.Editor.csproj">
-      <Project>{DE83296E-FDD8-85B7-E478-990B2B911EDD}</Project>
+      <Project>{80FAFFB6-33F7-E254-F741-B74942F519B1}</Project>
       <Name>Unity.PlasticSCM.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.OpenXR.Features.OculusQuestSupport.csproj">
-      <Project>{94EB51CD-DC2B-D409-5BB8-D2DD68542BB6}</Project>
+      <Project>{1FAC5771-92CA-A347-09B1-067C0B44F5C7}</Project>
       <Name>Unity.XR.OpenXR.Features.OculusQuestSupport</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.Mathematics.csproj">
-      <Project>{45A19EAB-7C7A-246E-F3D2-D32267875AEF}</Project>
+      <Project>{7FA90B07-6C27-1059-7B41-98A0394B0C21}</Project>
       <Name>Unity.Mathematics</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.Burst.csproj">
-      <Project>{A9C83F9E-FAC8-6F0C-2164-42ABEC59BD8B}</Project>
+      <Project>{E8AEE467-986D-FA60-B97D-E7C75311E760}</Project>
       <Name>Unity.Burst</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEngine.XR.LegacyInputHelpers.csproj">
-      <Project>{0EAAF90C-C500-A7F1-6FB5-8A217ACBC177}</Project>
+      <Project>{01FE89DF-BBDE-7E67-BB3C-2D37158896C6}</Project>
       <Name>UnityEngine.XR.LegacyInputHelpers</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.OpenXR.Editor.csproj">
-      <Project>{3F603EC5-CD1D-BEB5-9520-A38A692B150F}</Project>
+      <Project>{697406D0-E5BE-A4E9-F1FB-4F4CE8B51D30}</Project>
       <Name>Unity.XR.OpenXR.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.Timeline.Editor.csproj">
-      <Project>{3E78A6AF-0DB7-1269-7D5D-A36030B2289D}</Project>
+      <Project>{FE303A69-2C66-5206-7B53-8754260660D6}</Project>
       <Name>Unity.Timeline.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.CoreUtils.csproj">
-      <Project>{FBB8CF87-39D8-72CC-5E98-D292EC033931}</Project>
+      <Project>{F0602321-9EA3-27F1-691D-696D3250AF3A}</Project>
       <Name>Unity.XR.CoreUtils</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEditor.XR.LegacyInputHelpers.csproj">
-      <Project>{8EF809AE-70B7-F39D-5C8F-A04D16E54E30}</Project>
+      <Project>{8AC30246-4D6C-048A-958A-45D49E188255}</Project>
       <Name>UnityEditor.XR.LegacyInputHelpers</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.OpenXR.csproj">
-      <Project>{BCA3E065-216E-9EA3-4722-858E667356C4}</Project>
+      <Project>{B27DF6D0-5589-2C1F-E5A7-CA74B60C3607}</Project>
       <Name>Unity.XR.OpenXR</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.Interaction.Toolkit.Editor.csproj">
-      <Project>{16050DBF-624D-F76D-31D2-4A1FC2CFF298}</Project>
+      <Project>{1D87D1B3-A668-0154-06DD-26EB0FEC3C9C}</Project>
       <Name>Unity.XR.Interaction.Toolkit.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEditor.SpatialTracking.csproj">
-      <Project>{ECF8E2FA-F21C-A91B-C890-7FCF210E9F56}</Project>
+      <Project>{3E6B42A7-BF72-C99E-3DFD-4659C1E66CFB}</Project>
       <Name>UnityEditor.SpatialTracking</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.OpenXR.Features.ConformanceAutomation.csproj">
-      <Project>{39F1E472-7444-2729-17C6-64E16A48B026}</Project>
+      <Project>{E085F757-51F7-2066-9872-DAA8DAAE7117}</Project>
       <Name>Unity.XR.OpenXR.Features.ConformanceAutomation</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.OpenXR.Features.RuntimeDebugger.Editor.csproj">
-      <Project>{C144C137-831E-90FA-FBA4-3E5AF1462069}</Project>
+      <Project>{837F7DC8-D34B-1BCB-7C9E-06CABE23CB2F}</Project>
       <Name>Unity.XR.OpenXR.Features.RuntimeDebugger.Editor</Name>
     </ProjectReference>
   </ItemGroup>

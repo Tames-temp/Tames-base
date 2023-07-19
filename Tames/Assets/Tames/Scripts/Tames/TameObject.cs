@@ -23,6 +23,7 @@ namespace Tames
         /// the lowest elements whose corresponding gameobject is <see cref="gameObject"/> or a parent or ancestor of it. 
         /// </summary>
         public TameElement tameParent;
+        public bool isElement = false;
         /// <summary>
         /// transform of the <see cref="gameObject"/>.
         /// </summary>
@@ -100,7 +101,7 @@ namespace Tames
         {
             if (progress != null)
             {
-                float pp = progress.slerpProgress;
+                float pp = progress.subProgress;
                 SetProgress(p);
                 handle.Move(p, pp);
             }
@@ -115,7 +116,7 @@ namespace Tames
             //     base.Update(p);
             if (progress != null)
             {
-                handle.Move(progress.slerpProgress, progress.lastSlerp);
+                handle.Move(progress.subProgress, progress.lastSub);
             }
         }
         /// <summary>
@@ -139,7 +140,7 @@ namespace Tames
             base.UpdateManually();
             if (progress != null)
             {
-                handle.Move(progress.slerpProgress, progress.lastSlerp);
+                handle.Move(progress.subProgress, progress.lastSub);
             }
         }
         override public void Update()
@@ -150,19 +151,19 @@ namespace Tames
                 SetByTime();
             if (progress != null)
             {
-                handle.Move(progress.slerpProgress, progress.lastSlerp);
+                handle.Move(progress.subProgress, progress.lastSub);
                 if (name == "last-door.001")
                 {
-            //        handle.path.MoveVirtual(progress.slerpProgress);
-             //       Debug.Log(" last " + handle.path.virtualMover.position + " " + handle.path.bases[0].position);
+                    //        handle.path.MoveVirtual(progress.slerpProgress);
+                    //       Debug.Log(" last " + handle.path.virtualMover.position + " " + handle.path.bases[0].position);
                     //       TameOrbit to  =(TameOrbit)handle.path;
                     //       Debug.Log(" >> "+ (to.self.TransformPoint(to.axis + to.pivot) - to.self.TransformPoint(to.pivot)));
 
                 }
                 if (name == "rotax")
                 {
-               //     handle.path.MoveVirtual(progress.slerpProgress);
-               //     Debug.Log(" rotax " + handle.path.virtualMover.position + " " + handle.path.bases[0].position);
+                    //     handle.path.MoveVirtual(progress.slerpProgress);
+                    //     Debug.Log(" rotax " + handle.path.virtualMover.position + " " + handle.path.bases[0].position);
                     //       TameOrbit to  =(TameOrbit)handle.path;
                     //       Debug.Log(" >> "+ (to.self.TransformPoint(to.axis + to.pivot) - to.self.TransformPoint(to.pivot)));
 
@@ -190,7 +191,7 @@ namespace Tames
                 handle.Move(progress.progress, progress.lastProgress);
             }
         }
-     
+
         private void AddArea(TameArea ti, GameObject g = null)
         {
             TameArea ti2 = ti;
@@ -240,6 +241,8 @@ namespace Tames
                 to.name = g.name;
                 to.markerProgress = g.GetComponent<MarkerProgress>();
                 to.markerSpeed = g.GetComponent<MarkerSpeed>();
+                if (to.handle.trackBasis == TrackBasis.Head)
+                    to.basis = TrackBasis.Head;
                 return to;
             }
             return null;
@@ -260,7 +263,7 @@ namespace Tames
                 };
                 MarkerFlicker[] mf = owner.GetComponents<MarkerFlicker>();
                 if (mf.Length == 0) mf = null;
-        //        tl.markerFlicker = mf;
+                //        tl.markerFlicker = mf;
                 tl.GetAreas(software);
                 tl.parents.Add(new TameEffect()
                 {
@@ -272,35 +275,38 @@ namespace Tames
                 if (mp != null) tl.markerProgress = mp;
                 //     tl.changers = owner.GetComponents<MarkerChanger>();
                 tes.Add(tl);
-                return new TameGameObject() { gameObject = owner, tameParent = tl, markerProgress = tl.markerProgress };
+                return new TameGameObject() { gameObject = owner, tameParent = tl, markerProgress = tl.markerProgress, isElement=true };
             }
             return null;
         }
         private static TameGameObject CheckCustom(GameObject owner, List<TameElement> tes, TameElement parentElement)
         {
-            MarkerCustom mc;
-            if ((mc = owner.GetComponent<MarkerCustom>()) != null)
-            {
-                TameCustomValue tc = new TameCustomValue()
+            MarkerProgress mc;
+            if (owner.GetComponent<MarkerMaterial>() == null)
+                if ((mc = owner.GetComponent<MarkerProgress>()) != null)
                 {
-                    name = mc.name,
-                    owner = owner,
-                    mover = owner,
-                    index = (ushort)tes.Count,
-                    markerProgress = owner.GetComponent<MarkerProgress>(),
-                    markerSpeed = owner.GetComponent<MarkerSpeed>()
-                };
-                tc.GetAreas();
-                tc.parents.Add(new TameEffect()
-                {
-                    type = parentElement.tameType == TameKeys.Time ? TrackBasis.Time : TrackBasis.Tame,
-                    parent = parentElement,
-                    child = tc,
-                });
-                //     tl.changers = owner.GetComponents<MarkerChanger>();
-                tes.Add(tc);
-                return new TameGameObject() { gameObject = owner, tameParent = tc, markerProgress = tc.markerProgress };
-            }
+
+                    TameCustomValue tc = new TameCustomValue()
+                    {
+                        name = owner.name,
+                        owner = owner,
+                        mover = owner,
+                        index = (ushort)tes.Count,
+                        markerProgress = mc,
+                        markerSpeed = owner.GetComponent<MarkerSpeed>()
+                    };
+
+                    tc.GetAreas();
+                    tc.parents.Add(new TameEffect()
+                    {
+                        type = parentElement.tameType == TameKeys.Time ? TrackBasis.Time : TrackBasis.Tame,
+                        parent = parentElement,
+                        child = tc,
+                    });
+                    //     tl.changers = owner.GetComponents<MarkerChanger>();
+                    tes.Add(tc);
+                    return new TameGameObject() { gameObject = owner, tameParent = tc, markerProgress = tc.markerProgress, isElement=true };
+                }
             return null;
         }
         private static TameGameObject CheckArea(GameObject owner, List<TameElement> tes, TameElement parentElement)
@@ -329,7 +335,7 @@ namespace Tames
                     //     tl.changers = owner.GetComponents<MarkerChanger>();
                     tes.Add(tc);
                     if (tc.name == "Quad") Debug.Log("q7 : " + tc.areas[0].geometry);
-                    return new TameGameObject() { gameObject = owner, tameParent = tc, markerProgress = tc.markerProgress };
+                    return new TameGameObject() { gameObject = owner, tameParent = tc, markerProgress = tc.markerProgress, isElement=true };
 
                 }
             return null;
@@ -356,7 +362,7 @@ namespace Tames
                 local[i] = null;
                 gi = owner.transform.GetChild(i).gameObject;
                 //    Debug.Log("check: " + owner.name + " ?");
-            //    if (gi.name == "path") Debug.Log("path ");
+                //    if (gi.name == "path") Debug.Log("path ");
                 if (!TameHandles.HandleKey(gi.name.ToLower()))
                 {
                     tg = null;
@@ -394,9 +400,10 @@ namespace Tames
                         gameObject = gi,
                         tameParent = obj == null ? parentElement : obj,
                         markerProgress = obj == null ? null : obj.markerProgress,
+                        isElement = obj!=null
                     };
                     tgo.Add(tg);
-                    if (obj != null) obj.tameGameObject = tg;
+                        if (obj != null) obj.tameGameObject = tg;
                 }
             }
             //       Debug.Log("check: " + owner.name + " " + cc);
@@ -408,6 +415,23 @@ namespace Tames
             }
 
             return tgo;
+        }
+        public static void CreateOrbiter(GameObject mover, Vector3 pivot, Vector3 axis, Vector3 start, float duration)
+        {
+            Transform parent = mover.transform;
+            mover.name = "_mov";
+            Transform pt = new GameObject("_pivot").transform;
+            pt.parent = parent;
+            pt.localPosition = pivot;
+            pt = new GameObject("_start").transform;
+            pt.parent = parent;
+            pt.localPosition = axis;
+            pt = new GameObject("_axis").transform;
+            pt.parent = parent;
+            pt.localPosition = start;
+            MarkerProgress mp = parent.gameObject.AddComponent<MarkerProgress>();
+            mp.duration = duration;
+            mp.continuity = ContinuityMode.Cycle;
         }
         public void CreateClones(List<TameGameObject> gos, List<TameElement> tes)
         {
