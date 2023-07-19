@@ -489,6 +489,7 @@ public class MarkerScoreditor : Editor
     SerializedProperty count;
     SerializedProperty passScore;
     SerializedProperty basket;
+    SerializedProperty interval;
     SerializedProperty onlyAfter;
     SerializedProperty activate;
     SerializedProperty show;
@@ -503,6 +504,7 @@ public class MarkerScoreditor : Editor
         count = serializedObject.FindProperty("count");
         passScore = serializedObject.FindProperty("passScore");
         basket = serializedObject.FindProperty("basket");
+        interval = serializedObject.FindProperty("interval");
         onlyAfter = serializedObject.FindProperty("onlyAfter");
         activate = serializedObject.FindProperty("activate");
         show = serializedObject.FindProperty("show");
@@ -524,6 +526,7 @@ public class MarkerScoreditor : Editor
         {
             EditorGUILayout.PropertyField(score);
             EditorGUILayout.PropertyField(count);
+            EditorGUILayout.PropertyField(interval);
             EditorGUILayout.PropertyField(basket);
             EditorGUILayout.PropertyField(onlyAfter);
             EditorGUILayout.PropertyField(control);

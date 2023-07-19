@@ -144,17 +144,14 @@ namespace InfoUI
         public int current = 0;
         bool firstUpdate = true;
         public List<InfoReference> references = new List<InfoReference>();
-        public FaceCamera faceCamera = FaceCamera.None;
+   //     public FaceCamera faceCamera = FaceCamera.None;
         float lastUpdate = 0;
         public Material lineMaterial;
         public const float RefUpdateInterval = 0.3f;
         public InfoControl(MarkerInfo m)
         {
             m.SetIC(this);
-            MarkerFaceCamera mfc = m.gameObject.GetComponent<MarkerFaceCamera>();
-            if ((mfc != null) && (mfc.enabled))
-                faceCamera = mfc.restrictY ? FaceCamera.RestrictY : FaceCamera.Free;
-            marker = m;
+              marker = m;
             if (marker.link != null)
             {
                 lineMaterial = new Material(Shader.Find("Unlit/Color"));
@@ -171,10 +168,11 @@ namespace InfoUI
                 }
             control = m.control;
             control.AssignControl(InputSetting.ControlTypes.DualPress);
-            areas = new(); List<InfoFrame> il = new List<InfoFrame>();
+            areas = new(); 
+            List<InfoFrame> infos = new List<InfoFrame>();
             for (int i = 0; i < marker.items.Length; i++)
-                il.Add(new InfoFrame() { marker = marker, material = material, index = il.Count, parent = this, item = marker.items[i] });
-            frames = il.ToArray();
+                infos.Add(new InfoFrame() { marker = marker, material = material, index = infos.Count, parent = this, item = marker.items[i] });
+            frames = infos.ToArray();
             for (int i = 0; i < frames.Length; i++)
                 frames[i].Initialize();
             if (marker.items.Length > 0) current = 0;

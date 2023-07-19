@@ -90,7 +90,7 @@ namespace InfoUI
             else
                 AdjustOnScreen();
             ReadText(marker.items[index].Text);
-            CreateTextNew();
+            CreateText();
             if (marker.link != null)
             {
                 lineRenderer = canvas.gameObject.AddComponent<LineRenderer>();
@@ -902,13 +902,13 @@ namespace InfoUI
             float height = inner.height / count;
 
             Rect T;
-      //      if (marker.name == "savoye") Debug.Log("savo " + context.Length);
+            //      if (marker.name == "savoye") Debug.Log("savo " + context.Length);
             if (context.Length < 3)
             {
                 T = context.Length == 1 ? context[0] : context[1];
                 if (inner.height > T.height)
                     count = (int)(T.height / height);
-              //  if (marker.name == "savoye") Debug.Log("savo " + count + " " + T.height + " " + inner.height);
+                //  if (marker.name == "savoye") Debug.Log("savo " + count + " " + T.height + " " + inner.height);
                 //  height = T.height / count;
                 offsetY = height / 4f;
                 offsetX = (context.Length == 2 && marker.horizontal == Horizontal.Left) ? height / 4 : 0;
@@ -1059,7 +1059,7 @@ namespace InfoUI
             {
                 Dash => "-",
                 Bullet => "●",
-                Alpha => " abcdefghijklmnopqrstuvwxyz"[n]+".",
+                Alpha => " abcdefghijklmnopqrstuvwxyz"[n] + ".",
                 _ => n + "."
             };
         }
@@ -1101,9 +1101,9 @@ namespace InfoUI
                         text[i].fontStyle = GetStyle(words[i].style);
                         text[i].text = s;
                     }
-                    //   Debug.Log(s + " " + words[i].style);
                     Vector2 pvs = text[i].GetPreferredValues();
                     spaceCount++;
+                    Debug.Log(s + " O: " + offset + " X: " + pvs.x + " W: " + width + " M: " + maxWidth + " S: "+ (space * (spaceCount - 1)));
                     if (width + pvs.x + offset + space * (spaceCount - 1) > maxWidth)
                     { r = i; created = i == start ? null : text[i]; break; }
                     else
@@ -1152,7 +1152,7 @@ namespace InfoUI
                         rect.anchoredPosition3D = new Vector3(rect.anchoredPosition.x, rect.anchoredPosition.y, -0.01f);
                         AddChild(rect, i, new(x, lines[y].yMin, lines[y].height));
                         x += widths[i] + space;
-                   //     if (marker.name == "bargraph") Debug.Log("bar: " + s);
+                        //     if (marker.name == "bargraph") Debug.Log("bar: " + s);
                     }
                 i = start - 1;
                 if (indentString != "")
@@ -1176,7 +1176,7 @@ namespace InfoUI
 
             return r;
         }
-        void CreateTextNew()
+        void CreateText()
         {
             text = new TextMeshProUGUI[words.Count];
             int y = 0;
@@ -1193,6 +1193,7 @@ namespace InfoUI
                 next = AddLine(y, w, indent, indentString, out TextMeshProUGUI tm, lastTextWidth, out bool manualBreak);
                 if (tm != null)
                     lastTextWidth = tm.GetPreferredValues().x;
+                if (manualBreak) lastTextWidth = 0;
                 y++;
                 w = next + (manualBreak ? 1 : 0);
                 if (y >= lines.Length || w >= words.Count)
@@ -1229,7 +1230,7 @@ namespace InfoUI
         }
 
 
-        
+
         public void SetInstancePosition()
         {
             Tames.TameCamera.camera.ScreenToWorldPoint(new Vector3());
