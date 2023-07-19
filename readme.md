@@ -24,6 +24,8 @@ IMPORTANT (constantly pay attention when working with Tames):
 
 Tames uses the networking toolkit RipTide created by Tom Weiland: https://www.youtube.com/@tomweiland 
 
-Thanks again for your time and interest
+Tames is a project created as part of my work at Department of Modelling, Faculty of Architecture, Czech Technical University in Prague, Czechia.
+
+Thanks again for your time and interest,
 
 Peiman 
