@@ -10,7 +10,7 @@ Tames's YouTube channel: https://www.youtube.com/channel/UCJYqvUKr7L0AjuitMkR70M
 
 - NOT TO DO: currently Tames is available as a template (not a package). Therefore, you should NOT create a new project in Unity Hub.
 - TO DO:
-1. Copy Tames' root folder in your desired location.  
+1. Copy either of Tames' root folders in your desired location 
 2. Rename the copied folder. 
 3. Open it in Unity Hub.
 
@@ -19,6 +19,7 @@ IMPORTANT (constantly pay attention when working with Tames):
 2. Only objects are considered as interactive or dynamic that are descnedants of a root object in the scene that has a Marker Root component (with Active field checked)
 3. I recommend to always separately create walkable surfaces so that you exactly know where the camera can move to. 
 4. If you include an interaction area or pathed element, always have the Read/Write checked for its prefab (see the manual).
+5. Use BiRP or Built-In rendering pipeline for light-weight Web-based projects and HDRP for offline or high quality projects. 
 
 Acknowledgment:
 
