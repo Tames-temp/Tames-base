@@ -105,6 +105,7 @@ namespace Tames
         }
         private static bool CheckDistanceAndAngle(GameObject owner, Vector3 position, Vector3 forward, float activeDistance, float activeAngle, Markers.InputSetting.Axis axis)
         {
+            if (owner == null) return true;
             Vector3 u = owner.transform.position - position;
             if (activeAngle > 0 || activeDistance > 0)
                 if (axis != Markers.InputSetting.Axis.None)
