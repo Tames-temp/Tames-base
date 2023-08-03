@@ -41,6 +41,7 @@ namespace Markers
         [TextAreaAttribute(5, 10)]
         private string text;
         public float textPortion = 0.7f;
+        public int lineCount = 10;
         public InfoOrder replace = InfoOrder.ReplacePrevious;
         public string Text { get { return text; } }
     }
@@ -57,7 +58,7 @@ namespace Markers
         public Horizontal horizontal { get { return GetHorizontal(); } }
         public ImagePosition imagePosition;
         public TextPosition textPosition;
-        public int lineCount = lastLine;
+    //    public int lineCount = lastLine;
         public Color color = lastBack;
         public Texture background = null;
         public Color textColor = lastFore;
@@ -114,11 +115,13 @@ namespace Markers
         }
         public void ChangedThisFrame(bool shouldChange)
         {
+#if UNITY_EDITOR
             if (UnityEditor.EditorApplication.isPlaying || UnityEditor.EditorApplication.isPaused)
-                changed = shouldChange;
+            changed = shouldChange;
             else changed = false;
+#endif
         }
-        private void LateUpdate()
+            private void LateUpdate()
         {
             if (changed)
             {

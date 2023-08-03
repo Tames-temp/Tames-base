@@ -238,6 +238,7 @@ namespace Tames
                 foreach (TameElement te in tes)
                     if (te.owner == marker.byElement)
                     {
+                        Debug.Log("bef: " + te.name);
                         parent = te;
                         break;
                     }

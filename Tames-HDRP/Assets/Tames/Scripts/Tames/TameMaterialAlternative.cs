@@ -78,6 +78,7 @@ namespace Tames
         public void Update()
         {
             int d = control.CheckDualPressed(marker.gameObject);
+            if (d != 0) Debug.Log("checking " + d);
             if (d < 0) GoPrevious();
             else if (d > 0) GoNext();
         }
@@ -90,6 +91,8 @@ namespace Tames
         {
             control = keys;
             control.AssignControl(InputSetting.ControlTypes.DualPress);
+            Debug.Log("keys: " + control.back.Count+ " "+control.key+ " "+control.back[0].hold);
+       
         }
 
         /// <summary>
@@ -105,7 +108,7 @@ namespace Tames
             for (int i = 0; i < tgos.Count; i++)
                 if ((mam = tgos[i].gameObject.GetComponent<MarkerAlterMaterial>()) != null)
                 {
-                    tma = new() { marker = mam};
+                    tma = new() { marker = mam };
                     tma.SetKeys(mam.control);
                     tma.alternatives = mam.alternatives;
                     tma.target = mam.applyTo;
@@ -125,7 +128,7 @@ namespace Tames
                     tma.SetInitial(tma.initial);
                     tmas.Add(tma);
                 }
-               return tmas;
+            return tmas;
         }
     }
 }

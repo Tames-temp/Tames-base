@@ -31,7 +31,8 @@ namespace InfoUI
         public MarkerInfo marker;
         public Material material;
         public int index;
-        Canvas canvas;
+        public float lineHeight = -1;
+        Canvas canvas = null;
         public GameObject owner;
         RectTransform rectTransform;
         float margin, textHeight, factor = 1;
@@ -47,6 +48,7 @@ namespace InfoUI
         List<Vector3> childCoord = new List<Vector3>();
         List<int> childTypes = new List<int>();
         List<WordRef> words = new List<WordRef>();
+        TextMeshProUGUI[] text = null;
         const int Bold = 1;
         const int Italic = 2;
         const int Highlight = 4;
@@ -55,6 +57,7 @@ namespace InfoUI
         const int Dash = 64;
         const int Number = 128;
         const int Alpha = 256;
+        const int Align = 512;
         const int BIH = Bold + Italic + Highlight;
         const int ListStyles = Bullet + Dash + Number;
         static string StyleSymbols = "|\\!";
@@ -65,24 +68,71 @@ namespace InfoUI
         List<IndexCounter> sections = new List<IndexCounter>();
         public InfoItem item;
         public int linesCount = 0;
-        public void Initialize()
+        public void Reset()
         {
-            if (marker.position == InfoPosition.WithObject)
+            words.Clear();
+            childCoord.Clear();
+            childTypes.Clear();
+            if (text != null)
+                for (int i = 0; i < text.Length; i++)
+                    if (text[i] != null)
+                        GameObject.Destroy(text[i].gameObject);
+
+            foreach (RectTransform rect in children)
+                if (rect != null)
+                    GameObject.Destroy(rect.gameObject);
+            children.Clear();
+            if (owner != null)
+                GameObject.Destroy(owner);
+            if (instance != null) GameObject.Destroy(instance);
+            lineHeight = -1;
+        }
+        public void Initialize(float height)
+        {
+            if (height < 0)
             {
-                main = outer = new Rect(0, 0, marker.width, marker.height);
-                inner = new Rect(marker.margin, marker.margin, marker.width - marker.margin * 2, marker.height - marker.margin * 2);
-                margin = marker.margin;
+                if (marker.position == InfoPosition.WithObject)
+                {
+                    main = outer = new Rect(0, 0, marker.width, marker.height);
+                    inner = new Rect(marker.margin, marker.margin, marker.width - marker.margin * 2, marker.height - marker.margin * 2);
+                    margin = marker.margin;
+                }
+                else
+                {
+                    main = outer = new Rect(0, 0, Screen.width, Screen.height);
+                    margin = Screen.height * marker.margin;
+                    MoveRects();
+                    inner = new Rect(margin + outer.xMin, margin + outer.yMin, outer.width - margin * 2, outer.height - margin * 2);
+                }
+                context = ItemRect();
+                lines = TextRectangles();
+                //    lineHeight = lines[0].height;
+                Debug.Log("base: " + marker.name + " " + outer.height);
             }
             else
             {
-                main = outer = new Rect(0, 0, Screen.width, Screen.height);
-                margin = Screen.height * marker.margin;
-                MoveRects();
-                inner = new Rect(margin + outer.xMin, margin + outer.yMin, outer.width - margin * 2, outer.height - margin * 2);
-            }
-            context = ItemRect();
+                float h;
+                if (marker.position == InfoPosition.WithObject)
+                {
+                    margin = marker.margin;
+                    h = item.lineCount * height + margin * 2;
+                    main = outer = new Rect(0, 0, marker.width, h);
+                    inner = new Rect(marker.margin, marker.margin, marker.width - marker.margin * 2, h - marker.margin * 2);
+                }
+                else
+                {
+                    margin = Screen.height * marker.margin;
+                    h = item.lineCount * height + margin * 2;
+                    main = outer = new Rect(0, 0, Screen.width, Screen.height);
+                    MoveRects(h);
+                    inner = new Rect(margin + outer.xMin, margin + outer.yMin, outer.width - margin * 2, outer.height - margin * 2);
+                }
+                lineHeight = height;
+                context = ItemRect();
+                lines = TextRectangles();
+                Debug.Log("next: " + marker.name + " " + outer.height);
 
-            lines = TextRectangles();
+            }
             CreateCanvas();
             Panelize();
             if (marker.position == InfoPosition.WithObject)
@@ -160,8 +210,10 @@ namespace InfoUI
             }
             //     linesCount += la.Length;
             int sec = -1;
+            bool first = true;
             for (int l = 0; l < la.Length; l++)
             {
+                first = true;
                 string[] ta = SplitBySpace(la[l]);
                 for (int i = 0; i < ta.Length; i++)
                 {
@@ -350,37 +402,7 @@ namespace InfoUI
             }
 
         }
-        static int GetStyle(string s, out string net)
-        {
-            int p;
-            bool[] styles = new bool[] { false, false, false };
-            if (s.Length == 1)
-                if (s == "\n")
-                {
-                    net = "";
-                    return NewLine;
-                }
-            for (int i = 0; i < 3; i++)
-                if (i >= s.Length) break;
-                else
-                {
-                    if ((p = StyleSymbols.IndexOf(s[i])) >= 0)
-                    {
-                        styles[p] = true;
-                    }
-                    else break;
-                }
-            int k = 0;
-            p = 0;
-            for (int i = 0; i < styles.Length; i++)
-                if (styles[i])
-                {
-                    p += Styles[i];
-                    k++;
-                }
-            net = s.Substring(k);
-            return p;
-        }
+
         static string GetStylePart(string s, out int highlight, out int bold, out int italic)
         {
             string sp = "";
@@ -432,6 +454,71 @@ namespace InfoUI
             Vector2 s = new Vector2(Screen.width, Screen.height);
             Vector2 m = new Vector2(marker.width, marker.height);
             m = Vector2.Scale(m, s);
+            Vector2 d = s - m;
+            //    Debug.Log(marker.position);
+            switch (marker.position)
+            {
+                case InfoPosition.Top: outer = new Rect(d.x / 2, 0, m.x, m.y); break;
+                case InfoPosition.TopLeft: outer = new Rect(0, 0, m.x, m.y); break;
+                case InfoPosition.TopRight: outer = new Rect(d.x, 0, m.x, m.y); break;
+                case InfoPosition.Bottom: outer = new Rect(d.x / 2, d.y, m.x, m.y); break;
+                case InfoPosition.BottomLeft: outer = new Rect(0, d.y, m.x, m.y); break;
+                case InfoPosition.BottomRight: outer = new Rect(d.x, d.y, m.x, m.y); break;
+                case InfoPosition.Left: outer = new Rect(0, d.y / 2, m.x, m.y); break;
+                case InfoPosition.Right: outer = new Rect(d.x, d.y / 2, m.x, m.y); break;
+                case InfoPosition.OnObject: outer = new Rect(0, 0, m.x, m.y); break;
+            }
+            bool repPrev = false;
+            if (index != 0)
+            {
+                InfoFrame prev = parent.frames[index - 1];
+                switch (item.replace)
+                {
+                    case InfoOrder.ReplacePrevious:
+                        repPrev = index > 0;
+                        break;
+                    case InfoOrder.ReplaceAll:
+                        break;
+                    case InfoOrder.AddVertical:
+                        switch (marker.position)
+                        {
+                            case InfoPosition.Top:
+                            case InfoPosition.TopLeft:
+                            case InfoPosition.TopRight:
+                            case InfoPosition.OnObject: outer.y = prev.outer.yMax + margin; break;
+                            case InfoPosition.Bottom:
+                            case InfoPosition.BottomLeft:
+                            case InfoPosition.BottomRight: outer.y = prev.outer.yMin - margin - outer.height; break;
+                            default: repPrev = index > 0; break;
+                        }
+                        break;
+                    case InfoOrder.AddHorizontal:
+                        switch (marker.position)
+                        {
+                            case InfoPosition.Left:
+                            case InfoPosition.TopLeft:
+                            case InfoPosition.BottomLeft:
+                            case InfoPosition.OnObject: outer.x = prev.outer.xMax + margin; break;
+                            case InfoPosition.Right:
+                            case InfoPosition.TopRight:
+                            case InfoPosition.BottomRight: outer.x = prev.outer.xMin - margin - outer.width; break;
+                            default: repPrev = index > 0; break;
+                        }
+                        break;
+                }
+
+                if (repPrev)
+                {
+                    outer.y = prev.outer.yMin;
+                    outer.x = prev.outer.xMin;
+                }
+            }
+        }
+        void MoveRects(float h)
+        {
+            Vector2 s = new Vector2(Screen.width, Screen.height);
+            Vector2 m = new Vector2(marker.width * Screen.width, h);
+            //    m = Vector2.Scale(m, s);
             Vector2 d = s - m;
             //    Debug.Log(marker.position);
             switch (marker.position)
@@ -898,9 +985,9 @@ namespace InfoUI
             Rect[] line;
             int cTop, cBottom;
             float y;
-            int count = marker.lineCount;
-            float height = inner.height / count;
-
+            int count = item.lineCount;
+            float height = lineHeight < 0 ? inner.height / count : lineHeight;
+            if (lineHeight < 0) lineHeight = height;
             Rect T;
             //      if (marker.name == "savoye") Debug.Log("savo " + context.Length);
             if (context.Length < 3)
@@ -961,7 +1048,7 @@ namespace InfoUI
             bool shiftX = false, shiftY = false;
             switch (marker.X)
             {
-                case InputSetting.Axis.None:
+                case InputSetting.Axis.Facing:
                 case InputSetting.Axis.X: right = marker.transform.right; break;
                 case InputSetting.Axis.NegX: right = -marker.transform.right; shiftX = false; break;
                 case InputSetting.Axis.Y: right = marker.transform.up; break;
@@ -971,7 +1058,7 @@ namespace InfoUI
             }
             switch (marker.Y)
             {
-                case InputSetting.Axis.None:
+                case InputSetting.Axis.Facing:
                 case InputSetting.Axis.X: up = marker.transform.right; break;
                 case InputSetting.Axis.NegX: up = -marker.transform.right; shiftY = false; break;
                 case InputSetting.Axis.Y: up = marker.transform.up; break;
@@ -1052,7 +1139,6 @@ namespace InfoUI
                     r += "8";
             return r + s;
         }
-        TextMeshProUGUI[] text;
         string BulletText(int n, int type)
         {
             return type switch
@@ -1086,7 +1172,7 @@ namespace InfoUI
                 s = words[i].text;
 
                 if (words[i].prop == InfoReference.RefProperty.Name)
-                    s = parent.references[words[i].depth].Get(InfoReference.RefProperty.Name);
+                    s = parent.references[words[i].depth].MaxName();
                 else if (words[i].prop != InfoReference.RefProperty.None)
                     s = words[i].depth < 0 ? "888" : "" + parent.references[words[i].depth].MaxLength();
                 if (s == "") { widths[i] = 0; ; continue; }
@@ -1103,7 +1189,7 @@ namespace InfoUI
                     }
                     Vector2 pvs = text[i].GetPreferredValues();
                     spaceCount++;
-                    Debug.Log(s + " O: " + offset + " X: " + pvs.x + " W: " + width + " M: " + maxWidth + " S: "+ (space * (spaceCount - 1)));
+                    //    Debug.Log(s + " O: " + offset + " X: " + pvs.x + " W: " + width + " M: " + maxWidth + " S: " + (space * (spaceCount - 1)));
                     if (width + pvs.x + offset + space * (spaceCount - 1) > maxWidth)
                     { r = i; created = i == start ? null : text[i]; break; }
                     else
@@ -1244,12 +1330,17 @@ namespace InfoUI
                     if (words[i].prop == InfoReference.RefProperty.Time)
                         text[i].text = (int)Tames.TameElement.ActiveTime + "";
                     else if (words[i].prop == InfoReference.RefProperty.Value)
+                    {
                         if (parent.references[words[i].depth] != null)
                         {
                             //       Debug.Log("ref bef " + words[i].index + "," + (text[i] == null) + " " + words[i].style);
                             text[i].text = parent.references[words[i].depth].Get(InfoReference.RefProperty.Value);
                             //          Debug.Log("ref aft " + words[i].index);
                         }
+                    }
+                    else if (words[i].prop == InfoReference.RefProperty.Name)
+                        text[i].text = parent.references[words[i].depth].Get(InfoReference.RefProperty.Name);
+
                 }
         }
         private static float[] XS = new float[] { -1, -1, -1, 0, 1, 1, 1, 0 };
@@ -1360,5 +1451,7 @@ namespace InfoUI
             owner.SetActive(vis);
             if (vis && passed) Enter(-1);
         }
+
+
     }
 }

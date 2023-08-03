@@ -12,12 +12,12 @@ namespace Markers
     [System.Serializable]
     public class InputSetting
     {
-        public enum Axis { None, X, Y, Z, NegX, NegY, NegZ }
+        public enum Axis { Facing, X, Y, Z, NegX, NegY, NegZ, None }
         public enum KeyHold { Shift, Alt, Ctrl, None }
         public enum GPHold { LeftTrigger, RightTrigger, None }
         public float maxDistance = 0;
         public float maxAngle = 0;
-        public Axis axis = Axis.None;
+        public Axis axis = Axis.Facing;
         public KeyHold auxKey = KeyHold.None;
         public string key = "";
         public GPHold auxGamepad = GPHold.None;

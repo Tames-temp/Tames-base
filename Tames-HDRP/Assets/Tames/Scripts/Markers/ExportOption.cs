@@ -21,18 +21,21 @@ namespace Markers
         public void Export()
         {
             bool success = false;
+#if UNITY_EDITOR
             string path = EditorUtility.OpenFilePanel("Select file", "Assets", "");
             if (path != "")
             {
                 TameFullRecord.allRecords = new TameFullRecord(null);
                 success = TameFullRecord.allRecords.Load(path);
             }
+
             if (success)
             {
                 path = System.IO.Path.GetDirectoryName(path);
                 if ("/\\".IndexOf(path[^1]) < 0) path += "\\";
                 TameFullRecord.allRecords.ExportToCSV(path, this);
             }
+#endif
+        }
         }
     }
-}

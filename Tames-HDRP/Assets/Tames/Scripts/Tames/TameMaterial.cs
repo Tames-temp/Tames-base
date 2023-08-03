@@ -174,7 +174,7 @@ namespace Tames
                     switch (tc.property)
                     {
                         case MaterialProperty.Color:
-                            //    Debug.Log("mix: " + progress[0].progress + " " + f[1] + ", " + clones.Count);
+                     //           Debug.Log("mix: " + prg.progress + " "+TameColor.ToColor(f).ToString() );
                             if (clonedMaterials.Count == 0) original.SetColor(Utils.ProperyKeywords[BaseColor], TameColor.ToColor(f));
                             else foreach (Material mat in clonedMaterials) mat.SetColor(Utils.ProperyKeywords[BaseColor], TameColor.ToColor(f));
                             //       Debug.Log("in: "+prg.element.name + " " + prg.progress + " " + tc.property+" "+f[3]);

@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-
-namespace Tames
+namespace Markers
 {
-    public class TameEnvironmentChanger:TameChanger
+    public  class MarkerList
     {
-      
+        public string[] items;
+
     }
 }

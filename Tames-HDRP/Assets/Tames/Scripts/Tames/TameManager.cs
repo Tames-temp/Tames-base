@@ -345,6 +345,7 @@ namespace Tames
                     markerSpeed = ms,
                     //           markerFlicker = mfs
                 };
+                Debug.Log("owner is "+tm.owner.name);
                 TameGameObject tg = TameGameObject.Find(tm.owner, tgos);
                 if (tg != null)
                 {
@@ -528,7 +529,7 @@ namespace Tames
                             for (int i = 0; i < ms.childrenOf.transform.childCount; i++)
                                 objects.Add(ms.childrenOf.transform.GetChild(i).gameObject);
 
-
+                        Debug.Log(to.name + " " + objects.Count);
                         if (objects.Count > 0)
                         {
                             te.scaledObjects = objects;
@@ -757,6 +758,11 @@ namespace Tames
         {
             foreach (TameScoreBasket ms in basket)
                 ms.Update();
+        }
+        public static void RecalculateInfo()
+        {
+            foreach (InfoUI.InfoControl fo in info)
+                fo.Calculate(false);
         }
     }
 }

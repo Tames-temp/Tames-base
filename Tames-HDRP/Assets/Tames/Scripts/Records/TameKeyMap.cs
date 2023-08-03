@@ -246,6 +246,8 @@ namespace Records
                         InputControlHold.GTR => hold[5] && (!hold[4]),
                         _ => hold[4] && hold[5]
                     };
+                else
+                comb =!(hold[4] || hold[5]) ;
                 if (!comb) return false;
                 switch (h)
                 {
@@ -413,6 +415,8 @@ namespace Records
                 up = Keyboard.current.rKey.isPressed;
                 down = Keyboard.current.fKey.isPressed;
                 shift = Keyboard.current.shiftKey.isPressed;
+                ctrl = Keyboard.current.ctrlKey.isPressed;
+                alt = Keyboard.current.altKey.isPressed;
                 info = Keyboard.current.enterKey.wasPressedThisFrame;
                 for (int i = 0; i < keyCount; i++)
                 {
@@ -470,7 +474,7 @@ namespace Records
                 InputControlHold.Shift => shift,
                 InputControlHold.Ctrl => ctrl,
                 InputControlHold.Alt => alt,
-                _ => true,
+                _ => !(alt||ctrl||shift) ,
             };
         }
         FrameShot ToFrameShot()

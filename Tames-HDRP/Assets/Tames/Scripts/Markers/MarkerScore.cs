@@ -10,6 +10,7 @@ namespace Markers
         public int score = 1;
         public int passScore = 10;
         public int count = 1;
+        public float interval = 10;
         public GameObject onlyAfter;
         public GameObject basket;
         public GameObject activate;

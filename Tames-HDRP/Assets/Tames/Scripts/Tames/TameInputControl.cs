@@ -224,17 +224,17 @@ namespace Tames
             {
                 Debug.Log(keys.key);
                 tcs = StringToDuo(keys.key, InputTypes.KeyboardMouse, keys.Aux(0));
-                if (tcs != null) { back.Add(tcs);  }
+                if (tcs != null) { back.Add(tcs); }
             }
             if (keys.gamepad != "")
             {
                 tcs = StringToDuo(keys.gamepad, InputTypes.GamePad, keys.Aux(1));
-                if (tcs != null) { back.Add(tcs);}
+                if (tcs != null) { back.Add(tcs); }
             }
             if (keys.controller != "")
             {
                 tcs = StringToDuo(keys.controller, InputTypes.VRController, keys.Aux(2));
-                if (tcs != null) { back.Add(tcs);  }
+                if (tcs != null) { back.Add(tcs); }
             }
         }
         public static TameInputControl[] StringToMonos(string S, InputTypes expectedType, InputControlHold iht)
@@ -248,7 +248,11 @@ namespace Tames
                 {
                     case InputTypes.KeyboardMouse:
                         if (pair.hold == InputHoldType.Button)
-                            return null;
+                        {
+                            r[0] = new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Button, keyValue = new int[] { -1 }, aux = iht };
+                            r[1] = new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Button, keyValue = new int[] { 1 }, aux = iht };
+                            return r;
+                        }
                         else
                         {
                             r[0] = new TameInputControl() { control = InputTypes.KeyboardMouse, hold = InputHoldType.Key, keyValue = new int[] { pair.keyValue[0] }, aux = iht };
@@ -337,7 +341,7 @@ namespace Tames
                 }
             return null;
         }
-   
+
 
         public static int FindKey(string key, bool byUser = true)
         {
@@ -462,7 +466,7 @@ namespace Tames
         }
         public int Hold()
         {
-            return Hold(keyMap);        
+            return Hold(keyMap);
         }
 
         public bool Pressed(Records.TameKeyMap keyMap)
@@ -494,8 +498,18 @@ namespace Tames
                 default:
                     {
                         if (!keyMap.AuxHold(aux)) return false;
-                        if (keyValue == null) return false;
-                        return keyMap.pressed[keyValue[0]];
+                        if (hold == InputHoldType.Key)
+                        {
+                            if (keyValue == null) return false;
+                            else return keyMap.pressed[keyValue[0]];
+                        }
+                        else
+                        {
+                   //         Debug.Log(keyMap.mouse.pressed[0]+" "+keyMap.mouse.pressed[1]);
+                            if (keyValue == null) return false;
+                            else if (keyValue[0] == -1) return keyMap.mouse.pressed[0];
+                            else return keyMap.mouse.pressed[1];
+                        }
                     }
             }
         }

@@ -39,6 +39,7 @@ namespace Tames
         private void ApplyUpdate()
         {
             float[] f;
+            Color c;
             //   ManifestLight m = (ManifestLight)manifest;
             //   Debug.Log("coll "+(m == null ? "null" : "not"));
             TameProgress progress = this.progress;
@@ -47,12 +48,15 @@ namespace Tames
                 foreach (TameChanger tc in properties)
                 {
                     if (tc.parent != null) progress = tc.parent.progress; else progress = this.progress;
+              //      if (tc.parent != null) Debug.Log("xe: "+name+" < "+tc.parent.name+" : "+progress.progress);
                     f = tc.On(progress.subProgress, progress.totalProgress, progress.continuity);
+                    
                     switch (tc.property)
                     {
                         case MaterialProperty.Glow:
                         case MaterialProperty.Color:
-                            light.color = TameColor.ToColor(f);
+                          c=  light.color = TameColor.ToColor(f);
+                            Debug.Log("xe " + progress.progress + " " + c.ToString());
                             //       if (name == "cooler") Debug.Log("colj: " + name + " " + progress.progress + light.color.ToString());
                             break;
                         case MaterialProperty.Bright: light.intensity = f[0]; break;
@@ -104,6 +108,7 @@ namespace Tames
             if (chs != null)
                 foreach (Markers.MarkerChanger ch in chs)
                 {
+                    if(ch.byElement != null) Debug.Log("be: "+ch.gameObject.name+ " "+ch.byElement.name);
                     mp = ch.GetProperty();
                     switch (mp)
                     {

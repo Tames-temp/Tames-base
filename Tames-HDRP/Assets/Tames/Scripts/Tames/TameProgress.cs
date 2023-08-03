@@ -426,6 +426,7 @@ namespace Tames
         }
         private void Set(float value)
         {
+         //   if (element.name == "lights") Debug.Log(progress);
             int i;
             float v = value;
             lastSub = subProgress;
@@ -467,8 +468,7 @@ namespace Tames
         }
         private void SetByAlter(float dt)
         {
-            if (element.name == "item1" && initiated != 0)
-                Debug.Log(" : " + initiated);
+     //       if (element.name == "item1" && initiated != 0)                Debug.Log(" : " + initiated);
 
             if (initiated != 0)
                 direction = initiated;

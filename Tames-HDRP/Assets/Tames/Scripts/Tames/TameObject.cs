@@ -304,6 +304,7 @@ namespace Tames
                         child = tc,
                     });
                     //     tl.changers = owner.GetComponents<MarkerChanger>();
+                    if (tc.name == "lights") Debug.Log("q7 : " + tc.name);
                     tes.Add(tc);
                     return new TameGameObject() { gameObject = owner, tameParent = tc, markerProgress = tc.markerProgress, isElement=true };
                 }
@@ -334,8 +335,7 @@ namespace Tames
                     });
                     //     tl.changers = owner.GetComponents<MarkerChanger>();
                     tes.Add(tc);
-                    if (tc.name == "Quad") Debug.Log("q7 : " + tc.areas[0].geometry);
-                    return new TameGameObject() { gameObject = owner, tameParent = tc, markerProgress = tc.markerProgress, isElement=true };
+                     return new TameGameObject() { gameObject = owner, tameParent = tc, markerProgress = tc.markerProgress, isElement=true };
 
                 }
             return null;
@@ -369,6 +369,7 @@ namespace Tames
                     obj = Create(gi);
                     if (obj != null)
                     {
+                        Debug.Log("obj: "+obj.name);
                         obj.markerCycle = gi.GetComponent<MarkerCycle>();
                         obj.markerQueue = gi.GetComponent<MarkerQueue>();
                         obj.GetAreas();

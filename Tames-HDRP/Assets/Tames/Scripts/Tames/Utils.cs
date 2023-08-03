@@ -528,7 +528,7 @@ public class Utils
         else
         {
 
-            ProperyKeywords = new string[] { "_BaseColor", "_EmissionColor", "_BaseMap", "_EmissionMap" };
+            ProperyKeywords = new string[] { "_Color", "_EmissionColor", "_MainTex", "_EmissionMap" };
         }
     }
 
@@ -948,6 +948,7 @@ public class Utils
     /// </summary>
     /// <param name="g"></param>
     /// <returns>returns a vector with all elements equal to the distance from the center to the furthest vertex</returns>
+  // public static OpenFile()
     public static Vector3 DetectSphere(GameObject g)
     {
         try

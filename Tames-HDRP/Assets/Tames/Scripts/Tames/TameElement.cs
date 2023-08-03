@@ -383,6 +383,7 @@ namespace Tames
             if (tameType == TameKeys.Object)
             {
                 TameObject to = (TameObject)this;
+            //    if (name == "item1") Debug.Log("" + to.scales);
                 if (to.scales)
                 {
                     Vector3 ls;
@@ -395,12 +396,14 @@ namespace Tames
                         else go.transform.localScale = new Vector3(ls.x, ls.y, s);
                     }
                     Vector2 tex;
+                  //  Debug.Log(initialTiles.Count);
                     for (int i = 0; i < initialTiles.Count; i++)
                         try
                         {
                             tex = scaledMaterials[i].GetTextureScale(Utils.ProperyKeywords[TameMaterial.MainTex]);
                             if (to.scaleUV == 0) tex.x = s * initialTiles[i]; else tex.y = s * initialTiles[i];
                             scaledMaterials[i].SetTextureScale(Utils.ProperyKeywords[TameMaterial.MainTex], tex);
+                            Debug.Log(s);
                         }
                         catch { }
                 }
@@ -419,6 +422,7 @@ namespace Tames
         {
             if (progress != null)
             {
+                if(name=="spot.036")Debug.Log(p.progress);
                 progress.interactDirection = changingDirection;
                 if (p.isMultiAlter)
                     progress.SetByParent(new float[] { p.lastSub, p.subProgress }, new float[] { p.lastSub, p.subProgress }, p.passToChildren, deltaTime);
@@ -483,8 +487,7 @@ namespace Tames
                                 }
                             }
                         }
-                        if (progress.initiated != 0)
-                            Debug.Log("checking " + name + " " + progress.initiated);
+                   //     if (progress.initiated != 0)                            Debug.Log("checking " + name + " " + progress.initiated);
                     }
                 }
             }
@@ -571,6 +574,7 @@ namespace Tames
         public virtual void UpdateManually()
         {
             SetManually();
+            Scale();
         }   /// <summary>
             /// updates the current element based on passage of time. 
             /// </summary>
@@ -689,7 +693,7 @@ namespace Tames
                 case TrackBasis.Time: tp.child.Update(); break;
                 case TrackBasis.Grip: tp.child.Update(); break;// tp.child.Grip(tp); break;Debug.Log("m should be: "+tp.child.directProgress); 
             }
-
+       //      if (tp.child.name == "item1") Debug.Log(tp.type);
             tp.child.Scale();
         }
         #endregion
@@ -1214,7 +1218,8 @@ namespace Tames
             //    Debug.Log("type df " + name);
             if (progress != null)
             {
-                if (tameType != TameKeys.Material) SetControls(owner.GetComponents<MarkerControl>());
+               // if (tameType != TameKeys.Material)
+               SetControls(owner.GetComponents<MarkerControl>());
                 SetControls();
                 if (markerProgress != null)
                 {

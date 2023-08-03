@@ -47,7 +47,7 @@ namespace Tames
         public TameScore after;
         public float lastPassed = -1;
         public int count = 0;
-        public float interval = 10;
+        public float interval;
         public int lastAfterCount = 0;
 
         public TameScore(MarkerScore ms)
@@ -55,6 +55,7 @@ namespace Tames
             marker = ms;
             marker.control.AssignControl(InputSetting.ControlTypes.Mono);
             show = ms.show;
+            interval = ms.interval > 0 ? ms.interval : 10;
             control = marker.control;
         }
 

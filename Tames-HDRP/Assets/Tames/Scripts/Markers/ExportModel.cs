@@ -14,19 +14,23 @@ namespace Markers
 
         public void Save()
         {
+#if UNITY_EDITOR
             string path = UnityEditor.EditorUtility.SaveFilePanel("Select file ", "Assets", "", "");
             if (!string.IsNullOrEmpty(path))
             {
 
             }
+#endif
         }
         public void Load()
         {
+#if UNITY_EDITOR         
             string path = UnityEditor.EditorUtility.OpenFilePanel("Select file ", "Assets", "");
             if (!string.IsNullOrEmpty(path))
             {
 
             }
+#endif     
         }
     }
 }

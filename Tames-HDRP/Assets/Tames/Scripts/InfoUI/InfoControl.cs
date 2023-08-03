@@ -23,9 +23,9 @@ namespace InfoUI
         }
         public enum RefProperty
         {
-            Name, Value, Time, Total, None
+            Name, Value, Time, Total, Label, None
         }
-        public static string[] Labels = new string[] { "name", "max" };
+        public static string[] Labels = new string[] { "name", "max", "label" };
         public bool Identify()
         {
             List<TameGameObject> tgos = TameManager.tgos;
@@ -111,8 +111,11 @@ namespace InfoUI
                 default: return "";
             }
         }
+
+
         private string GetTotal()
         {
+
             switch (refType)
             {
                 case RefType.Alternative: return "" + alternative.alternatives.Count;
@@ -122,9 +125,28 @@ namespace InfoUI
                 default: return "";
             }
         }
+        private string GetTotalName()
+        {
+            string r = "";
+            if (refType == RefType.Alternative)
+            {
+                foreach (TameAlternative.Alternative al in alternative.alternatives)
+                    if (r.Length < al.gameObject[0].name.Length) r = al.gameObject[0].name;
+            }
+            else r = GetName();
+            return r;
+        }
         public string MaxLength()
         {
             string s = GetTotal();
+            string r = "";
+            for (int i = 0; i < s.Length; i++)
+                r += "8";
+            return r;
+        }
+        public string MaxName()
+        {
+            string s = GetTotalName();
             string r = "";
             for (int i = 0; i < s.Length; i++)
                 r += "8";
@@ -144,14 +166,16 @@ namespace InfoUI
         public int current = 0;
         bool firstUpdate = true;
         public List<InfoReference> references = new List<InfoReference>();
-   //     public FaceCamera faceCamera = FaceCamera.None;
+        //     public FaceCamera faceCamera = FaceCamera.None;
         float lastUpdate = 0;
         public Material lineMaterial;
-        public const float RefUpdateInterval = 0.3f;
+        public const float RefUpdateInterval = 0.2f;
+        public int maxLines;
+        int maxIndex;
         public InfoControl(MarkerInfo m)
         {
             m.SetIC(this);
-              marker = m;
+            marker = m;
             if (marker.link != null)
             {
                 lineMaterial = new Material(Shader.Find("Unlit/Color"));
@@ -168,38 +192,54 @@ namespace InfoUI
                 }
             control = m.control;
             control.AssignControl(InputSetting.ControlTypes.DualPress);
-            areas = new(); 
+            areas = new();
             List<InfoFrame> infos = new List<InfoFrame>();
+            maxLines = 0;
+            maxIndex = -1;
             for (int i = 0; i < marker.items.Length; i++)
+            {
                 infos.Add(new InfoFrame() { marker = marker, material = material, index = infos.Count, parent = this, item = marker.items[i] });
+                if (marker.items[i].lineCount > maxLines) { maxLines = marker.items[i].lineCount; maxIndex = i; }
+            }
             frames = infos.ToArray();
-            for (int i = 0; i < frames.Length; i++)
-                frames[i].Initialize();
-            if (marker.items.Length > 0) current = 0;
-            MarkerArea ma;
-            Tames.TameArea ta;
-            for (int i = 0; i < marker.areas.Length; i++)
-                if (marker.areas[i] != null)
-                {
-                    ta = null;
-                    if ((ma = marker.areas[i].GetComponent<MarkerArea>()) != null)
-                    {
-                        ma.update = EditorUpdate.Fixed;
-                        ma.mode = InteractionMode.Inside;
-                        ma.autoPosition = false;
-                        switch (ma.geometry)
-                        {
-                            case InteractionGeometry.Box:
-                            case InteractionGeometry.Cylinder:
-                            case InteractionGeometry.Sphere:
-                                ta = Tames.TameArea.ImportArea(ma.gameObject, new Tames.TameElement() { owner = marker.gameObject, tameType = TameKeys.Custom });
-                                break;
-                        }
-                        if (ta != null)
-                            areas.Add(ta);
-                    }
-                }
+            Calculate();
+        }
+        public void Calculate(bool first = true)
+        {
+            Debug.Log("infor recalc");
+            for (int i = 0; i < frames.Length; i++) frames[i].Reset();
+            frames[maxIndex].Initialize(-1);
 
+            for (int i = 0; i < frames.Length; i++)
+                if (i != maxIndex) frames[i].Initialize(frames[maxIndex].lineHeight);
+            if (marker.items.Length > 0) current = 0;
+            if (first)
+            {
+                MarkerArea ma;
+                Tames.TameArea ta;
+
+                for (int i = 0; i < marker.areas.Length; i++)
+                    if (marker.areas[i] != null)
+                    {
+                        ta = null;
+                        if ((ma = marker.areas[i].GetComponent<MarkerArea>()) != null)
+                        {
+                            ma.update = EditorUpdate.Fixed;
+                            ma.mode = InteractionMode.Inside;
+                            ma.autoPosition = false;
+                            switch (ma.geometry)
+                            {
+                                case InteractionGeometry.Box:
+                                case InteractionGeometry.Cylinder:
+                                case InteractionGeometry.Sphere:
+                                    ta = Tames.TameArea.ImportArea(ma.gameObject, new Tames.TameElement() { owner = marker.gameObject, tameType = TameKeys.Custom });
+                                    break;
+                            }
+                            if (ta != null)
+                                areas.Add(ta);
+                        }
+                    }
+            }
         }
         public bool Inside(Vector3 p)
         {
@@ -223,7 +263,7 @@ namespace InfoUI
         private void Change(int dir)
         {
             indexChanged = false;
-            Debug.Log(marker.name + " " + dir);
+            //     Debug.Log(marker.name + " " + dir);
             if (frames.Length > 0)
             {
                 if (dir < 0)

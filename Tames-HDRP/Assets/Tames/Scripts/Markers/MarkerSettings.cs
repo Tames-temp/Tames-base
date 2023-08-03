@@ -33,6 +33,7 @@ namespace Markers
         }
         public void Load()
         {
+#if UNITY_EDITOR
             string path = UnityEditor.EditorUtility.OpenFilePanel("Select folder", "Assets", "");
             if (path != "")
             {
@@ -53,9 +54,11 @@ namespace Markers
                     index++;
                 }
             }
+#endif
         }
         public void Save()
         {
+#if UNITY_EDITOR
             string path = UnityEditor.EditorUtility.OpenFolderPanel("Select folder", "Assets", "");
             if (path != "")
             {
@@ -75,6 +78,7 @@ namespace Markers
                 }
                 System.IO.File.WriteAllLines(path + "\\" + fn + ".txt", lines.ToArray());
             }
+#endif
         }
         private static List<Material> mas = new();
         private static List<GameObject> gos = new();
@@ -166,7 +170,7 @@ namespace Markers
             return r;
         }
 
-        public static GameObject LineToObject(string s, GameObject root=null)
+        public static GameObject LineToObject(string s, GameObject root = null)
         {
             string[] ss = s.Split(',');
             string[] nas = new string[ss.Length];
@@ -274,12 +278,14 @@ namespace Markers
         public void ExportToCSV()
         {
             bool success = false;
+#if UNITY_EDITOR
             string path = EditorUtility.OpenFilePanel("Select file", "Assets", "");
             if (path != "")
             {
                 TameFullRecord.allRecords = new TameFullRecord(null);
                 success = TameFullRecord.allRecords.Load(path);
             }
+
             if (success)
             {
                 path = EditorUtility.SaveFolderPanel("Select folde", "Assets", "");
@@ -288,6 +294,7 @@ namespace Markers
                     //                 TameFullRecord.allRecords.ExportToCSV(path, option);
                 }
             }
+#endif
+        }
         }
     }
-}

@@ -60,6 +60,7 @@ namespace Tames
             if ((alternatives.Count <= 0) || (current < 0))
                 return;
             int d = control.CheckDualPressed(alternatives[current].gameObject[0]);
+    if(d!=0)        Debug.Log("alter " + d);
             if (d < 0) GoPrevious();
             else if (d > 0) GoNext();
         }

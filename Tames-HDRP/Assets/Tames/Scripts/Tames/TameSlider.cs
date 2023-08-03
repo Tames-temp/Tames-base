@@ -144,10 +144,16 @@ namespace Tames
                 gameObject.transform.rotation = pathObject.transform.rotation;
                 //     parent = g.transform.parent;
                 MeshFilter mf = pathObject.GetComponent<MeshFilter>();
+                Vector3 p;
                 if (mf != null)
                 {
                     mesh = mf.sharedMesh;
                     Vector3[] v = mesh.vertices;
+                    for (int i = 0; i < v.Length; i++)
+                    {
+                        p = pathObject.transform.TransformPoint(v[i]);
+                        v[i] = gameObject.transform.InverseTransformPoint(p);
+                    }
                     //  Vector3[] n = mesh.normals;
                     T = mesh.triangles;
                     oT = mesh.triangles;

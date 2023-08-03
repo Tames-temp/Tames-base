@@ -37,11 +37,13 @@ namespace Markers
         }
         public void ChangedThisFrame(bool shouldChange)
         {
+#if UNITY_EDITOR
             if (UnityEditor.EditorApplication.isPlaying)
-                changed = shouldChange;
+            changed = shouldChange;
             else changed = false;
+#endif
         }
-        public static void PopulateAll(List<Tames.TameGameObject> tgos)
+            public static void PopulateAll(List<Tames.TameGameObject> tgos)
         {
         }
         // public class 

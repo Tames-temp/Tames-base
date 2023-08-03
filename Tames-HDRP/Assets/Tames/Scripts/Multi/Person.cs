@@ -262,7 +262,7 @@ namespace Multi
                 switchCount++;
                 hand[0].AfterGrip(true);
             }
-            if (switchCount >= 10)
+            if (switchCount >= 60)
             {
                 hand[0].wrist.transform.position = head.transform.position;
                 hand[0].wrist.SetActive(false);

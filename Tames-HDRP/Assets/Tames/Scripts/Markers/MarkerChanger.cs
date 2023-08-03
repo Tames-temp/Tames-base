@@ -28,11 +28,13 @@ namespace Markers
         private bool changed = false;
         public void ChangedThisFrame(bool shouldChange)
         {
+#if UNITY_EDITOR
             if (UnityEditor.EditorApplication.isPlaying || UnityEditor.EditorApplication.isPaused)
-                changed = shouldChange;
+            changed = shouldChange;
             else changed = false;
+#endif
         }
-        private void LateUpdate()
+            private void LateUpdate()
         {
             if (changed)
             {

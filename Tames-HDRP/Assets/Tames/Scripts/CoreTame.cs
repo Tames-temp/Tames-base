@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.XR;
@@ -35,7 +34,7 @@ public class CoreTame : MonoBehaviour
     // objects
     public static Camera mainCamera;
     //  public Text text;
-    public static Vector2 screenSize;
+    public static Vector2Int screenSize;
     // mirror
     // door
     // timing
@@ -55,9 +54,11 @@ public class CoreTame : MonoBehaviour
     public static GameObject torch;
     public RenderTexture renderTexture;
     public static Material baseCanvasMaterial;
+    Vector2Int lastScreen;
+
     void Start()
     {
-     
+
         LoadLibraries();
         Utils.SetPipelineLogics();
         Utils.SetPOCO();
@@ -73,7 +74,7 @@ public class CoreTame : MonoBehaviour
             t = t.parent;
         }
         TameCamera.camera = mainCamera;
-        screenSize = new Vector2(Screen.width, Screen.height);
+        lastScreen = screenSize = new Vector2Int(Screen.width, Screen.height);
         PrepareLoadScene();
         TameCamera.ZKey = TameInputControl.FindKey("z", false);
         TameCamera.XKey = TameInputControl.FindKey("x", false);
@@ -313,8 +314,25 @@ public class CoreTame : MonoBehaviour
             TameCamera.UpdateCamera();
             TameManager.UpdatePeoploids();
             FlushPressed();
-          //  Debug.Log("cam " + mainCamera.transform.position);
+            if (ResolutionChanged()) TameManager.RecalculateInfo();
+            //  Debug.Log("cam " + mainCamera.transform.position);
         }
+    }
+    float changedTime = 0;
+    bool ResolutionChanged()
+    {
+        if (lastScreen.x != Screen.width || lastScreen.y != Screen.height)
+        {
+            changedTime = Time.time;
+            lastScreen = new Vector2Int(Screen.width, Screen.height);
+        }
+        else if (lastScreen.x != screenSize.x || lastScreen.y != screenSize.y)
+            if (Time.time - changedTime > 1)
+            {
+                screenSize = new Vector2Int(Screen.width, Screen.height);
+                return true;
+            }
+        return false;
     }
     void FlushPressed()
     {
@@ -373,6 +391,7 @@ public class CoreTame : MonoBehaviour
         {
             DateTime now = DateTime.Now;
             bool saved = false;
+#if UNITY_EDITOR
             if (exportOption != null)
                 if (exportOption.folder != "")
                 {
@@ -380,6 +399,7 @@ public class CoreTame : MonoBehaviour
                     if ("/\\".IndexOf(path[^1]) < 0) path += "\\";
                     saved = TameFullRecord.allRecords.Save(path + now.ToString("yyyy.MM.dd HH.mm.ss") + ".tfr");
                 }
+
             if (!saved)
             {
                 path = UnityEditor.EditorUtility.OpenFolderPanel("Select a directory", "Assets", "");
@@ -389,6 +409,7 @@ public class CoreTame : MonoBehaviour
                     TameFullRecord.allRecords.Save(path + now.ToString("yyyy.MM.dd HH.mm.ss") + ".tfr");
             }
 
+#endif
         }
         if (VRMode) return null;
         //    Debug.Log("bef " + TameCamera.cameraTransform.position.ToString());
@@ -426,7 +447,7 @@ public class CoreTame : MonoBehaviour
     bool SwitchInput()
     {
         if (Keyboard.current != null)
-            if (Keyboard.current.backquoteKey.wasPressedThisFrame) return true;
+            if (Keyboard.current.backquoteKey.wasPressedThisFrame||Mouse.current.middleButton.wasPressedThisFrame) return true;
         if (Gamepad.current != null)
             if (Gamepad.current.startButton.wasPressedThisFrame) return true;
         return false;

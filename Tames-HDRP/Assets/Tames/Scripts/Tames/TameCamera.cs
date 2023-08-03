@@ -107,7 +107,8 @@ namespace Tames
         {
             Vector3 u = owner.transform.position - position;
             if (activeAngle > 0 || activeDistance > 0)
-                if (Vector3.Angle(u, forward) >= 90) return false;
+                if (axis != Markers.InputSetting.Axis.None)
+                    if (Vector3.Angle(u, forward) >= 90) return false;
             if (activeDistance > 0)
             {
                 if (Vector3.Distance(owner.transform.position, position) > activeDistance) return false;
@@ -141,11 +142,11 @@ namespace Tames
         }
         public static bool CheckDistanceAndAngle(GameObject owner, float activeDistance, float activeAngle, Markers.InputSetting.Axis axis)
         {
-            return CheckDistanceAndAngle(owner, cameraTransform.position, cameraTransform.forward, activeDistance, activeAngle, axis);          
+            return CheckDistanceAndAngle(owner, cameraTransform.position, cameraTransform.forward, activeDistance, activeAngle, axis);
         }
         public static bool CheckDistanceAndAngle(GameObject owner, Person person, float activeDistance, float activeAngle, Markers.InputSetting.Axis axis)
         {
-            return CheckDistanceAndAngle(owner, person.headPosition, person.headForward, activeDistance, activeAngle, axis);           
+            return CheckDistanceAndAngle(owner, person.headPosition, person.headForward, activeDistance, activeAngle, axis);
         }
         public static void SetFirstFace(Walking.WalkFace f)
         {
@@ -371,7 +372,7 @@ namespace Tames
             else
             {
                 Vector3 p = tran.position;
-       //         TameManager.walkManager.UpdateActive();
+                //         TameManager.walkManager.UpdateActive();
                 currentFace = TameManager.walkManager.MoveTo(p);
                 if (currentFace == null) currentFace = lastFace;
                 if (currentFace != lastFace)
@@ -387,6 +388,6 @@ namespace Tames
                 TameManager.walkManager.RecordLastStatus();
             }
             cameraTransform.SetPositionAndRotation(onWalk.position, onWalk.rotation);
-          }
+        }
     }
 }
