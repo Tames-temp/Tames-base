@@ -1,3 +1,7 @@
+This is the old webpage of Tames Toolkit. Please visit https://github.com/Follyverse for the updated toolkit.
+
+
+
 Hello!
 
 Tames is a Unity template project that allows management and planning of associative and interactive elements (targeting architectural design) without any programming skills. The name Tames is a bit lame, I would admit. It was chosen in early stages when its main class was called TameObject, i.e. a tamed GameObject (the class is still the main class for controlling 3D elements). A manual is available in the Manual folder. Tames has been constantly tested for desktop visualisation, but there may be issues in VR. Currently the multiuser feature is disabled after an extensive change of data structures and interaction logics.
